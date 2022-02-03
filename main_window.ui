@@ -18,16 +18,7 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QTreeWidget" name="treeWidget">
-        <attribute name="headerVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string notr="true">1</string>
-         </property>
-        </column>
-       </widget>
+       <widget class="QTreeView" name="treeView"/>
       </item>
      </layout>
     </item>
