@@ -1,0 +1,31 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://inp-greifswald.de",
+    "title": "Blank Schema",
+    "description": "A default Schema for my pyjson converter. Get's created by the tool on the fly.",
+    "type": "object",
+    "properties": {
+        "general": {
+            "title": "general",
+            "description": "I'm just a blank test schema. Use me for testing and for trying out functions.",
+            "type": "string"
+        },
+        "hierarch": {
+            "title": "hierarch",
+            "description": "Anchor for the rest.",
+            "type": "object",
+            "properties": {
+                "Stage 1": {
+                    "title": "Stage 1",
+                    "description": "Open a Schema from your hard drive and add it to the schema storage. Then select it via the selector.",
+                    "type": "string"
+                },
+                "Stage 2": {
+                    "title": "Stage 2",
+                    "description": "You can generate a blank JSON from a schema, load a default for a selected schema or open a JSON and validate it.",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

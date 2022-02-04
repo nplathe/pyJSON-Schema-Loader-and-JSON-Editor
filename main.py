@@ -16,7 +16,6 @@ from schema_model import TreeClass, TreeItem
 import os
 
 
-
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -78,6 +77,8 @@ def decode_function(json_path):
 
 # A function generating a JSON-like python structure from the schema.
 def schema_to_py_gen(decoded_schema):
+    if decoded_schema == -999 or decoded_schema == 2:
+        return {}
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -97,6 +98,8 @@ def schema_to_py_gen(decoded_schema):
     return return_dict
 
 def schema_to_ref_gen(decoded_schema):
+    if decoded_schema == -999 or decoded_schema == 2:
+        return {}
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -106,19 +109,38 @@ def schema_to_ref_gen(decoded_schema):
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["description"]
         except KeyError as err:
-            print("[main.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
+            print("[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
                   ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
 def py_to_tree(input_dict: dict, reference_dict: dict, return_tree = TreeClass(data = ["Key","Value","Description"])) -> TreeClass:
+    incrementor = 0
     for element in input_dict:
-        if type(input_dict[element]) is str:
-            return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), reference_dict[element]])
+        if reference_dict[element]:
+            if type(input_dict[element]) is str:
+                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), reference_dict[element]])
+            else:
+                return_tree.add_node(parent=return_tree.root_node,
+                                     data=[element, '', ''])
+                part_tree = py_to_tree(input_dict[element], reference_dict[element], return_tree = TreeClass(data = ["K","V","D"]))
+                for node in part_tree.root_node.childItems:
+                    node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
+                    return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+            incrementor += 1
         else:
-            return_tree.add_node(parent=return_tree.root_node,
-                                 data=[element, '', ''])
+            if type(input_dict[element]) is str:
+                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'Description not found'])
+            else:
+                return_tree.add_node(parent=return_tree.root_node,
+                                     data=[element, '', ''])
+                part_tree = py_to_tree(input_dict[element], {}, return_tree = TreeClass(data = ["K","V","D"]))
+                for node in part_tree.root_node.childItems:
+                    node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
+                    return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+            incrementor += 1
     return return_tree
+
 
 # ----------------------------------------
 # Execution

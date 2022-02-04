@@ -66,8 +66,6 @@ class TreeItem(object):
     def DataLength(self): # aka the columns of our TreeView
         return len(self.itemData)
 
-    # parent functions
-
     def getParent(self):
         return self.parentItem
 
@@ -146,10 +144,10 @@ class TreeClass(QtCore.QAbstractItemModel):
             return False
         item = self.getItem(index)
         result = item.setData(column = index.column(), data = value)
-        print(result)
-        print(item.getDataArray())
         if result:
             self.dataChanged.emit(index, index)
+            print("[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:")
+            print(item.getDataArray())
         return result
 
     def add_node(self, parent, data):
