@@ -63,6 +63,7 @@ def validator_vars(json_str, json_schema_path):
 
 # Wrapper for the JSONDecoder function
 def decode_function(json_path):
+    print("----------\nReading " + json_path + "\n----------")
     try:
         loaded_json = open(json_path)
         result = json.load(loaded_json, cls=json.JSONDecoder)
@@ -114,10 +115,12 @@ def schema_to_ref_gen(decoded_schema):
             continue
     return return_dict
 
-def py_to_tree(input_dict: dict, reference_dict: dict, return_tree = TreeClass(data = ["Key","Value","Description"])) -> TreeClass:
+def py_to_tree(input_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
     incrementor = 0
     for element in input_dict:
-        if reference_dict[element]:
+        try:
+            if not element in reference_dict:
+                raise KeyError("[main.py_to_tree/INFO]: Element not in Schema Definition.")
             if type(input_dict[element]) is str:
                 return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), reference_dict[element]])
             else:
@@ -128,7 +131,8 @@ def py_to_tree(input_dict: dict, reference_dict: dict, return_tree = TreeClass(d
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
-        else:
+        except KeyError as err:
+            print("Key " + element +" may not be present in Schema. Switch to empty description")
             if type(input_dict[element]) is str:
                 return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'Description not found'])
             else:

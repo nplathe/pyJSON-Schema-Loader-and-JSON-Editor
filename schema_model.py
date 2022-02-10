@@ -1,8 +1,6 @@
 # ----------------------------------------
 # a model for the json schema that implements QAbstractModel
-# almost feature complete implementation from
-# https://github.com/baoboa/pyqt5/tree/master/examples/itemviews/simpletreemodel
-# and the Qt Documentation...
+# almost feature complete implementation from examples of the Qt Documentation...
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):

@@ -55,9 +55,30 @@ def deploy_schema(path):
         print("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
         return False
     return True
+
+def deploy_config(path):
+    config = {
+            "last_dir": os.getcwd(),
+            "last_schema": "default.json",
+            "last_JSON": None
+        }
+    try:
+        with open(os.path.join(path, "config.json"), "w") as out:
+            json.dump(config, out, indent = 4)
+    except OSError as err:
+        print("[deploy_files.deploy_config/ERROR]: Could not set default config.")
+
+def save_config(path, config):
+    try:
+        with open(os.path.join(path, "config.json"), "w") as out:
+            json.dump(config, out, indent = 4)
+    except OSError as err:
+        print("[deploy_files.save_config/ERROR]: Could not save config.")
+
 # ----------------------------------------
 # Execution
 # ----------------------------------------
 
 if __name__ == "__main__":
     print("Please don't run me directly, I just provide some files.")
+    deploy_config(os.getcwd())

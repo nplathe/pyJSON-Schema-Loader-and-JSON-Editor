@@ -8,16 +8,19 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
-
+import json
 import os
+import regex as re
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtTest, uic
+from PyQt5.QtCore import QModelIndex, Qt
+from PyQt5.QtWidgets import QLabel, QComboBox
 
 import tkinter as tk
 from tkinter import messagebox, filedialog
 
 import main
-from deploy_files import deploy_schema
+from deploy_files import deploy_schema, deploy_config, save_config
 from schema_model import TreeClass, TreeItem
 
 # ----------------------------------------
@@ -55,6 +58,12 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         # TreeView
         self.TreeView = self.findChild(QtWidgets.QTreeView, 'treeView')
 
+        # I need some of the labels to be accessible
+        self.cur_json_label = self.findChild(QLabel, "current_JSON_label")
+
+        # Drop-Down Menu
+        self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
+
         # call the show function
         self.show()
 
@@ -70,6 +79,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             os.chdir(result)
             QtTest.QTest.qWait(2000)
             self.button_1.setText("Set new directory!")
+            config["last_dir"] = result
+            save_config(script_dir, config)
         else:
             self.button_1.setText("ERROR: Check the path!")
             QtTest.QTest.qWait(2000)
@@ -79,20 +90,43 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         dir_path = tk.filedialog.askdirectory()
         try:
             os.chdir(dir_path)
+            if dir_path =='':
+                raise OSError("[runner.diropener/WARN]: Directory selection aborted!")
+            config["last_dir"] = dir_path
+            save_config(script_dir, config)
         except FileNotFoundError as err:
             tk.messagebox.showerror(
                 title = "[runner.diropener/ERROR]",
                 message = "[runner.diropener/ERROR]: Directory does not exist."
             )
         except OSError as err:
-            print(err)
-            print("[runner.diropener/INFO]: This error is created by cancelling the directory dialog and can be ignored...")
+            if re.match(re.compile('\[WinError\s123\]'), str(err)):
+                print("[runner.diropener/WARN]: Directory selection aborted!")
+            else:
+                print(err)
         self.line.setText(dir_path)
 
     # Definition Actions MenuBar
     def jsonopener(self):
         try:
             filepath = tk.filedialog.askopenfilename(filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*')))
+            if filepath == '':
+                raise OSError("[runner.yamlopener/WARN]: File Selection aborted!")
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError("[runner.yamlopener/ERROR]: Specified file does not exist.")
+
+            read_frame = main.decode_function(filepath)
+            schema_frame = main.schema_to_ref_gen(
+                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
+            new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+            self.TreeView.reset()
+            self.TreeView.setModel(new_tree)
+            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
+            if new_tree:
+                config["last_JSON"] = filepath
+                save_config(script_dir, config)
+                self.cur_json_label.setText(filepath)
+
         except FileNotFoundError as err:
             print(err)
             tk.messagebox.showerror(
@@ -101,21 +135,27 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             )
         except OSError as err:
             print(err)
-        print(filepath) # TODO fill this with life from main.py
+
 
     def yamlopener(self):
         try:
             filepath = tk.filedialog.askopenfilename(filetypes = (('YAML Ain\'t Markup Language', '*.yaml'),('All Files', '*.*')))
+            if filepath == '':
+                raise OSError("[runner.yamlopener/WARN]: File Selection aborted!")
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError("[runner.yamlopener/ERROR]: Specified file does not exist.")
         except FileNotFoundError as err:
             print(err)
             tk.messagebox.showerror(
-                title = "[runner.jsonopener/ERROR]",
-                message = "[runner.jsonopener/ERROR]: Specified file does not exist."
+                title = "[runner.yamlopener/ERROR]",
+                message = "[runner.yamlopener/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             print(err)
         print(filepath) # TODO fill this with life from main.py
 
+    def combobox_populate(self):
+        print("")
 # ----------------------------------------
 # Execution
 # ----------------------------------------
@@ -139,19 +179,32 @@ if __name__ == "__main__":
         try:
             os.makedirs(os.path.join(script_dir, "Schemas"), exist_ok = True)
         except OSError as err:
+            print(err)
             str_message = "[runner.main/FATAL]: Cannot create directory. Please check permissions!"
             tk.messagebox.showerror("[runner.main/FATAL]", str_message)
     if not os.path.isfile(os.path.join(script_dir, "Schemas/default.json")):
         print("[runner.main/INFO]: Default File is missing! Deploying...")
         deploy_schema(os.path.join(script_dir, "Schemas"))
 
-    # loading the config of the tool
+    # Loading the config of the tool
+    if not os.path.isfile(os.path.join(script_dir, "config.json")):
+        print("[runner.main/INFO]: Config is missing. Creating one for you.")
+        deploy_config(script_dir)
+    config = json.load(open(os.path.join(script_dir, "config.json")), cls = json.JSONDecoder)
 
     # setup the view for the first time
-    frame = main.decode_function('Schemas/default.json')
-    pre_json = main.schema_to_py_gen(frame)
+    frame = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+    if config["last_JSON"] is None:
+        print("----------\nGenerating blank from schema\n----------")
+        pre_json = main.schema_to_py_gen(frame)
+        ui.cur_json_label.setText("None")
+    else:
+        pre_json = main.decode_function(config["last_JSON"])
+        ui.cur_json_label.setText(config["last_JSON"])
+    print("----------\nGenerating reference from schema\n----------")
     pre_descr = main.schema_to_ref_gen(frame)
-    model = main.py_to_tree(pre_json, pre_descr)
+    print("----------\nConstructing Tree, please wait.\n---------")
+    model = main.py_to_tree(pre_json, pre_descr, TreeClass(data = ["Key","Value","Description"]))
 
     ui.TreeView.setModel(model)
 
