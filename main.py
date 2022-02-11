@@ -8,19 +8,19 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
+import os
 
 import json
 import jsonschema
 from jsonschema import validate
-from schema_model import TreeClass, TreeItem
-import os
 
+from schema_model import TreeClass, TreeItem
 
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
-# The validator function shall wrap around json.load and validate a JSON file against a Schema file
 
+# The validator function shall wrap around json.load and validate a JSON file against a Schema file
 def validator_files(json_path, json_schema_path):
     try:  # open JSON and schema, deserialize both and validate
         loaded_schema = open(json_schema_path)
@@ -76,7 +76,7 @@ def decode_function(json_path):
     return result
 
 
-# A function generating a JSON-like python structure from the schema.
+# A function generating a blank JSON-like python structure from the schema.
 def schema_to_py_gen(decoded_schema):
     if decoded_schema == -999 or decoded_schema == 2:
         return {}
@@ -98,6 +98,8 @@ def schema_to_py_gen(decoded_schema):
             continue
     return return_dict
 
+
+# generates a reference containing the description of every field in the schema
 def schema_to_ref_gen(decoded_schema):
     if decoded_schema == -999 or decoded_schema == 2:
         return {}
@@ -115,6 +117,9 @@ def schema_to_ref_gen(decoded_schema):
             continue
     return return_dict
 
+
+# py_to_tree takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
+# tree model needed for the TreeView
 def py_to_tree(input_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
     incrementor = 0
     for element in input_dict:
@@ -146,6 +151,15 @@ def py_to_tree(input_dict: dict, reference_dict: dict, return_tree) -> TreeClass
     return return_tree
 
 
+# converts the tree back to a nested dict. Descriptions get omitted.
+def tree_to_py(array_of_tree_nodes):
+    return_dict = {}
+    for element in array_of_tree_nodes:
+        if len(element.childItems) == 0:
+            return_dict[element.getData(0)] = element.getData(1)
+        else:
+            return_dict[element.getData(0)] = tree_to_py(element.childItems)
+    return return_dict
 # ----------------------------------------
 # Execution
 # ----------------------------------------
@@ -162,10 +176,14 @@ if __name__ == "__main__":
 
     pre_json = schema_to_py_gen(frame)
     pre_descr = schema_to_ref_gen(frame)
-    baum = py_to_tree(pre_json, pre_descr)
+    baum = py_to_tree(pre_json, pre_descr, TreeClass(data = ["Key","Value","Description"]))
+    print(tree_to_py(baum.root_node.childItems))
+
     print(validator_vars(json.dumps(pre_json), 'C:\\Users\\plathe\\Desktop\\Franke_Orga\\UBER.JSON'))
     with open("out_json.json", "w") as out:
         json.dump(pre_json, out, indent = 4)
+    with open("out_json2.json", "w") as out2:
+        json.dump(tree_to_py(baum.root_node.childItems), out2, indent = 4)
 
     print("Ping") # TODO: Remove Breaker Print for Debug
 

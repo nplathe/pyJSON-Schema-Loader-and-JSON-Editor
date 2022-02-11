@@ -164,7 +164,12 @@ class TreeClass(QtCore.QAbstractItemModel):
 # ----------------------------------------
 
 if __name__ == "__main__":
+
+    # Just a toy example
     import sys
+
+    print("Running functional toy example:")
+
     app = QtWidgets.QApplication(sys.argv)
     ui = QtWidgets.QTreeView()
 

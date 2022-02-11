@@ -80,5 +80,6 @@ def save_config(path, config):
 # ----------------------------------------
 
 if __name__ == "__main__":
-    print("Please don't run me directly, I just provide some files.")
+    print("Please don't run me directly, I just provide some files and functions.")
+    print("Deploying files in the current working directory.")
     deploy_config(os.getcwd())
