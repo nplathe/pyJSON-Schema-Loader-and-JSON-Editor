@@ -82,7 +82,7 @@
          <widget class="QComboBox" name="current_schema_combo_box"/>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_load_md_json">
+         <widget class="QPushButton" name="pushButton_load_md_JSON">
           <property name="maximumSize">
            <size>
             <width>300</width>
@@ -157,7 +157,7 @@
     <addaction name="actionAdd_Schema"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_default_for_selected_schema"/>
-    <addaction name="actionSave_as_optimized_default"/>
+    <addaction name="actionSave_as_default"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -220,7 +220,7 @@
     <string>Validate input against selected schema</string>
    </property>
   </action>
-  <action name="actionSave_as_optimized_default">
+  <action name="actionSave_as_default">
    <property name="text">
     <string>Save as default for selected schema</string>
    </property>

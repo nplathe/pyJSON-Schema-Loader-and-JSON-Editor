@@ -69,7 +69,7 @@ def decode_function(json_path):
         result = json.load(loaded_json, cls=json.JSONDecoder)
     except json.JSONDecodeError as err:
         print("[main.decode_function/ERROR]: JSON could not be parsed into Python representation!")
-        return 2
+        return {"Error": "Something has gone wrong, the JSON was not parsed properly!"}
     except OSError:
         print("[main.decode_function/ERROR]: JSON is not accessible anymore!")
         return -999
@@ -78,8 +78,6 @@ def decode_function(json_path):
 
 # A function generating a blank JSON-like python structure from the schema.
 def schema_to_py_gen(decoded_schema):
-    if decoded_schema == -999 or decoded_schema == 2:
-        return {}
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -101,8 +99,6 @@ def schema_to_py_gen(decoded_schema):
 
 # generates a reference containing the description of every field in the schema
 def schema_to_ref_gen(decoded_schema):
-    if decoded_schema == -999 or decoded_schema == 2:
-        return {}
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:

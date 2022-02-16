@@ -55,6 +55,9 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         self.button_savemdJSON = self.findChild(QtWidgets.QPushButton, 'pushButton_save_md_JSON')
         self.button_savemdJSON.clicked.connect(self.save_md_json)
 
+        self.button_loadmdJSON = self.findChild(QtWidgets.QPushButton, 'pushButton_load_md_JSON')
+        self.button_loadmdJSON.clicked.connect(self.load_md_json)
+
         # adding in the action functions (the menu bar)
         self.openJSON = self.findChild(QtWidgets.QAction, 'actionOpen_JSON')
         self.openJSON.setStatusTip("Open a JSON file for editing. Gets validated against selected schema.")
@@ -76,6 +79,20 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         self.save_json = self.findChild(QtWidgets.QAction, 'actionSave')
         self.save_json.setStatusTip("Save the current JSON")
         self.save_json.triggered.connect(self.save_function)
+
+        self.blank_from_schem = self.findChild(QtWidgets.QAction, 'actionCreate_JSON_from_selected_Schema')
+        self.blank_from_schem.setStatusTip("Removes the current JSON and loads a blank from the selected schema.")
+        self.blank_from_schem.triggered.connect(self.set_blank_from_schema)
+
+        self.edit_from_def = self.findChild(QtWidgets.QAction, 'actionLoad_default_for_selected_schema')
+        self.edit_from_def.setStatusTip("Load default values from the Default storage of the tool.")
+        self.edit_from_def.triggered.connect(self.load_default)
+
+
+        self.edit_to_def = self.findChild(QtWidgets.QAction, 'actionSave_as_default')
+        self.edit_to_def.setStatusTip("Saves the current values as default for later use. "+
+            "The default is named after the schema!")
+        self.edit_to_def.triggered.connect(self.save_default)
 
         # the heartpiece of the GUI is the TreeView
         self.TreeView = self.findChild(QtWidgets.QTreeView, 'treeView')
@@ -100,13 +117,13 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
     # scans the TextLine for a dir and sets the wd accordingly
     def wdsetter(self):
-        result = str(self.line.text())
+        result = os.path.normpath(str(self.line.text()))
         if os.path.isdir(result):
             self.button_1.setText("Success!")
             os.chdir(result)
             QtTest.QTest.qWait(2000)
             self.button_1.setText("Set new directory!")
-            config["last_dir"] = result
+            config["last_dir"] = os.path.normpath(result)
             save_config(script_dir, config)
         else:
             self.button_1.setText("ERROR: Check the path!")
@@ -116,7 +133,7 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
     # sets the working directory to the selection
     def diropener(self):
-        dir_path = tk.filedialog.askdirectory()
+        dir_path = os.path.normpath(tk.filedialog.askdirectory())
         try:
             os.chdir(dir_path)
             if dir_path =='':
@@ -141,13 +158,16 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
     # Open a JSON and reload the TreeView with the new information
     def jsonopener(self):
         try:
-            filepath = tk.filedialog.askopenfilename(filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*')))
+            filepath = os.path.normpath(tk.filedialog.askopenfilename(
+                filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*'))))
             if filepath == '':
                 raise OSError("[runner.jsonopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
                 raise FileNotFoundError("[runner.jsonopener/ERROR]: Specified file does not exist.")
 
             read_frame = main.decode_function(filepath)
+            if type(read_frame) is int and read_frame == -999:
+                raise FileNotFoundError
             schema_frame = main.schema_to_ref_gen(
                 main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
             new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
@@ -172,7 +192,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
     # opens and converts YAML files according to a schema definition
     def yamlopener(self):
         try:
-            filepath = tk.filedialog.askopenfilename(filetypes = (('YAML Ain\'t Markup Language', '*.yaml'),('All Files', '*.*')))
+            filepath = os.path.normpath(tk.filedialog.askopenfilename(
+                filetypes = (('YAML Ain\'t Markup Language', '*.yaml'),('All Files', '*.*'))))
             if filepath == '':
                 raise OSError("[runner.yamlopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
@@ -210,23 +231,35 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
     def combobox_selected(self):
         print("----------\nswapped schema!\n----------")
         selected = self.curr_schem_ddm.currentText()
-        schema_frame = main.schema_to_ref_gen(
-            main.decode_function(os.path.join(script_dir, "Schemas", selected)))
-        if not config["last_JSON"] is None:
-            read_frame = main.decode_function(config["last_JSON"])
-            new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
-            self.TreeView.reset()
-            self.TreeView.setModel(new_tree)
-            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
-            if new_tree:
-                config["last_schema"] = selected
-                save_config(script_dir, config)
+        try:
+            schema = main.decode_function(os.path.join(script_dir, "Schemas", selected))
+            if type(schema) is int and schema == -999:
+                self.combobox_repopulate()
+                raise FileNotFoundError("[runner.combobox_selected/ERROR]: Schema File is missing!")
+            schema_frame = main.schema_to_ref_gen(schema)
+            if not config["last_JSON"] is None:
+                read_frame = main.decode_function(config["last_JSON"])
+                new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+                self.TreeView.reset()
+                self.TreeView.setModel(new_tree)
+                new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
+                if new_tree:
+                    config["last_schema"] = selected
+                    save_config(script_dir, config)
+        except FileNotFoundError as err:
+            print(err)
+            tk.messagebox.showerror(
+                title = "[runner.copy_schema_to_storage/ERROR]",
+                message = str(err)
+            )
+        #TODO: Implement "else" and create a blank!
 
     # copies a schema to the schema storage
     def copy_schema_to_storage(self):
         print("ping")
         try:
-            filepath = tk.filedialog.askopenfilename(filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*')))
+            filepath = os.path.normpath(tk.filedialog.askopenfilename(
+                filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*'))))
             if filepath == '':
                 raise OSError("[runner.copy_schema_to_storage/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
@@ -244,7 +277,7 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
     # saves the current JSON as metadata.json in the current working directory
     def save_md_json(self):
-        curr_json = os.path.join(config["last_dir"], "metadata.json")
+        curr_json = os.path.normpath(os.path.join(config["last_dir"], "metadata.json"))
         tree = self.TreeView.model()
         json_frame = main.tree_to_py(tree.root_node.childItems)
         try:
@@ -262,7 +295,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
     # the "Save as..." function
     def save_as_function(self):
-        selected_path = tk.filedialog.asksaveasfilename(filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*')))
+        selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
+            filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*'))))
         if re.match(pattern = re.compile(".*\.json$"), string = selected_path) is None:
             selected_path = selected_path + ".json"
         tree = self.TreeView.model()
@@ -297,6 +331,119 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                     message="[runner.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
+    # load_md_json loads a "metadata.json" named file.
+    def load_md_json(self):
+        try:
+            filepath = os.path.normpath(os.path.join(config["last_dir"], "metadata.json"))
+            read_frame = main.decode_function(filepath)
+
+            if type(read_frame) is int and read_frame == -999:
+                raise FileNotFoundError
+            schema_frame = main.schema_to_ref_gen(
+                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
+            new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+
+            self.TreeView.reset()
+            self.TreeView.setModel(new_tree)
+            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
+            if new_tree:
+                config["last_JSON"] = os.path.normpath(filepath)
+                save_config(script_dir, config)
+                self.cur_json_label.setText(filepath)
+
+        except FileNotFoundError as err:
+            print(err)
+            tk.messagebox.showerror(
+                title = "[runner.load_md_json/ERROR]",
+                message = "[runner.load_md_json/ERROR]: metadata.json does not exist."
+            )
+        except OSError as err:
+            print(err)
+
+    # set_blank_from_schema sets a JSON from the schema, that is completely blank
+    def set_blank_from_schema(self):
+        try:
+            curr_schem = main.decode_function(
+                os.path.join(
+                    script_dir,
+                    "Schemas",
+                    config["last_schema"]
+                )
+            )
+
+            if type(curr_schem) is int and curr_schem == -999:
+                self.combobox_repopulate()
+                raise FileNotFoundError("[runner.combobox_selected/ERROR]: Schema File is missing!")
+
+            pre_json = main.schema_to_py_gen(curr_schem)
+            pre_descr = main.schema_to_ref_gen(curr_schem)
+
+            new_tree = main.py_to_tree(pre_json, pre_descr, TreeClass(data=["Key", "Value", "Description"]))
+
+            self.TreeView.reset()
+            self.TreeView.setModel(new_tree)
+            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
+
+            if new_tree:
+                config["last_JSON"] = None
+                save_config(script_dir, config)
+                self.cur_json_label.setText("None")
+
+        except FileNotFoundError as err:
+            print(err)
+            tk.messagebox.showerror(
+                title = "[runner.set_blank_from_schema/ERROR]",
+                message = "[runner.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select "+
+                "another schema and repeat!"
+            )
+        except OSError as err:
+            print(err)
+
+    # saves default values into the default folder.
+    def save_default(self):
+        print("----------\nSaving default for Schema " + config["last_schema"] + "\n----------" )
+        tree = self.TreeView.model()
+        json_frame = main.tree_to_py(tree.root_node.childItems)
+        try:
+            with open(os.path.join(script_dir, "Default", config["last_schema"]), "w") as out:
+                json.dump(json_frame, out, indent=4)
+        except OSError as err:
+            print(err)
+            tk.messagebox.showerror(
+                title="[runner.save_default/ERROR]",
+                message="[runner.save_default/ERROR]: File seems to neither exist nor writable!"
+            )
+
+    def load_default(self):
+        print("----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
+        try:
+
+            if not os.path.isfile(os.path.join(script_dir, "Default", config["last_schema"])):
+                raise FileNotFoundError("[runner.load_default/ERROR]: No default file found!")
+            if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
+                self.combobox_repopulate()
+                raise FileNotFoundError("[runner.load_default/ERROR]: Selected schema not found!")
+
+            default_values = main.decode_function(os.path.join(script_dir, "Default", config["last_schema"]))
+            schema = main.schema_to_ref_gen(
+                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
+
+            new_tree = main.py_to_tree(default_values, schema, TreeClass(data=["Key", "Value", "Description"]))
+
+            self.TreeView.reset()
+            self.TreeView.setModel(new_tree)
+            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
+
+            if new_tree:
+                config["last_JSON"] = None
+                save_config(script_dir, config)
+                self.cur_json_label.setText("None")
+        except FileNotFoundError as err:
+            print(err)
+            tk.messagebox.showerror(
+                title = "[runner.load_default/ERROR]",
+                message = str(err)
+            )
 
 # ----------------------------------------
 # Execution
@@ -316,6 +463,7 @@ if __name__ == "__main__":
 
     # Set the Script Dir and do some checkups.
     script_dir = os.getcwd()
+
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):
         print("[runner.main/INFO]: Schemas Directory is missing! Creating...")
         try:
@@ -328,6 +476,15 @@ if __name__ == "__main__":
         print("[runner.main/INFO]: Default File is missing! Deploying...")
         deploy_schema(os.path.join(script_dir, "Schemas"))
 
+    if not os.path.isdir(os.path.join(script_dir, "Default")):
+        print("[runner.main/INFO]: Defaults Directory is missing! Creating...")
+        try:
+            os.makedirs(os.path.join(script_dir, "Default"), exist_ok = True)
+        except OSError as err:
+            print(err)
+            str_message = "[runner.main/FATAL]: Cannot create directory. Please check permissions!"
+            tk.messagebox.showerror("[runner.main/FATAL]", str_message)
+
     # check and create or load the config of the tool
     if not os.path.isfile(os.path.join(script_dir, "config.json")):
         print("[runner.main/INFO]: Config is missing. Creating one for you.")
@@ -335,7 +492,13 @@ if __name__ == "__main__":
     config = json.load(open(os.path.join(script_dir, "config.json")), cls = json.JSONDecoder)
 
     # setup the view for the first time
-    frame = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+    if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
+        print("[runner.main/WARN]: Schema in config is missing. Falling back to default.")
+        frame = main.decode_function(os.path.join(script_dir, "Schemas", "default.json"))
+        config["last_schema"] = "default.json"
+        save_config(script_dir, config)
+    else:
+        frame = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
     if config["last_JSON"] is None:
         print("----------\nGenerating blank from schema\n----------")
         pre_json = main.schema_to_py_gen(frame)
@@ -343,7 +506,7 @@ if __name__ == "__main__":
     else:
         if os.path.isfile(config["last_JSON"]):
             pre_json = main.decode_function(config["last_JSON"])
-            ui.cur_json_label.setText(config["last_JSON"])
+            ui.cur_json_label.setText(os.path.normpath(config["last_JSON"]))
         else:
             print("----------\nJSON is missing!!\nGenerating blank from schema\n----------")
             tk.messagebox.showwarning(
@@ -359,6 +522,7 @@ if __name__ == "__main__":
     pre_descr = main.schema_to_ref_gen(frame)
     print("----------\nConstructing Tree, please wait.\n---------")
     model = main.py_to_tree(pre_json, pre_descr, TreeClass(data = ["Key","Value","Description"]))
+    ui.line.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)
     ui.combobox_repopulate()
