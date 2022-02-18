@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/Default" />
       <excludeFolder url="file://$MODULE_DIR$/Logs" />
+      <excludeFolder url="file://$MODULE_DIR$/Schemas" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (temp_warp)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
