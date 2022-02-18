@@ -11,10 +11,13 @@
 # ----------------------------------------
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QModelIndex, Qt
-
+import logging
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
+
+lg = logging.getLogger(__name__)
+lg.setLevel("DEBUG")
 
 # The Tree Leaf
 class TreeItem(object):
@@ -144,8 +147,8 @@ class TreeClass(QtCore.QAbstractItemModel):
         result = item.setData(column = index.column(), data = value)
         if result:
             self.dataChanged.emit(index, index)
-            print("[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:")
-            print(item.getDataArray())
+            lg.info("\n----------\n[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
+            str(item.getDataArray()) + "\n----------")
         return result
 
     def add_node(self, parent, data):

@@ -8,7 +8,9 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
+import logging
 import os
+import sys
 
 import json
 import jsonschema
@@ -20,6 +22,10 @@ from schema_model import TreeClass, TreeItem
 # Variables and Functions
 # ----------------------------------------
 
+# logger config
+lg = logging.getLogger(__name__)
+lg.setLevel("DEBUG")
+
 # The validator function shall wrap around json.load and validate a JSON file against a Schema file
 def validator_files(json_path, json_schema_path):
     try:  # open JSON and schema, deserialize both and validate
@@ -29,15 +35,15 @@ def validator_files(json_path, json_schema_path):
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
-        print("[main.validator_files/ERROR]: JSON is not valid against selected Schema!")
+        lg.error("[main.validator_files/ERROR]: JSON is not valid against selected Schema!")
         return 1
     except jsonschema.exceptions.SchemaError as err:
-        print("[main.validator_files/ERROR]: The JSON schema is not valid against its selected meta schema!")
+        lg.error("[main.validator_files/ERROR]: The JSON schema is not valid against its selected meta schema!")
         return 2
     except OSError:
-        print("[main.validator_files/ERROR]: Either JSON or Schema is not accessible anymore!")
+        lg.error("[main.validator_files/ERROR]: Either JSON or Schema is not accessible anymore!")
         return -999
-    print("[main.validator_files/INFO]: Validation of JSON successful!")
+    lg.info("[main.validator_files/INFO]: Validation of JSON successful!")
     return 0
 
 
@@ -49,29 +55,29 @@ def validator_vars(json_str, json_schema_path):
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
-        print("[main.validator_vars/ERROR]: JSON is not valid against selected Schema!")
+        lg.error("[main.validator_vars/ERROR]: JSON is not valid against selected Schema!")
         return 1
     except jsonschema.exceptions.SchemaError as err:
-        print("[main.validator_vars/ERROR]: The JSON schema is not valid against its selected meta schema!")
+        lg.error("[main.validator_vars/ERROR]: The JSON schema is not valid against its selected meta schema!")
         return 2
     except OSError:
-        print("[main.validator_vars/ERROR]: Schema is not accessible anymore!")
+        lg.error("[main.validator_vars/ERROR]: Schema is not accessible anymore!")
         return -999
-    print("[main.validator_vars/INFO]: Validation of JSON successful!")
+    lg.info("[main.validator_vars/INFO]: Validation of JSON successful!")
     return 0
 
 
 # Wrapper for the JSONDecoder function
 def decode_function(json_path):
-    print("----------\nReading " + json_path + "\n----------")
+    lg.info("\n----------\nReading " + json_path + "\n----------")
     try:
         loaded_json = open(json_path)
         result = json.load(loaded_json, cls=json.JSONDecoder)
     except json.JSONDecodeError as err:
-        print("[main.decode_function/ERROR]: JSON could not be parsed into Python representation!")
+        lg.error("[main.decode_function/ERROR]: JSON could not be parsed into Python representation!")
         return {"Error": "Something has gone wrong, the JSON was not parsed properly!"}
     except OSError:
-        print("[main.decode_function/ERROR]: JSON is not accessible anymore!")
+        lg.error("[main.decode_function/ERROR]: JSON is not accessible anymore!")
         return -999
     return result
 
@@ -91,7 +97,7 @@ def schema_to_py_gen(decoded_schema):
                 case "object":
                     return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
         except KeyError as err:
-            print("[main.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
+            lg.critical("[main.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
                   ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -108,11 +114,42 @@ def schema_to_ref_gen(decoded_schema):
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["description"]
         except KeyError as err:
-            print("[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
+            lg.critical("[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
                   ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
+def schema_to_type_gen(decoded_schema):
+    return_dict = {}
+    for element in decoded_schema["properties"]:
+        try:
+            match decoded_schema["properties"][element]["type"]:
+                case "object":
+                    return_dict[element] = schema_to_type_gen(decoded_schema["properties"][element])
+                case _:
+                    return_dict[element] = decoded_schema["properties"][element]["type"]
+        except KeyError as err:
+            lg.critical(
+                "[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                ". JSON may be not valid against corresponding schema anymore.")
+            continue
+    return return_dict
+
+def schema_to_title_gen(decoded_schema):
+    return_dict = {}
+    for element in decoded_schema["properties"]:
+        try:
+            match decoded_schema["properties"][element]["type"]:
+                case "object":
+                    return_dict[element] = schema_to_title_gen(decoded_schema["properties"][element])
+                case _:
+                    return_dict[element] = decoded_schema["properties"][element]["title"]
+        except KeyError as err:
+            lg.critical(
+                "[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                ". JSON may be not valid against corresponding schema anymore.")
+            continue
+    return return_dict
 
 # py_to_tree takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
 # tree model needed for the TreeView
@@ -133,7 +170,7 @@ def py_to_tree(input_dict: dict, reference_dict: dict, return_tree) -> TreeClass
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
         except KeyError as err:
-            print("Key " + element +" may not be present in Schema. Switch to empty description")
+            lg.warning("[main.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to empty description")
             if type(input_dict[element]) is str:
                 return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'Description not found'])
             else:
@@ -161,25 +198,12 @@ def tree_to_py(array_of_tree_nodes):
 # ----------------------------------------
 
 if __name__ == "__main__":
-    import sys
 
-    os.chdir('C:\\Users\\plathe\\Desktop\\Franke_Orga\\') # TODO: Replace with variable
-
-    print(validator_files('C:\\Users\\plathe\\Desktop\\Franke_Orga\\test.json',
-                         'C:\\Users\\plathe\\Desktop\\Franke_Orga\\UBER.JSON'))
-
-    frame = decode_function('C:\\Users\\plathe\\Desktop\\Franke_Orga\\plasma-mds.json')
-
-    pre_json = schema_to_py_gen(frame)
-    pre_descr = schema_to_ref_gen(frame)
-    baum = py_to_tree(pre_json, pre_descr, TreeClass(data = ["Key","Value","Description"]))
-    print(tree_to_py(baum.root_node.childItems))
-
-    print(validator_vars(json.dumps(pre_json), 'C:\\Users\\plathe\\Desktop\\Franke_Orga\\UBER.JSON'))
-    with open("out_json.json", "w") as out:
-        json.dump(pre_json, out, indent = 4)
-    with open("out_json2.json", "w") as out2:
-        json.dump(tree_to_py(baum.root_node.childItems), out2, indent = 4)
-
-    print("Ping") # TODO: Remove Breaker Print for Debug
+    lg.info("Don't run me directly, I just provide some functions.")
+    schema = decode_function("Schemas/default.json")
+    blank_frame = schema_to_py_gen(schema)
+    type_frame = schema_to_type_gen(schema)
+    descr_frame = schema_to_ref_gen(schema)
+    title_frame = schema_to_title_gen(schema)
+    lg.info("Ping") # TODO: Remove Breaker Print for Debug
 

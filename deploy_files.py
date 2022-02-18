@@ -11,10 +11,13 @@
 
 import json
 import os
+import logging
 
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
+
+lg = logging.getLogger(__name__)
 
 def deploy_schema(path):
     schema = '{\
@@ -52,7 +55,7 @@ def deploy_schema(path):
         with open(os.path.join(path, "default.json"), "w") as out:
             json.dump(json.loads(schema), out, indent = 4)
     except OSError as err:
-        print("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
+        lg.error("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
         return False
     return True
 
@@ -66,20 +69,20 @@ def deploy_config(path):
         with open(os.path.join(path, "config.json"), "w") as out:
             json.dump(config, out, indent = 4)
     except OSError as err:
-        print("[deploy_files.deploy_config/ERROR]: Could not set default config.")
+        lg.error("[deploy_files.deploy_config/ERROR]: Could not set default config.")
 
 def save_config(path, config):
     try:
         with open(os.path.join(path, "config.json"), "w") as out:
             json.dump(config, out, indent = 4)
     except OSError as err:
-        print("[deploy_files.save_config/ERROR]: Could not save config.")
+        lg.error("[deploy_files.save_config/ERROR]: Could not save config.")
 
 # ----------------------------------------
 # Execution
 # ----------------------------------------
 
 if __name__ == "__main__":
-    print("Please don't run me directly, I just provide some files and functions.")
-    print("Deploying files in the current working directory.")
+    lg.info("Please don't run me directly, I just provide some files and functions.")
+    lg.info("Deploying files in the current working directory.")
     deploy_config(os.getcwd())
