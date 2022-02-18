@@ -1,8 +1,8 @@
 # Stuff to ignore...
-Default/
-Schemas/
-Logs/
-dist/
-build/
-runner.spec
-config.json
+./Default/
+./Schemas/
+./Logs/
+./dist/
+./build/
+./runner.spec
+./config.json
