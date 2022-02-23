@@ -30,11 +30,58 @@ from tkinter import messagebox, filedialog
 # import of modules
 import main
 from deploy_files import deploy_schema, deploy_config, save_config
-from schema_model import TreeClass, TreeItem
+from schema_model import TreeClass as TC
 
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
+
+# We manipulate our TreeClas with a very specific function that blocks editing for all but the second column.
+# Furthermore, setData needs to be overwritten in order to do input validation.
+class TreeClass(TC):
+    def flags(self, index):
+        match index.column():
+            case 1:
+                return Qt.ItemIsEditable | Qt.ItemIsEnabled
+            case _:
+                return Qt.ItemIsEnabled
+
+    def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
+        if role != Qt.EditRole:
+            return False
+
+        item = self.getItem(index)
+        item_type = item.getDataArray()[2]
+
+        try:
+            match item_type:
+                case "integer":
+                    if value == '':
+                        pass
+                    else:
+                        int(value)
+                case "number":
+                    float(value)
+                case "boolean":
+                    bool(value)
+                case "array":
+                    pass
+                case _:
+                    pass
+            result = item.setData(column = index.column(), data = value)
+            if result:
+                self.dataChanged.emit(index, index)
+                lg.info("\n----------\n[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
+                str(item.getDataArray()) + "\n----------")
+            return result
+        except ValueError as err:
+            lg.error("[runner.TreeClass.setData/ERROR]: " +
+                "Input could not be validated against type proposed from Schema!")
+            tk.messagebox.showerror(
+                title = "[runner.TreeClass.setData/ERROR]",
+                message = "Input could not be validated against type proposed from Schema!"
+            )
+            return False
 
 # We need a parser of command line arguments:
 parser = argparse.ArgumentParser(
@@ -54,6 +101,9 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         # we first call init from the super class, then load the UI file from designer
         super(Ui_RunnerInstance, self). __init__()
         uic.loadUi('main_window.ui', self)
+
+        title = "pyJSON Schema Loader and JSON Editor"
+        self.setWindowTitle(title)
 
         # adding in the signals for the line
         self.line = self.findChild(QtWidgets.QLineEdit, 'lineEdit')
@@ -75,11 +125,11 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
         # adding in the action functions (the menu bar)
         self.openJSON = self.findChild(QtWidgets.QAction, 'actionOpen_JSON')
-        self.openJSON.setStatusTip("Open a JSON file for editing. Gets validated against selected schema.")
+        self.openJSON.setStatusTip("Open a JSON file for editing.")
         self.openJSON.triggered.connect(self.jsonopener)
 
         self.openYAML = self.findChild(QtWidgets.QAction, 'actionOpen_YAML')
-        self.openYAML.setStatusTip("Open a YAML file for conversion and editing. Gets validated against selected schema.")
+        self.openYAML.setStatusTip("Open a YAML file for conversion and editing.")
         self.openYAML.triggered.connect(self.yamlopener)
 
         self.copySchema = self.findChild(QtWidgets.QAction, 'actionAdd_Schema')
@@ -128,7 +178,6 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         # call the show function
         self.show()
 
-
     # Button Function Definitions
 
     # wdgetter is self-explanatory...
@@ -157,10 +206,11 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         dir_path = os.path.normpath(tk.filedialog.askdirectory())
         try:
             os.chdir(dir_path)
-            if dir_path =='':
+            if dir_path == '' or dir_path == '.':
                 raise OSError("[runner.diropener/WARN]: Directory selection aborted!")
             config["last_dir"] = dir_path
             save_config(script_dir, config)
+            self.line.setText(dir_path)
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -172,7 +222,6 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                 lg.warning("[runner.diropener/WARN]: Directory selection aborted!")
             else:
                 lg.error(err)
-        self.line.setText(dir_path)
 
 
     # Definition Actions MenuBar
@@ -191,9 +240,12 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             read_frame = main.decode_function(filepath)
             if type(read_frame) is int and read_frame == -999:
                 raise FileNotFoundError("[runner.jsonopener/ERROR]: Specified file does not exist.")
-            schema_frame = main.schema_to_ref_gen(
-                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
-            new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+            schema_read = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+            schema_frame = main.schema_to_ref_gen(schema_read)
+            schema_title = main.schema_to_title_gen(schema_read)
+            schema_type = main.schema_to_type_gen(schema_read)
+            new_tree = main.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
+                                       TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
             self.TreeView.expandAll()
@@ -261,9 +313,13 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                 self.combobox_repopulate()
                 raise FileNotFoundError("[runner.combobox_selected/ERROR]: Schema File is missing!")
             schema_frame = main.schema_to_ref_gen(schema)
+            schema_title = main.schema_to_title_gen(schema)
+            schema_type = main.schema_to_type_gen(schema)
+
             if not config["last_JSON"] is None:
                 read_frame = main.decode_function(config["last_JSON"])
-                new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+                new_tree = main.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
+                                           TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
                 self.TreeView.reset()
                 self.TreeView.setModel(new_tree)
                 self.TreeView.expandAll()
@@ -372,9 +428,12 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
             if type(read_frame) is int and read_frame == -999:
                 raise FileNotFoundError
-            schema_frame = main.schema_to_ref_gen(
-                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
-            new_tree = main.py_to_tree(read_frame, schema_frame, TreeClass(data=["Key", "Value", "Description"]))
+            schema_read = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+            schema_frame = main.schema_to_ref_gen(schema_read)
+            schema_title = main.schema_to_title_gen(schema_read)
+            schema_type = main.schema_to_type_gen(schema_read)
+            new_tree = main.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
+                                       TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -412,8 +471,11 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
 
             pre_json = main.schema_to_py_gen(curr_schem)
             pre_descr = main.schema_to_ref_gen(curr_schem)
+            pre_title = main.schema_to_title_gen(curr_schem)
+            pre_type = main.schema_to_type_gen(curr_schem)
 
-            new_tree = main.py_to_tree(pre_json, pre_descr, TreeClass(data=["Key", "Value", "Description"]))
+            new_tree = main.py_to_tree(pre_json, pre_type, pre_title, pre_descr,
+                                       TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -461,10 +523,15 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                 raise FileNotFoundError("[runner.load_default/ERROR]: Selected schema not found!")
 
             default_values = main.decode_function(os.path.join(script_dir, "Default", config["last_schema"]))
-            schema = main.schema_to_ref_gen(
-                main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
 
-            new_tree = main.py_to_tree(default_values, schema, TreeClass(data=["Key", "Value", "Description"]))
+            schema_read = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+            schema_descr = main.schema_to_ref_gen(schema_read)
+            schema_type = main.schema_to_type_gen(schema_read)
+            schema_title = main.schema_to_title_gen(schema_read)
+
+
+            new_tree = main.py_to_tree(default_values, schema_type, schema_title, schema_descr,
+                                       TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -498,10 +565,14 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                         raise FileNotFoundError("[runner.reloader_function/ERROR]: Selected schema not found!")
 
                     values = main.decode_function(os.path.join(config["last_JSON"]))
-                    schema = main.schema_to_ref_gen(
-                        main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"])))
 
-                    new_tree = main.py_to_tree(values, schema, TreeClass(data=["Key", "Value", "Description"]))
+                    schema_read = main.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+                    schema_descr = main.schema_to_ref_gen(schema_read)
+                    schema_type = main.schema_to_type_gen(schema_read)
+                    schema_title = main.schema_to_title_gen(schema_read)
+
+                    new_tree = main.py_to_tree(values, schema_type, schema_title, schema_descr,
+                                               TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -633,8 +704,11 @@ if __name__ == "__main__":
 
     lg.info("\n----------\nGenerating reference from schema\n----------")
     st_pre_descr = main.schema_to_ref_gen(frame)
+    st_pre_title = main.schema_to_title_gen(frame)
+    st_pre_type = main.schema_to_type_gen(frame)
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
-    model = main.py_to_tree(st_pre_json, st_pre_descr, TreeClass(data = ["Key", "Value","Description"]))
+    model = main.py_to_tree(st_pre_json, st_pre_type, st_pre_title, st_pre_descr,
+                            TreeClass(data=["Key", "Value", "Type", "Title", "Description"]))
     ui.line.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)

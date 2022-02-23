@@ -93,7 +93,11 @@ def schema_to_py_gen(decoded_schema):
                 case "array":
                     return_dict[element] = []
                 case "number":
-                    return_dict[element] = float("NaN")
+                    return_dict[element] = float("0.0")
+                case "integer":
+                    return_dict[element] = 0
+                case "boolean":
+                    return_dict[element] = False
                 case "object":
                     return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
         except KeyError as err:
@@ -130,7 +134,7 @@ def schema_to_type_gen(decoded_schema):
                     return_dict[element] = decoded_schema["properties"][element]["type"]
         except KeyError as err:
             lg.critical(
-                "[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[main.schema_to_type_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -146,37 +150,46 @@ def schema_to_title_gen(decoded_schema):
                     return_dict[element] = decoded_schema["properties"][element]["title"]
         except KeyError as err:
             lg.critical(
-                "[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[main.schema_to_title_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
 # py_to_tree takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
 # tree model needed for the TreeView
-def py_to_tree(input_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
+def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
     incrementor = 0
     for element in input_dict:
         try:
             if not element in reference_dict:
                 raise KeyError("[main.py_to_tree/INFO]: Element not in Schema Definition.")
-            if type(input_dict[element]) is str:
-                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), reference_dict[element]])
+            if type(input_dict[element]) is not dict:
+                return_tree.add_node(parent = return_tree.root_node, data =
+                [
+                    element,
+                    str(input_dict[element]),
+                    type_dict[element],
+                    title_dict[element],
+                    reference_dict[element]
+                ])
             else:
                 return_tree.add_node(parent=return_tree.root_node,
-                                     data=[element, '', ''])
-                part_tree = py_to_tree(input_dict[element], reference_dict[element], return_tree = TreeClass(data = ["K","V","D"]))
+                                     data=[element, '', '', '', ''])
+                part_tree = py_to_tree(input_dict[element], type_dict[element], title_dict[element], reference_dict[element],
+                                       return_tree=TreeClass(data=["K", "V", "Ty", "Ti", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
         except KeyError as err:
-            lg.warning("[main.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to empty description")
-            if type(input_dict[element]) is str:
-                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'Description not found'])
+            lg.warning("[main.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to erroneous description")
+            if type(input_dict[element]) is not dict:
+                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'string', 'Erroneous Title', 'Schema does not match JSON structure! Type Validation will not work!'])
             else:
                 return_tree.add_node(parent=return_tree.root_node,
-                                     data=[element, '', ''])
-                part_tree = py_to_tree(input_dict[element], {}, return_tree = TreeClass(data = ["K","V","D"]))
+                                     data=[element, '', '', '',''])
+                part_tree = py_to_tree(input_dict[element], {}, {}, {},
+                                       return_tree=TreeClass(data=["K", "V", "Ty", "Ti", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
@@ -189,7 +202,22 @@ def tree_to_py(array_of_tree_nodes):
     return_dict = {}
     for element in array_of_tree_nodes:
         if len(element.childItems) == 0:
-            return_dict[element.getData(0)] = element.getData(1)
+            value = element.getData(1)
+            value_type = element.getData(2)
+            if value == '':
+                return_dict[element.getData(0)] = value
+            else:
+                match value_type:
+                    case "integer":
+                        return_dict[element.getData(0)] = int(value)
+                    case "number":
+                        return_dict[element.getData(0)] = float(value)
+                    case "boolean":
+                        return_dict[element.getData(0)] = bool(value)
+                    case "array":
+                        return_dict[element.getData(0)] = value
+                    case _:
+                        return_dict[element.getData(0)] = value
         else:
             return_dict[element.getData(0)] = tree_to_py(element.childItems)
     return return_dict

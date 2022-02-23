@@ -46,7 +46,17 @@ def deploy_schema(path):
 	    				"title": "Stage 2",\
 		    			"description": "You can generate a blank JSON from a schema, load a default for a selected schema or open a JSON and validate it.",\
 			    		"type": "string"\
-			    	}\
+			    	},\
+        			"Example_Number":{\
+    	    			"title": "Example Number/Float Value",\
+    		    		"description": "I am an example Floating Point Number, test the input validation with me.",\
+    			    	"type": "number"\
+    			    },\
+                    "Example_Int":{\
+                        "title": "Example Integer Value",\
+                        "description": "I am an example integer, test the input validation with me.",\
+                        "type": "integer"\
+                    }\
 			    }\
 		    }\
 	    }\
