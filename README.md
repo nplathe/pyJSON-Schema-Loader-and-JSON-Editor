@@ -10,6 +10,11 @@ The tool shall be used for storing important metadata within a filesystem-based 
 
 The pyJSON GUI (proper name pending) requires Python >= 3.10. A proper dependency list follows soon-ish.
 
+## Build a binary
+
+Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
+`. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time.
+
 ## Featueres
 
 ### Reading, Validating and Writing JSON files

@@ -76,14 +76,14 @@ def deploy_config(path):
             "last_JSON": None
         }
     try:
-        with open(os.path.join(path, "config.json"), "w") as out:
+        with open(os.path.join(path, "pyJSON_conf.json"), "w") as out:
             json.dump(config, out, indent = 4)
     except OSError as err:
         lg.error("[deploy_files.deploy_config/ERROR]: Could not set default config.")
 
 def save_config(path, config):
     try:
-        with open(os.path.join(path, "config.json"), "w") as out:
+        with open(os.path.join(path, "pyJSON_conf.json"), "w") as out:
             json.dump(config, out, indent = 4)
     except OSError as err:
         lg.error("[deploy_files.save_config/ERROR]: Could not save config.")

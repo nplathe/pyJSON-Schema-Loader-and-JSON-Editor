@@ -246,7 +246,7 @@
    </property>
   </action>
  </widget>
- <layoutdefault spacing="6" margin="9"/>
+ <layoutdefault spacing="2" margin="4"/>
  <resources/>
  <connections/>
 </ui>

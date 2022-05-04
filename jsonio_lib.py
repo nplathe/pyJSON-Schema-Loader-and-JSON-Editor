@@ -1,5 +1,5 @@
 # ----------------------------------------
-# pyJSON Converter + GUI main module
+# pyJSON Converter + GUI jsonio_lib module
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
@@ -35,15 +35,15 @@ def validator_files(json_path, json_schema_path):
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
-        lg.error("[main.validator_files/ERROR]: JSON is not valid against selected Schema!")
+        lg.error("[jsonio_lib.validator_files/ERROR]: JSON is not valid against selected Schema!")
         return 1
     except jsonschema.exceptions.SchemaError as err:
-        lg.error("[main.validator_files/ERROR]: The JSON schema is not valid against its selected meta schema!")
+        lg.error("[jsonio_lib.validator_files/ERROR]: The JSON schema is not valid against its selected meta schema!")
         return 2
     except OSError:
-        lg.error("[main.validator_files/ERROR]: Either JSON or Schema is not accessible anymore!")
+        lg.error("[jsonio_lib.validator_files/ERROR]: Either JSON or Schema is not accessible anymore!")
         return -999
-    lg.info("[main.validator_files/INFO]: Validation of JSON successful!")
+    lg.info("[jsonio_lib.validator_files/INFO]: Validation of JSON successful!")
     return 0
 
 
@@ -55,15 +55,15 @@ def validator_vars(json_str, json_schema_path):
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
-        lg.error("[main.validator_vars/ERROR]: JSON is not valid against selected Schema!")
+        lg.error("[jsonio_lib.validator_vars/ERROR]: JSON is not valid against selected Schema!")
         return 1
     except jsonschema.exceptions.SchemaError as err:
-        lg.error("[main.validator_vars/ERROR]: The JSON schema is not valid against its selected meta schema!")
+        lg.error("[jsonio_lib.validator_vars/ERROR]: The JSON schema is not valid against its selected meta schema!")
         return 2
     except OSError:
-        lg.error("[main.validator_vars/ERROR]: Schema is not accessible anymore!")
+        lg.error("[jsonio_lib.validator_vars/ERROR]: Schema is not accessible anymore!")
         return -999
-    lg.info("[main.validator_vars/INFO]: Validation of JSON successful!")
+    lg.info("[jsonio_lib.validator_vars/INFO]: Validation of JSON successful!")
     return 0
 
 
@@ -74,10 +74,10 @@ def decode_function(json_path):
         loaded_json = open(json_path)
         result = json.load(loaded_json, cls=json.JSONDecoder)
     except json.JSONDecodeError as err:
-        lg.error("[main.decode_function/ERROR]: JSON could not be parsed into Python representation!")
+        lg.error("[jsonio_lib.decode_function/ERROR]: JSON could not be parsed into Python representation!")
         return {"Error": "Something has gone wrong, the JSON was not parsed properly!"}
     except OSError:
-        lg.error("[main.decode_function/ERROR]: JSON is not accessible anymore!")
+        lg.error("[jsonio_lib.decode_function/ERROR]: JSON is not accessible anymore!")
         return -999
     return result
 
@@ -101,7 +101,7 @@ def schema_to_py_gen(decoded_schema):
                 case "object":
                     return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
         except KeyError as err:
-            lg.critical("[main.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
+            lg.critical("[jsonio_lib.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
                   ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -118,7 +118,7 @@ def schema_to_ref_gen(decoded_schema):
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["description"]
         except KeyError as err:
-            lg.critical("[main.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
+            lg.critical("[jsonio_lib.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
                   ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -134,7 +134,7 @@ def schema_to_type_gen(decoded_schema):
                     return_dict[element] = decoded_schema["properties"][element]["type"]
         except KeyError as err:
             lg.critical(
-                "[main.schema_to_type_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[jsonio_lib.schema_to_type_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -150,7 +150,7 @@ def schema_to_title_gen(decoded_schema):
                     return_dict[element] = decoded_schema["properties"][element]["title"]
         except KeyError as err:
             lg.critical(
-                "[main.schema_to_title_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[jsonio_lib.schema_to_title_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -162,34 +162,34 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
     for element in input_dict:
         try:
             if not element in reference_dict:
-                raise KeyError("[main.py_to_tree/INFO]: Element not in Schema Definition.")
+                raise KeyError("[jsonio_lib.py_to_tree/INFO]: Element not in Schema Definition.")
             if type(input_dict[element]) is not dict:
                 return_tree.add_node(parent = return_tree.root_node, data =
                 [
                     element,
+                    title_dict[element],
                     str(input_dict[element]),
                     type_dict[element],
-                    title_dict[element],
                     reference_dict[element]
                 ])
             else:
                 return_tree.add_node(parent=return_tree.root_node,
                                      data=[element, '', '', '', ''])
                 part_tree = py_to_tree(input_dict[element], type_dict[element], title_dict[element], reference_dict[element],
-                                       return_tree=TreeClass(data=["K", "V", "Ty", "Ti", "D"]))
+                                       return_tree=TreeClass(data=["K","Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
         except KeyError as err:
-            lg.warning("[main.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to erroneous description")
+            lg.warning("[jsonio_lib.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to erroneous description")
             if type(input_dict[element]) is not dict:
-                return_tree.add_node(parent = return_tree.root_node, data = [element, str(input_dict[element]), 'string', 'Erroneous Title', 'Schema does not match JSON structure! Type Validation will not work!'])
+                return_tree.add_node(parent = return_tree.root_node, data = [element, 'Erroneous Title', str(input_dict[element]), 'string', 'Schema does not match JSON structure! Type Validation will not work!'])
             else:
                 return_tree.add_node(parent=return_tree.root_node,
                                      data=[element, '', '', '',''])
                 part_tree = py_to_tree(input_dict[element], {}, {}, {},
-                                       return_tree=TreeClass(data=["K", "V", "Ty", "Ti", "D"]))
+                                       return_tree=TreeClass(data=["K","Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
@@ -202,8 +202,8 @@ def tree_to_py(array_of_tree_nodes):
     return_dict = {}
     for element in array_of_tree_nodes:
         if len(element.childItems) == 0:
-            value = element.getData(1)
-            value_type = element.getData(2)
+            value = element.getData(2)
+            value_type = element.getData(3)
             if value == '':
                 return_dict[element.getData(0)] = value
             else:

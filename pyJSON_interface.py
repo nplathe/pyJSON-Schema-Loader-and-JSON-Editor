@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\plathe\PycharmProjects\pyjson-converter-gui\main_window.ui'
+# Form implementation generated from reading ui file 'C:\Users\plathe\PycharmProjects\pyjson-converter-gui\pyJSON_interface.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #
@@ -15,14 +15,14 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout_3.setContentsMargins(9, 9, 9, 9)
-        self.verticalLayout_3.setSpacing(6)
+        self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
+        self.verticalLayout_3.setSpacing(2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setSpacing(6)
+        self.verticalLayout_2.setSpacing(2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setSpacing(6)
+        self.horizontalLayout_4.setSpacing(2)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.curr_descr_label_1 = QtWidgets.QLabel(self.centralwidget)
         self.curr_descr_label_1.setMaximumSize(QtCore.QSize(100, 16777215))
@@ -40,7 +40,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setContentsMargins(-1, -1, -1, 0)
-        self.horizontalLayout_5.setSpacing(6)
+        self.horizontalLayout_5.setSpacing(2)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.curr_descr_label2 = QtWidgets.QLabel(self.centralwidget)
         self.curr_descr_label2.setMaximumSize(QtCore.QSize(100, 16777215))
@@ -60,13 +60,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.treeView)
         self.verticalLayout_3.addLayout(self.verticalLayout_2)
         self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setSpacing(6)
+        self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName("verticalLayout")
         self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.lineEdit)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSpacing(6)
+        self.horizontalLayout.setSpacing(2)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setObjectName("pushButton")

@@ -4,5 +4,5 @@
 /Logs
 /dist
 /build
-/runner.spec
-/config.json
+/pyJSON.spec
+/pyJSON_conf.json
