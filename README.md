@@ -1,6 +1,6 @@
-# pyJSON-Converter-GUI
+# pyJSON Schema Loader and JSON Editor
 
-A repo for the JSON Converter GUI I am creating for Steffen Franke.
+This is the repository for the pyJSON Schema Loader and JSON Editor - a limited feature set editor for JSON files, that utilises JSON Schema to create and validate JSON files.
 
 ## Purpose
 
@@ -8,11 +8,36 @@ The tool shall be used for storing important metadata within a filesystem-based 
 
 ## Requirements
 
-The pyJSON GUI (proper name pending) requires Python >= 3.10. A proper dependency list follows soon-ish.
+The pyJSON Schema Loader and JSON Editor requires Python >= 3.10. A proper dependency list follows soon-ish.
 
-## Build a binary
+### Virtual environment with Anaconda
 
-Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
+When developing or testing pyJSON, it is advisable to use an isolated environment to keep other environments or the base evnironment free from dependency issues or specific package conflicts.
+
+First, update your conda environment:
+```
+conda update conda
+conda update --all
+```
+
+Then create a virtual environment that uses Python 3.10 or higher:
+
+```
+conda create -n yourenvname python=3.10.4 anaconda
+```
+
+Switch to the newly created environment. Optionally, you can install additional packages
+
+```
+conda install -n yourenvname [package]
+conda activate yourenvname
+```
+
+You can leave the virtual environment at any time, using `conda deactivate`.
+
+### Build a binary
+
+Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --noconsole --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
 `. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time.
 
 ## Featueres

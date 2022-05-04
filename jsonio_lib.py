@@ -1,5 +1,5 @@
 # ----------------------------------------
-# pyJSON Converter + GUI jsonio_lib module
+# pyJSON Schema Loader and JSON Editor - IO and Conversion Module
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
@@ -11,6 +11,7 @@
 import logging
 import os
 import sys
+import regex as re
 
 import json
 import jsonschema
@@ -25,6 +26,7 @@ from schema_model import TreeClass, TreeItem
 # logger config
 lg = logging.getLogger(__name__)
 lg.setLevel("DEBUG")
+
 
 # The validator function shall wrap around json.load and validate a JSON file against a Schema file
 def validator_files(json_path, json_schema_path):
@@ -101,8 +103,8 @@ def schema_to_py_gen(decoded_schema):
                 case "object":
                     return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
         except KeyError as err:
-            lg.critical("[jsonio_lib.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
-                  ". JSON may be not valid against corresponding schema anymore.")
+            lg.critical("[jsonio_lib.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing"
+                        + " \"type\"-tag. JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
@@ -123,6 +125,7 @@ def schema_to_ref_gen(decoded_schema):
             continue
     return return_dict
 
+
 def schema_to_type_gen(decoded_schema):
     return_dict = {}
     for element in decoded_schema["properties"]:
@@ -138,6 +141,7 @@ def schema_to_type_gen(decoded_schema):
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
+
 
 def schema_to_title_gen(decoded_schema):
     return_dict = {}
@@ -155,20 +159,24 @@ def schema_to_title_gen(decoded_schema):
             continue
     return return_dict
 
+
 # py_to_tree takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
 # tree model needed for the TreeView
 def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
     incrementor = 0
     for element in input_dict:
         try:
-            if not element in reference_dict:
+            if element not in reference_dict:
                 raise KeyError("[jsonio_lib.py_to_tree/INFO]: Element not in Schema Definition.")
             if type(input_dict[element]) is not dict:
+                temp_value = str(input_dict[element])
+                if type(input_dict[element]) is list:
+                    temp_value = temp_value.replace("'", "")
                 return_tree.add_node(parent = return_tree.root_node, data =
                 [
                     element,
                     title_dict[element],
-                    str(input_dict[element]),
+                    temp_value,
                     type_dict[element],
                     reference_dict[element]
                 ])
@@ -182,7 +190,8 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
         except KeyError as err:
-            lg.warning("[jsonio_lib.py_to_tree/INFO]: Key " + element +" may not be present in Schema. Switch to erroneous description")
+            lg.warning("[jsonio_lib.py_to_tree/INFO]: Key " + element +
+                       " may not be present in Schema. Switch to erroneous description")
             if type(input_dict[element]) is not dict:
                 return_tree.add_node(parent = return_tree.root_node, data = [element, 'Erroneous Title', str(input_dict[element]), 'string', 'Schema does not match JSON structure! Type Validation will not work!'])
             else:
@@ -215,7 +224,12 @@ def tree_to_py(array_of_tree_nodes):
                     case "boolean":
                         return_dict[element.getData(0)] = bool(value)
                     case "array":
-                        return_dict[element.getData(0)] = value
+                        temp_value = value.replace("[", "")
+                        temp_value = temp_value.replace("]", "")
+                        temp_value = temp_value.replace(" ", "")
+                        lg.error(temp_value)
+                        temp_arr = re.split(",", temp_value)
+                        return_dict[element.getData(0)] = temp_arr
                     case _:
                         return_dict[element.getData(0)] = value
         else:
@@ -224,6 +238,7 @@ def tree_to_py(array_of_tree_nodes):
 # ----------------------------------------
 # Execution
 # ----------------------------------------
+
 
 if __name__ == "__main__":
 

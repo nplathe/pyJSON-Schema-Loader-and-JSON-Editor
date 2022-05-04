@@ -1,5 +1,5 @@
 # ----------------------------------------
-# pyJSON Converter + GUI runner module
+# pyJSON Schema Loader and JSON Editor - Main Module
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
@@ -21,7 +21,8 @@ from datetime import datetime
 # import PyQt libraries
 from PyQt5 import QtCore, QtGui, QtWidgets, QtTest, uic
 from PyQt5.QtCore import QModelIndex, Qt
-from PyQt5.QtWidgets import QLabel, QComboBox
+from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtWidgets import QLabel, QComboBox, QStyledItemDelegate, QStyle
 
 # import tkinter modules
 import tkinter as tk
@@ -31,6 +32,7 @@ from tkinter import messagebox, filedialog
 import jsonio_lib
 from deploy_files import deploy_schema, deploy_config, save_config
 from schema_model import TreeClass as TC
+
 
 # ----------------------------------------
 # Variables and Functions
@@ -65,42 +67,45 @@ class TreeClass(TC):
                     pass
                 case _:
                     pass
-            result = item.setData(column = index.column(), data = value)
+            result = item.setData(column=index.column(), data=value)
             if result:
                 self.dataChanged.emit(index, index)
                 lg.info("\n----------\n[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
-                str(item.getDataArray()) + "\n----------")
+                        str(item.getDataArray()) + "\n----------")
             return result
         except ValueError as err:
             lg.error("[pyJSON.TreeClass.setData/ERROR]: " +
-                "Input could not be validated against type proposed from Schema!")
+                     "Input could not be validated against type proposed from Schema!")
             tk.messagebox.showerror(
-                title = "[pyJSON.TreeClass.setData/ERROR]",
-                message = "Input could not be validated against type proposed from Schema!"
+                title="[pyJSON.TreeClass.setData/ERROR]",
+                message="Input could not be validated against type proposed from Schema!"
             )
             return False
 
+
 # We need a parser of command line arguments:
 parser = argparse.ArgumentParser(
-    description = "When starting the tool va command line, a parameter can be used to overwrite the last used "+
-    "directory. If a metadata.json file is present, it will be loaded, else, the last schema will be used to generate"+
-    " a blank."
+    description="pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
+                "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite the last used " +
+                "directory. If a metadata.json file is present, it will be loaded, else, the last schema will be used to generate" +
+                " a blank. When using -v, pyJSON will generate a log file."
 )
 parser.add_argument('-i', '--input-directory',
-                    dest = "path",
-                    help = "This parameter overwrites the last used directory.")
+                    dest="path",
+                    help="This parameter overwrites the last used directory.")
 parser.add_argument('-v', '--verbose',
-                    action = "store_true",
-                    dest = "verbose",
-                    help = "If set, a log will be generated.")
+                    action="store_true",
+                    dest="verbose",
+                    help="If set, a log will be generated.")
 args = parser.parse_args()
+
 
 # class extension of my GUI, containing all functions related to the GUI
 class Ui_RunnerInstance(QtWidgets.QMainWindow):
     def __init__(self):
 
         # we first call init from the super class, then load the UI file from designer
-        super(Ui_RunnerInstance, self). __init__()
+        super(Ui_RunnerInstance, self).__init__()
         uic.loadUi('pyJSON_interface.ui', self)
 
         title = "pyJSON Schema Loader and JSON Editor"
@@ -154,10 +159,9 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         self.edit_from_def.setStatusTip("Load default values from the Default storage of the tool.")
         self.edit_from_def.triggered.connect(self.load_default)
 
-
         self.edit_to_def = self.findChild(QtWidgets.QAction, 'actionSave_as_default')
-        self.edit_to_def.setStatusTip("Saves the current values as default for later use. "+
-            "The default is named after the schema!")
+        self.edit_to_def.setStatusTip("Saves the current values as default for later use. " +
+                                      "The default is named after the schema!")
         self.edit_to_def.triggered.connect(self.save_default)
 
         self.validate_Action = self.findChild(QtWidgets.QAction, 'actionValidate_input_against_selected_schema')
@@ -201,7 +205,6 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             QtTest.QTest.qWait(2000)
             self.button_1.setText("Set new directory!")
 
-
     # sets the working directory to the selection
     def diropener(self):
         dir_path = os.path.normpath(tk.filedialog.askdirectory())
@@ -215,8 +218,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.diropener/ERROR]",
-                message = "[pyJSON.diropener/ERROR]: Directory does not exist."
+                title="[pyJSON.diropener/ERROR]",
+                message="[pyJSON.diropener/ERROR]: Directory does not exist."
             )
         except OSError as err:
             if re.match(re.compile('\[WinError\s123\]'), str(err)):
@@ -224,14 +227,13 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             else:
                 lg.error(err)
 
-
     # Definition Actions MenuBar
 
     # Open a JSON and reload the TreeView with the new information
     def jsonopener(self):
         try:
             filepath_str = tk.filedialog.askopenfilename(
-                filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*')))
+                filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*')))
             if filepath_str == '':
                 raise OSError("[pyJSON.jsonopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath_str):
@@ -259,18 +261,17 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.jsonopener/ERROR]",
-                message = "[pyJSON.jsonopener/ERROR]: Specified file does not exist."
+                title="[pyJSON.jsonopener/ERROR]",
+                message="[pyJSON.jsonopener/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             lg.error(err)
-
 
     # opens and converts YAML files according to a schema definition
     def yamlopener(self):
         try:
             filepath = os.path.normpath(tk.filedialog.askopenfilename(
-                filetypes = (('YAML Ain\'t Markup Language', '*.yaml'),('All Files', '*.*'))))
+                filetypes=(('YAML Ain\'t Markup Language', '*.yaml'), ('All Files', '*.*'))))
             if filepath == '':
                 raise OSError("[pyJSON.yamlopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
@@ -278,13 +279,12 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.yamlopener/ERROR]",
-                message = "[pyJSON.yamlopener/ERROR]: Specified file does not exist."
+                title="[pyJSON.yamlopener/ERROR]",
+                message="[pyJSON.yamlopener/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             lg.error(err)
-        lg.info(filepath) # TODO fill this with life from jsonio_lib.py
-
+        lg.info(filepath)  # TODO fill this with life from jsonio_lib.py
 
     # reloads the contents of the drop down menu and updates the list with potential new schemas
     def combobox_repopulate(self):
@@ -302,7 +302,6 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                 self.curr_schem_ddm.addItem(x)
             self.curr_schem_ddm.update()
             self.curr_schem_ddm.blockSignals(False)
-
 
     # gets executed when the user selects or swaps the schema and updates the TreeView
     def combobox_selected(self):
@@ -335,8 +334,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.copy_schema_to_storage/ERROR]",
-                message = str(err)
+                title="[pyJSON.copy_schema_to_storage/ERROR]",
+                message=str(err)
             )
 
     # copies a schema to the schema storage
@@ -344,16 +343,16 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         lg.info("\n----------\nCopying schema to tool storage.\n-----------")
         try:
             filepath = os.path.normpath(tk.filedialog.askopenfilename(
-                filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*'))))
+                filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
             if filepath == '':
                 raise OSError("[pyJSON.copy_schema_to_storage/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
                 raise FileNotFoundError("[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist.")
             if filepath == os.path.join(script_dir, "Schemas", os.path.basename(filepath)):
                 tk.messagebox.showwarning(
-                    title = "[pyJSON.copy_schema_to_storage/WARN]",
-                    message = "[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema "+
-                              "folder. It will not be copied."
+                    title="[pyJSON.copy_schema_to_storage/WARN]",
+                    message="[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
+                            "folder. It will not be copied."
                 )
             else:
                 shutil.copyfile(filepath, os.path.join(script_dir, "Schemas", os.path.basename(filepath)))
@@ -361,8 +360,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.copy_schema_to_storage/ERROR]",
-                message = "[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
+                title="[pyJSON.copy_schema_to_storage/ERROR]",
+                message="[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             lg.error(err)
@@ -375,39 +374,39 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
         try:
             with open(curr_json, "w") as out:
-                json.dump(json_frame, out, indent = 4)
+                json.dump(json_frame, out, indent=4)
                 config["last_JSON"] = curr_json
                 save_config(script_dir, config)
                 self.cur_json_label.setText(curr_json)
         except OSError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.save_curr_json/ERROR]",
-                message = "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                title="[pyJSON.save_curr_json/ERROR]",
+                message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
             )
 
     # the "Save as..." function
     def save_as_function(self):
         selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
-            filetypes = (('Java Script Object Notation', '*.json'),('All Files', '*.*'))))
+            filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
         if selected_path == '' or selected_path == ".":
             lg.info("[pyJSON.save_curr_json/INFO]: Either file selection aborted or you have selected a very odd path.")
         else:
-            if re.match(pattern = re.compile(".*\.json$"), string = selected_path) is None:
+            if re.match(pattern=re.compile(".*\.json$"), string=selected_path) is None:
                 selected_path = selected_path + ".json"
             tree = self.TreeView.model()
             json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
             try:
                 with open(selected_path, "w") as out:
-                    json.dump(json_frame, out, indent = 4)
+                    json.dump(json_frame, out, indent=4)
                     config["last_JSON"] = selected_path
                     save_config(script_dir, config)
                     self.cur_json_label.setText(selected_path)
             except OSError as err:
                 lg.error(err)
                 tk.messagebox.showerror(
-                    title = "[pyJSON.save_curr_json/ERROR]",
-                    message = "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                    title="[pyJSON.save_curr_json/ERROR]",
+                    message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
     # the "Save" function.
@@ -455,8 +454,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.load_md_json/ERROR]",
-                message = "[pyJSON.load_md_json/ERROR]: metadata.json does not exist."
+                title="[pyJSON.load_md_json/ERROR]",
+                message="[pyJSON.load_md_json/ERROR]: metadata.json does not exist."
             )
         except OSError as err:
             lg.error(err)
@@ -498,16 +497,16 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.set_blank_from_schema/ERROR]",
-                message = "[pyJSON.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select "+
-                "another schema and repeat!"
+                title="[pyJSON.set_blank_from_schema/ERROR]",
+                message="[pyJSON.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select " +
+                        "another schema and repeat!"
             )
         except OSError as err:
             lg.error(err)
 
     # saves default values into the default folder.
     def save_default(self):
-        lg.info("\n----------\nSaving default for Schema " + config["last_schema"] + "\n----------" )
+        lg.info("\n----------\nSaving default for Schema " + config["last_schema"] + "\n----------")
         tree = self.TreeView.model()
         json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
         try:
@@ -537,7 +536,6 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             schema_type = jsonio_lib.schema_to_type_gen(schema_read)
             schema_title = jsonio_lib.schema_to_title_gen(schema_read)
 
-
             new_tree = jsonio_lib.py_to_tree(default_values, schema_type, schema_title, schema_descr,
                                              TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
 
@@ -553,8 +551,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title = "[pyJSON.load_default/ERROR]",
-                message = str(err)
+                title="[pyJSON.load_default/ERROR]",
+                message=str(err)
             )
 
     # The reloader function ... reloads JSON and Schema...
@@ -580,7 +578,7 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                     schema_title = jsonio_lib.schema_to_title_gen(schema_read)
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_type, schema_title, schema_descr,
-                                                     TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                        TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -592,14 +590,25 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
             except FileNotFoundError as err:
                 lg.error(err)
                 tk.messagebox.showerror(
-                    title = "[pyJSON.load_default/ERROR]",
-                    message = str(err)
+                    title="[pyJSON.load_default/ERROR]",
+                    message=str(err)
                 )
+
+
+class BackgroundBrushDelegate(QStyledItemDelegate):
+    def __init__(self, brush: QBrush, parent):
+        super(BackgroundBrushDelegate, self).__init__()
+        self.brush = brush
+
+    def initStyleOption(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
+        super(BackgroundBrushDelegate, self).initStyleOption(option, index)
+        option.backgroundBrush = self.brush
 
 
 # ----------------------------------------
 # Execution
 # ----------------------------------------
+
 
 if __name__ == "__main__":
     import sys
@@ -622,7 +631,7 @@ if __name__ == "__main__":
 
     lg = logging.getLogger()
     lg.setLevel("DEBUG")
-    formatter = logging.Formatter(fmt = '%(asctime)s: %(message)s')
+    formatter = logging.Formatter(fmt='%(asctime)s: %(message)s')
 
     # If -v is used, a log folder is needed.
     if args.verbose:
@@ -636,12 +645,13 @@ if __name__ == "__main__":
                 tk.messagebox.showerror("[pyJSON.main/FATAL]", str_message)
 
         print(os.path.join(os.getcwd(), "Logs", (now.strftime('%Y%m%d_%H_%M_%S') + ".log")))
-        file_handler = logging.FileHandler(os.path.join(os.getcwd(), "Logs", (now.strftime('%Y%m%d_%H_%M_%S') + ".log")))
+        file_handler = logging.FileHandler(
+            os.path.join(os.getcwd(), "Logs", (now.strftime('%Y%m%d_%H_%M_%S') + ".log")))
         file_handler.setFormatter(formatter)
         lg.addHandler(file_handler)
 
     # A stream handler for the log.
-    stream_handler = logging.StreamHandler(stream = sys.stdout)
+    stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(formatter)
     lg.addHandler(stream_handler)
 
@@ -649,7 +659,7 @@ if __name__ == "__main__":
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):
         lg.info("[pyJSON.main/INFO]: Schemas Directory is missing! Creating...")
         try:
-            os.makedirs(os.path.join(script_dir, "Schemas"), exist_ok = True)
+            os.makedirs(os.path.join(script_dir, "Schemas"), exist_ok=True)
         except OSError as err:
             lg.error(err)
             str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
@@ -661,7 +671,7 @@ if __name__ == "__main__":
     if not os.path.isdir(os.path.join(script_dir, "Default")):
         lg.info("[pyJSON.main/INFO]: Defaults Directory is missing! Creating...")
         try:
-            os.makedirs(os.path.join(script_dir, "Default"), exist_ok = True)
+            os.makedirs(os.path.join(script_dir, "Default"), exist_ok=True)
         except OSError as err:
             lg.error(err)
             str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
@@ -671,7 +681,7 @@ if __name__ == "__main__":
     if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
         lg.info("[pyJSON.main/INFO]: Config is missing. Creating one for you.")
         deploy_config(script_dir)
-    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json")), cls = json.JSONDecoder)
+    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json")), cls=json.JSONDecoder)
 
     # If there was a command line parameter, it gets used here, overwriting the config.
     if args.path is not None:
@@ -721,8 +731,25 @@ if __name__ == "__main__":
     ui.line.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)
+
+    # setting the column width for each column after setting the model.
+    ui.TreeView.setColumnWidth(0, 100)
+    ui.TreeView.setColumnWidth(1, 150)
+    ui.TreeView.setColumnWidth(2, 500)
+    ui.TreeView.setColumnWidth(3, 50)
+    ui.TreeView.setColumnWidth(4, 500)
+
+    # column colors using several delegates
+    delegate1 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
+    delegate2 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
+    delegate3 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
+    delegate4 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
+
+    ui.TreeView.setItemDelegateForColumn(0, delegate1)
+    ui.TreeView.setItemDelegateForColumn(1, delegate2)
+    ui.TreeView.setItemDelegateForColumn(3, delegate3)
+    ui.TreeView.setItemDelegateForColumn(4, delegate4)
     ui.TreeView.expandAll()
-    ui.TreeView.setStyleSheet('*[ItemisEditable = "true"] {background-color: red}')
 
     ui.combobox_repopulate()
     ui.curr_schem_ddm.blockSignals(True)
