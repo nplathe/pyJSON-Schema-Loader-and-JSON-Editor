@@ -165,6 +165,8 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
         self.edit_to_def.triggered.connect(self.save_default)
 
         self.validate_Action = self.findChild(QtWidgets.QAction, 'actionValidate_input_against_selected_schema')
+        self.validate_Action.setStatusTip("Validate the current input against the schema.")
+        self.validate_Action.triggered.connect(self.validate_Function)
 
         self.reload_json = self.findChild(QtWidgets.QAction, 'actionReload_JSON_and_drop_Changes')
         self.reload_json.setStatusTip("Reload the JSON from the Drive and ommit all changes.")
@@ -594,6 +596,32 @@ class Ui_RunnerInstance(QtWidgets.QMainWindow):
                     message=str(err)
                 )
 
+    def validate_Function(self):
+        tree = self.TreeView.model()
+        curr_json_py = jsonio_lib.tree_to_py(tree.root_node.childItems)
+        curr_json = json.dumps(curr_json_py)
+        result = jsonio_lib.validator_vars(curr_json, os.path.join(script_dir, "Schemas", config["last_schema"]))
+        match result:
+            case 0:
+                tk.messagebox.showinfo(
+                    title = "[pyJSON.validate_Function/INFO]",
+                    message = "The JSON is valid against the schema!"
+                )
+            case 1:
+                tk.messagebox.showerror(
+                    title = "[pyJSON.validate_Function/ERROR]",
+                    message = "The JSON is not valid against the schema!"
+                )
+            case 2:
+                tk.messagebox.showerror(
+                    title = "[pyJSON.validate_Function/ERROR]",
+                    message = "The schema is not valid against its meta schema!"
+                )
+            case -999:
+                tk.messagebox.showerror(
+                    title="[pyJSON.validate_Function/ERROR]",
+                    message="The schema is not accessible!"
+                )
 
 class BackgroundBrushDelegate(QStyledItemDelegate):
     def __init__(self, brush: QBrush, parent):

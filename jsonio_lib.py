@@ -58,12 +58,15 @@ def validator_vars(json_str, json_schema_path):
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
         lg.error("[jsonio_lib.validator_vars/ERROR]: JSON is not valid against selected Schema!")
+        lg.error(err)
         return 1
     except jsonschema.exceptions.SchemaError as err:
         lg.error("[jsonio_lib.validator_vars/ERROR]: The JSON schema is not valid against its selected meta schema!")
+        lg.error(err)
         return 2
-    except OSError:
+    except OSError as err:
         lg.error("[jsonio_lib.validator_vars/ERROR]: Schema is not accessible anymore!")
+        lg.error(err)
         return -999
     lg.info("[jsonio_lib.validator_vars/INFO]: Validation of JSON successful!")
     return 0
@@ -227,7 +230,6 @@ def tree_to_py(array_of_tree_nodes):
                         temp_value = value.replace("[", "")
                         temp_value = temp_value.replace("]", "")
                         temp_value = temp_value.replace(" ", "")
-                        lg.error(temp_value)
                         temp_arr = re.split(",", temp_value)
                         return_dict[element.getData(0)] = temp_arr
                     case _:
@@ -248,5 +250,4 @@ if __name__ == "__main__":
     type_frame = schema_to_type_gen(schema)
     descr_frame = schema_to_ref_gen(schema)
     title_frame = schema_to_title_gen(schema)
-    lg.info("Ping") # TODO: Remove Breaker Print for Debug
 

@@ -8,7 +8,7 @@ The tool shall be used for storing important metadata within a filesystem-based 
 
 ## Requirements
 
-The pyJSON Schema Loader and JSON Editor requires Python >= 3.10. A proper dependency list follows soon-ish.
+The pyJSON Schema Loader and JSON Editor requires Python >= 3.10. A proper dependency list is attached as `requirements.txt`.
 
 ### Virtual environment with Anaconda
 
@@ -37,8 +37,41 @@ You can leave the virtual environment at any time, using `conda deactivate`.
 
 ### Build a binary
 
-Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --noconsole --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
-`. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time.
+Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
+`. For removing the black console window for stdin and stdout streams,
+use `--noconsole`. Note, that this removes the possibility to get console output. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time. 
+When using the One-File binary, you'll need to copy the GUI file from sources, the tool cannot start without it. 
+
+## Technical information
+
+### Running with console parameters
+
+#### General
+
+When starting pyJSON va command line, the parameter `-i` can be used to overwrite the last used directory. If a `metadata.json`
+file is present, it will be loaded, else, the last schema will be used to generate a blank. When using `-v`, pyJSON will generate
+a log file.
+
+#### Arguments
+- `-i <path>`, `--input-directory <path>`
+  - This parameter overwrites the last used directory.
+- `-v`, `--verbose`
+  - If set, a log with date and time in the file name will be generated. Note that the corresponding log directory will only be created, if you attemt to create a log.
+
+### Structure of the tool
+
+Depending on the build process and the console parameters, the diectory structure will vary. This will be roughly the structure, when built on a Microsoft Windows OS:
+```
+Script Directory
+├── Logs                    Log directory. Gets created when the first log is written.
+├── Schemas                 The storage for the schemas.
+    └── default.json        The default schema, which doubles as a small test case
+├── Default                 Storage for templates and defaults created by pyJSON
+...
+├── pyJSON.exe              The binary of pyJSON.              
+├── pyJSON_conf.json        The config file of pyJSON.
+└── pyJSON_interface.ui     The Qt GUI file of pyJSON.
+```
 
 ## Featueres
 
