@@ -4,7 +4,10 @@ This is the repository for the pyJSON Schema Loader and JSON Editor - a limited 
 
 ## Purpose
 
-The tool shall be used for storing important metadata within a filesystem-based approach. It doubles as a restricted JSON editor with the capability to read JSON and generate them from a schema, but neither to generate JSONs or schemas from scratch, in order to maintain the flow "Schema -> JSON". It shall be noted that the capabilities of this tool are subject to change.
+The tool shall be used for storing important metadata within a filesystem-based approach. It doubles as a restricted JSON editor with the capability to read JSON and generate
+them from a schema, but neither to generate JSONs or schemas from scratch, in order to maintain the flow "Schema -> JSON". If you need to create a schema from scratch, you may
+use [the ADAMANT web tool](https://plasma-mds.github.io/adamant/) developed by the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
+the capabilities of this tool are subject to change.
 
 ## Requirements
 
@@ -23,7 +26,7 @@ conda update --all
 Then create a virtual environment that uses Python 3.10 or higher:
 
 ```
-conda create -n yourenvname python=3.10.4 anaconda
+conda create -n yourenvname python=3.10.4
 ```
 
 Switch to the newly created environment. Optionally, you can install additional packages
@@ -56,7 +59,7 @@ a log file.
 - `-i <path>`, `--input-directory <path>`
   - This parameter overwrites the last used directory.
 - `-v`, `--verbose`
-  - If set, a log with date and time in the file name will be generated. Note that the corresponding log directory will only be created, if you attemt to create a log.
+  - If set, a log with date and time in the file name will be generated. Note that the corresponding log directory will only be created, if you attempt to create a log.
 
 ### Structure of the tool
 
@@ -77,7 +80,7 @@ Script Directory
 
 ### Reading, Validating and Writing JSON files
 
-The pyJSON GUI is capable of opening and saving JSON files. It supports editing the keys and the values and, given the proper schema, provides a title and description for each key-value-pair. Every operation shall be validated against the schema in the future to prevent falsely entered information.
+The pyJSON GUI is capable of opening and saving JSON files. It supports editing the values and, given the proper schema, provides a title and description for each key-value-pair. Every operation shall be validated against the schema in the future to prevent falsely entered information.
 
 ### Working with Schemas
 
