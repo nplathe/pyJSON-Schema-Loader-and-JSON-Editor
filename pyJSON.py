@@ -720,7 +720,19 @@ if __name__ == "__main__":
             else:
                 config["last_JSON"] = None
             save_config(script_dir, config)
-    os.chdir(config["last_dir"])
+    try:
+        os.chdir(config["last_dir"])
+    except OSError as err:
+        message = "[pyJSON.main/ERROR]: Last directory doesn't exist or part of the path was renamed. Switching to script directory."
+        lg.error(err)
+        lg.error(message)
+        tk.messagebox.showerror(
+            title = "[pyJSON.main/ERROR]",
+            message = message
+        )
+        config["last_dir"] = script_dir
+        save_config(script_dir, config)
+        os.chdir(script_dir)
 
     # setup the view for the first time
     if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
