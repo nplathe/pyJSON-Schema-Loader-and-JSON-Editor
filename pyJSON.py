@@ -22,7 +22,7 @@ from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets, QtTest, uic
 from PyQt5.QtCore import QModelIndex, Qt
 from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import QLabel, QComboBox, QStyledItemDelegate, QStyle
+from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle
 
 # import tkinter modules
 import tkinter as tk
@@ -33,7 +33,8 @@ import jsonio_lib
 from deploy_files import deploy_schema, deploy_config, save_config
 from schema_model import TreeClass as TC
 
-
+# import the converted user interface
+from pyJSON_interface import Ui_MainWindow
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -101,12 +102,12 @@ args = parser.parse_args()
 
 
 # class extension of my GUI, containing all functions related to the GUI
-class Ui_RunnerInstance(QtWidgets.QMainWindow):
+class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
     def __init__(self):
 
-        # we first call init from the super class, then load the UI file from designer
+        # we first call init from the super class, then load the translated py file file from designer
         super(Ui_RunnerInstance, self).__init__()
-        uic.loadUi('pyJSON_interface.ui', self)
+        self.setupUi(self)
 
         title = "pyJSON Schema Loader and JSON Editor"
         self.setWindowTitle(title)

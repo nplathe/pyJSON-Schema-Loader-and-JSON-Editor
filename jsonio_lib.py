@@ -95,7 +95,7 @@ def schema_to_py_gen(decoded_schema):
             match decoded_schema["properties"][element]["type"]:
                 case "string":
                     return_dict[element] = ""
-                case "array":
+                case "array":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = []
                 case "number":
                     return_dict[element] = float("0.0")
@@ -118,7 +118,7 @@ def schema_to_ref_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":
+                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_ref_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["description"]
@@ -134,7 +134,7 @@ def schema_to_type_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":
+                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_type_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["type"]
@@ -151,7 +151,7 @@ def schema_to_title_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":
+                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_title_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["title"]
@@ -226,7 +226,7 @@ def tree_to_py(array_of_tree_nodes):
                         return_dict[element.getData(0)] = float(value)
                     case "boolean":
                         return_dict[element.getData(0)] = bool(value)
-                    case "array":
+                    case "array":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                         temp_value = value.replace("[", "")
                         temp_value = temp_value.replace("]", "")
                         temp_value = temp_value.replace(" ", "")
