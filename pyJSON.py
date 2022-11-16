@@ -13,6 +13,7 @@
 import argparse
 import json
 import logging
+import multiprocessing
 import os
 import regex as re
 import shutil
@@ -20,7 +21,7 @@ import logging as lg
 from datetime import datetime
 
 # import PyQt libraries
-from PyQt5 import QtCore, QtGui, QtWidgets, QtTest, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, QtTest
 from PyQt5.QtCore import QModelIndex, Qt
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle
@@ -32,7 +33,7 @@ from tkinter import messagebox, filedialog
 # import of modules
 import jsonio_lib
 from deploy_files import deploy_schema, deploy_config, save_config
-from schema_model import TreeClass as TC
+from schema_model import TreeClass as TrCl
 
 # import the converted user interface
 from pyJSON_interface import Ui_MainWindow
@@ -42,7 +43,7 @@ from pyJSON_interface import Ui_MainWindow
 
 # We manipulate our TreeClas with a very specific function that blocks editing for all but the second column.
 # Furthermore, setData needs to be overwritten in order to do input validation.
-class TreeClass(TC):
+class TreeClass(TrCl):
     def flags(self, index):
         match index.column():
             case 2:
@@ -113,45 +114,59 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         title = "pyJSON Schema Loader and JSON Editor"
         self.setWindowTitle(title)
 
-        # adding in the signals for the line
-        self.line = self.findChild(QtWidgets.QLineEdit, 'lineEdit')
-        self.line.setText(os.getcwd())
+        # text label for the current dir
+        self.label_curDir.setText(os.getcwd())
 
         # adding in the signals for the buttons
-        self.button_1 = self.findChild(QtWidgets.QPushButton, 'pushButton')
-        self.button_2 = self.findChild(QtWidgets.QPushButton, 'pushButton_2')
-        self.button_3 = self.findChild(QtWidgets.QPushButton, "pushButton_3")
-        self.button_1.clicked.connect(self.wdsetter)
-        self.button_2.clicked.connect(self.wdgetter)
-        self.button_3.clicked.connect(self.diropener)
+        self.pushButton_dirSel.clicked.connect(self.diropener)
+        self.pixmap_dirOpen = getattr(QStyle, "SP_FileDialogNewFolder")
+        self.icon_dirOpen = self.style().standardIcon(self.pixmap_dirOpen)
+        self.pushButton_dirSel.setIcon(self.icon_dirOpen)
+        self.pushButton_dirSel.setStatusTip("Add a new directory to be searchable.")
+        self.pushButton_dirSel.setText("")
 
-        self.button_savemdJSON = self.findChild(QtWidgets.QPushButton, 'pushButton_save_md_JSON')
-        self.button_savemdJSON.clicked.connect(self.save_md_json)
+        self.pushButton_new.clicked.connect(self.set_blank_from_schema)
+        self.pixmap_new = getattr(QStyle, "SP_FileIcon")
+        self.icon_new = self.style().standardIcon(self.pixmap_new)
+        self.pushButton_new.setIcon(self.icon_new)
+        self.pushButton_new.setStatusTip("Create a new JSON file from the current schema.")
+        self.pushButton_new.setText("")
 
-        self.button_loadmdJSON = self.findChild(QtWidgets.QPushButton, 'pushButton_load_md_JSON')
-        self.button_loadmdJSON.clicked.connect(self.load_md_json)
+        self.pushButton_open.clicked.connect(self.jsonopener)
+        self.pixmap_open = getattr(QStyle, "SP_DirOpenIcon")
+        self.icon_open = self.style().standardIcon(self.pixmap_open)
+        self.pushButton_open.setIcon(self.icon_open)
+        self.pushButton_open.setStatusTip("Open a JSON file for editing.")
+        self.pushButton_open.setText("")
+
+        self.pushButton_save.clicked.connect(self.save_function)
+        self.pixmap_save = getattr(QStyle, "SP_DialogSaveButton")
+        self.icon_save = self.style().standardIcon(self.pixmap_save)
+        self.pushButton_save.setIcon(self.icon_save)
+        self.pushButton_save.setStatusTip("Save the current JSON file.")
+        self.pushButton_save.setText("")
+
+        #self.pushButton_search.clicked.connect(self.search)
+        self.pixmap_search = getattr(QStyle, "SP_FileDialogContentsView")
+        self.icon_search = self.style().standardIcon(self.pixmap_search)
+        self.pushButton_search.setIcon(self.icon_search)
+        self.pushButton_search.setStatusTip("Search in the currently selected directory with the current Information"+
+                                            " entered.")
+        self.pushButton_search.setText("")
 
         # adding in the action functions (the menu bar)
-        self.openJSON = self.findChild(QtWidgets.QAction, 'actionOpen_JSON')
-        self.openJSON.setStatusTip("Open a JSON file for editing.")
-        self.openJSON.triggered.connect(self.jsonopener)
+        self.actionOpen_JSON.setStatusTip("Open a JSON file for editing.")
+        self.actionOpen_JSON.triggered.connect(self.jsonopener)
 
-        self.openYAML = self.findChild(QtWidgets.QAction, 'actionOpen_YAML')
-        self.openYAML.setStatusTip("Open a YAML file for conversion and editing.")
-        self.openYAML.triggered.connect(self.yamlopener)
+        self.actionAdd_Schema.setStatusTip("Copy a schema into the tool storage.")
+        self.actionAdd_Schema.triggered.connect(self.copy_schema_to_storage)
 
-        self.copySchema = self.findChild(QtWidgets.QAction, 'actionAdd_Schema')
-        self.copySchema.setStatusTip("Copy a schema into the tool storage.")
-        self.copySchema.triggered.connect(self.copy_schema_to_storage)
+        self.actionSave_as.setStatusTip("Save the current JSON at a specific location of the computer. " +
+                                        "Does not overwrite the working directory.")
+        self.actionSave_as.triggered.connect(self.save_as_function)
 
-        self.save_as_json = self.findChild(QtWidgets.QAction, 'actionSave_as')
-        self.save_as_json.setStatusTip("Save the current JSON at a specific location of the computer. " +
-                                       "Does not overwrite the working directory.")
-        self.save_as_json.triggered.connect(self.save_as_function)
-
-        self.save_json = self.findChild(QtWidgets.QAction, 'actionSave')
-        self.save_json.setStatusTip("Save the current JSON")
-        self.save_json.triggered.connect(self.save_function)
+        self.actionSave.setStatusTip("Save the current JSON")
+        self.actionSave.triggered.connect(self.save_function)
 
         self.blank_from_schem = self.findChild(QtWidgets.QAction, 'actionCreate_JSON_from_selected_Schema')
         self.blank_from_schem.setStatusTip("Removes the current JSON and loads a blank from the selected schema.")
@@ -161,10 +176,9 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         self.edit_from_def.setStatusTip("Load default values from the Default storage of the tool.")
         self.edit_from_def.triggered.connect(self.load_default)
 
-        self.edit_to_def = self.findChild(QtWidgets.QAction, 'actionSave_as_default')
-        self.edit_to_def.setStatusTip("Saves the current values as default for later use. " +
-                                      "The default is named after the schema!")
-        self.edit_to_def.triggered.connect(self.save_default)
+        self.actionSave_as_default.setStatusTip("Saves the current values as default for later use. " +
+                                                "The default is named after the schema!")
+        self.actionSave_as_default.triggered.connect(self.save_default)
 
         self.validate_Action = self.findChild(QtWidgets.QAction, 'actionValidate_input_against_selected_schema')
         self.validate_Action.setStatusTip("Validate the current input against the schema.")
@@ -173,12 +187,6 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         self.reload_json = self.findChild(QtWidgets.QAction, 'actionReload_JSON_and_drop_Changes')
         self.reload_json.setStatusTip("Reload the JSON from the Drive and ommit all changes.")
         self.reload_json.triggered.connect(self.reloader_function)
-
-        # the heartpiece of the GUI is the TreeView
-        self.TreeView = self.findChild(QtWidgets.QTreeView, 'treeView')
-
-        # I need some of the labels to be accessible
-        self.cur_json_label = self.findChild(QLabel, "current_JSON_label")
 
         # Drop-Down Menu
         self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
@@ -189,26 +197,6 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
 
     # Button Function Definitions
 
-    # wdgetter is self-explanatory...
-    def wdgetter(self):
-        result = os.getcwd()
-        self.line.setText(result)
-
-    # scans the TextLine for a dir and sets the wd accordingly
-    def wdsetter(self):
-        result = os.path.normpath(str(self.line.text()))
-        if os.path.isdir(result):
-            self.button_1.setText("Success!")
-            os.chdir(result)
-            QtTest.QTest.qWait(2000)
-            self.button_1.setText("Set new directory!")
-            config["last_dir"] = os.path.normpath(result)
-            save_config(script_dir, config)
-        else:
-            self.button_1.setText("ERROR: Check the path!")
-            QtTest.QTest.qWait(2000)
-            self.button_1.setText("Set new directory!")
-
     # sets the working directory to the selection
     def diropener(self):
         dir_path = os.path.normpath(tk.filedialog.askdirectory())
@@ -218,7 +206,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
                 raise OSError("[pyJSON.diropener/WARN]: Directory selection aborted!")
             config["last_dir"] = dir_path
             save_config(script_dir, config)
-            self.line.setText(dir_path)
+            self.label_curDir.setText(dir_path)
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -260,7 +248,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             if new_tree:
                 config["last_JSON"] = filepath
                 save_config(script_dir, config)
-                self.cur_json_label.setText(filepath)
+                self.curr_json_label.setText(filepath)
 
         except FileNotFoundError as err:
             lg.error(err)
@@ -270,25 +258,6 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             )
         except OSError as err:
             lg.error(err)
-
-    # opens and converts YAML files according to a schema definition
-    def yamlopener(self):
-        try:
-            filepath = os.path.normpath(tk.filedialog.askopenfilename(
-                filetypes=(('YAML Ain\'t Markup Language', '*.yaml'), ('All Files', '*.*'))))
-            if filepath == '':
-                raise OSError("[pyJSON.yamlopener/WARN]: File Selection aborted!")
-            if not os.path.isfile(filepath):
-                raise FileNotFoundError("[pyJSON.yamlopener/ERROR]: Specified file does not exist.")
-        except FileNotFoundError as err:
-            lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.yamlopener/ERROR]",
-                message="[pyJSON.yamlopener/ERROR]: Specified file does not exist."
-            )
-        except OSError as err:
-            lg.error(err)
-        lg.info(filepath)  # TODO fill this with life from jsonio_lib.py
 
     # reloads the contents of the drop down menu and updates the list with potential new schemas
     def combobox_repopulate(self):
@@ -370,25 +339,6 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         except OSError as err:
             lg.error(err)
 
-    # saves the current JSON as metadata.json in the current working directory
-    def save_md_json(self):
-        curr_json = os.path.normpath(os.path.join(config["last_dir"], "metadata.json"))
-        lg.info("Current metadata.json path: " + curr_json)
-        tree = self.TreeView.model()
-        json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
-        try:
-            with open(curr_json, "w") as out:
-                json.dump(json_frame, out, indent=4)
-                config["last_JSON"] = curr_json
-                save_config(script_dir, config)
-                self.cur_json_label.setText(curr_json)
-        except OSError as err:
-            lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.save_curr_json/ERROR]",
-                message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
-            )
-
     # the "Save as..." function
     def save_as_function(self):
         selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
@@ -405,7 +355,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
                     json.dump(json_frame, out, indent=4)
                     config["last_JSON"] = selected_path
                     save_config(script_dir, config)
-                    self.cur_json_label.setText(selected_path)
+                    self.curr_json_label.setText(selected_path)
             except OSError as err:
                 lg.error(err)
                 tk.messagebox.showerror(
@@ -429,40 +379,6 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
                     title="[pyJSON.save_curr_json/ERROR]",
                     message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
-
-    # load_md_json loads a "metadata.json" named file.
-    def load_md_json(self):
-        lg.info('\n----------\nLoading metadata.json...\n----------')
-        try:
-            filepath = os.path.normpath(os.path.join(config["last_dir"], "metadata.json"))
-            read_frame = jsonio_lib.decode_function(filepath)
-
-            if type(read_frame) is int and read_frame == -999:
-                raise FileNotFoundError
-            schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-            schema_frame = jsonio_lib.schema_to_ref_gen(schema_read)
-            schema_title = jsonio_lib.schema_to_title_gen(schema_read)
-            schema_type = jsonio_lib.schema_to_type_gen(schema_read)
-            new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
-                                             TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
-
-            self.TreeView.reset()
-            self.TreeView.setModel(new_tree)
-            self.TreeView.expandAll()
-            new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
-            if new_tree:
-                config["last_JSON"] = os.path.normpath(filepath)
-                save_config(script_dir, config)
-                self.cur_json_label.setText(filepath)
-
-        except FileNotFoundError as err:
-            lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.load_md_json/ERROR]",
-                message="[pyJSON.load_md_json/ERROR]: metadata.json does not exist."
-            )
-        except OSError as err:
-            lg.error(err)
 
     # set_blank_from_schema sets a JSON from the schema, that is completely blank
     def set_blank_from_schema(self):
@@ -496,7 +412,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             if new_tree:
                 config["last_JSON"] = None
                 save_config(script_dir, config)
-                self.cur_json_label.setText("None")
+                self.curr_json_label.setText("None")
 
         except FileNotFoundError as err:
             lg.error(err)
@@ -551,7 +467,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             if new_tree:
                 config["last_JSON"] = None
                 save_config(script_dir, config)
-                self.cur_json_label.setText("None")
+                self.curr_json_label.setText("None")
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -641,6 +557,7 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support() # needed function for the subprocess crawler
     import sys
 
     # set Script Directory
@@ -747,11 +664,11 @@ if __name__ == "__main__":
     if config["last_JSON"] is None:
         lg.info("\n----------\nGenerating blank from schema\n----------")
         st_pre_json = jsonio_lib.schema_to_py_gen(frame)
-        ui.cur_json_label.setText("None")
+        ui.curr_json_label.setText("None")
     else:
         if os.path.isfile(config["last_JSON"]):
             st_pre_json = jsonio_lib.decode_function(config["last_JSON"])
-            ui.cur_json_label.setText(os.path.normpath(config["last_JSON"]))
+            ui.curr_json_label.setText(os.path.normpath(config["last_JSON"]))
         else:
             lg.warning("\n----------\nJSON is missing!!\nGenerating blank from schema\n----------")
             tk.messagebox.showwarning(
@@ -759,7 +676,7 @@ if __name__ == "__main__":
                 message="[pyJSON/WARN]: Last JSON not found. Defaulting to blank."
             )
             st_pre_json = jsonio_lib.schema_to_py_gen(frame)
-            ui.cur_json_label.setText("None")
+            ui.curr_json_label.setText("None")
             config["last_JSON"] = None
             save_config(script_dir, config)
 
@@ -770,7 +687,7 @@ if __name__ == "__main__":
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
     model = jsonio_lib.py_to_tree(st_pre_json, st_pre_type, st_pre_title, st_pre_descr,
                                   TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
-    ui.line.setText(config["last_dir"])
+    ui.label_curDir.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)
 
