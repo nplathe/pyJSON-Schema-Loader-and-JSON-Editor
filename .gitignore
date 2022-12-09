@@ -1,6 +1,7 @@
 # Stuff to ignore...
 /Default
 /Schemas
+/Indexes
 /Logs
 /dist
 /build

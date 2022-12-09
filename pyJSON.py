@@ -6,6 +6,7 @@
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine
 # Callejon - Metropolis
+# Tallah - The Generation Of Danger
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
@@ -22,9 +23,9 @@ from datetime import datetime
 
 # import PyQt libraries
 from PyQt5 import QtCore, QtGui, QtWidgets, QtTest
-from PyQt5.QtCore import QModelIndex, Qt
-from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle
+from PyQt5.QtCore import QModelIndex, Qt, QPoint
+from PyQt5.QtGui import QBrush, QColor, QScreen, QGuiApplication, QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout
 
 # import tkinter modules
 import tkinter as tk
@@ -32,11 +33,14 @@ from tkinter import messagebox, filedialog
 
 # import of modules
 import jsonio_lib
-from deploy_files import deploy_schema, deploy_config, save_config
+import jsonsearch_lib
+from deploy_files import deploy_schema, deploy_config, save_config, saveMainIndex
 from schema_model import TreeClass as TrCl
 
 # import the converted user interface
 from pyJSON_interface import Ui_MainWindow
+
+
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -85,13 +89,31 @@ class TreeClass(TrCl):
             )
             return False
 
+# Special delegator for the tree model in order to handle enums in the schema
+class EnumDropDownDelegate(QStyledItemDelegate):
+    def __init__(self):
+        super(EnumDropDownDelegate, self).__init__()
+
+    def createEditor(self, parent, option, index):
+        dropDownEnum = QWidget.QComboBox()
+        return dropDownEnum
+
+    def setEditorData(self, parent, index):
+        item = index.model().data(index, Qt.EditRole)
+        key = item.getDataArray()[1]
+        pathList = []
+        curNode = item
+        while curNode.getParent() is not index.model().root_node:
+            pathList.append(curNode.getDataArray[1])
+            curNode = curNode.getParent()
+
 
 # We need a parser of command line arguments:
 parser = argparse.ArgumentParser(
     description="pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
-                "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite the last used " +
-                "directory. If a metadata.json file is present, it will be loaded, else, the last schema will be used to generate" +
-                " a blank. When using -v, pyJSON will generate a log file."
+                "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite " +
+                "the last used directory. If a metadata.json file is present, it will be loaded, else, the last " +
+                "schema will be used to generate a blank. When using -v, pyJSON will generate a log file."
 )
 parser.add_argument('-i', '--input-directory',
                     dest="path",
@@ -103,12 +125,29 @@ parser.add_argument('-v', '--verbose',
 args = parser.parse_args()
 
 
+# class for a small additional window showing search results.
+class SearchWindow(QWidget):
+    def __init__(self):
+        super(SearchWindow, self).__init__()
+
+        # Layout, Formatting
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.setWindowTitle("pyJSON - Search Results")
+
+        # Widgets
+        self.searchListView = QtWidgets.QListView()
+
+        # Add Widgets to layout
+        layout.addWidget(self.searchListView)
+
+
 # class extension of my GUI, containing all functions related to the GUI
-class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
+class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def __init__(self):
 
         # we first call init from the super class, then load the translated py file file from designer
-        super(Ui_RunnerInstance, self).__init__()
+        super(UiRunnerInstance, self).__init__()
         self.setupUi(self)
 
         title = "pyJSON Schema Loader and JSON Editor"
@@ -146,13 +185,20 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         self.pushButton_save.setStatusTip("Save the current JSON file.")
         self.pushButton_save.setText("")
 
-        #self.pushButton_search.clicked.connect(self.search)
+        self.pushButton_search.clicked.connect(self.search_Dirs)
         self.pixmap_search = getattr(QStyle, "SP_FileDialogContentsView")
         self.icon_search = self.style().standardIcon(self.pixmap_search)
         self.pushButton_search.setIcon(self.icon_search)
-        self.pushButton_search.setStatusTip("Search in the currently selected directory with the current Information"+
+        self.pushButton_search.setStatusTip("Search in the currently selected directory with the current Information" +
                                             " entered.")
         self.pushButton_search.setText("")
+
+        self.pushButton_addSchema.clicked.connect(self.copy_schema_to_storage)
+        self.pixmap_addSchema = getattr(QStyle, "SP_FileDialogDetailedView")
+        self.icon_addSchema = self.style().standardIcon(self.pixmap_addSchema)
+        self.pushButton_addSchema.setIcon(self.icon_addSchema)
+        self.pushButton_addSchema.setStatusTip("Adds a JSON Schema to the tool storage.")
+        self.pushButton_addSchema.setText("")
 
         # adding in the action functions (the menu bar)
         self.actionOpen_JSON.setStatusTip("Open a JSON file for editing.")
@@ -192,6 +238,8 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
         self.curr_schem_ddm.currentTextChanged.connect(self.combobox_selected)
 
+        self.searchList = None
+
         # call the show function
         self.show()
 
@@ -207,6 +255,7 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             config["last_dir"] = dir_path
             save_config(script_dir, config)
             self.label_curDir.setText(dir_path)
+            jsonsearch_lib.StartIndex(script_dir, dir_path, index_dict)
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -217,7 +266,8 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
             if re.match(re.compile('\[WinError\s123\]'), str(err)):
                 lg.warning("[pyJSON.diropener/WARN]: Directory selection aborted!")
             else:
-                lg.error(err)
+                lg.warning(err)
+        self.dirselect_repopulate()
 
     # Definition Actions MenuBar
 
@@ -259,22 +309,35 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         except OSError as err:
             lg.error(err)
 
-    # reloads the contents of the drop down menu and updates the list with potential new schemas
+    # reloads the contents of the drop-down menu and updates the list with potential new schemas
     def combobox_repopulate(self):
-        if self.curr_schem_ddm.count == 0:
-            self.curr_schem_ddm.blockSignals(True)
-            schema_list = os.listdir(os.path.join(script_dir, "Schemas"))
-            for x in schema_list:
-                self.curr_schem_ddm.addItem(x)
-            self.curr_schem_ddm.blockSignals(False)
-        else:
-            self.curr_schem_ddm.blockSignals(True)
+        self.curr_schem_ddm.blockSignals(True)
+        if self.curr_schem_ddm.count != 0:
             self.curr_schem_ddm.clear()
-            schema_list = os.listdir(os.path.join(script_dir, "Schemas"))
-            for x in schema_list:
-                self.curr_schem_ddm.addItem(x)
-            self.curr_schem_ddm.update()
-            self.curr_schem_ddm.blockSignals(False)
+        schema_list = os.listdir(os.path.join(script_dir, "Schemas"))
+        for x in schema_list:
+            self.curr_schem_ddm.addItem(x)
+        self.curr_schem_ddm.update()
+        self.curr_schem_ddm.blockSignals(False)
+
+    def dirselect_repopulate(self):
+        selection_list = list(index_dict.keys())
+        selection_list.remove("cur_index")
+        self.curr_dir_comboBox.blockSignals(True)
+        if self.curr_dir_comboBox.count != 0:
+            self.curr_dir_comboBox.clear()
+        self.curr_dir_comboBox.addItem("  (none)")
+        if selection_list is not None and type(selection_list) is list:
+            for i in selection_list:
+                self.curr_dir_comboBox.addItem(i)
+        else:
+            if selection_list is not None:
+                self.curr_dir_comboBox.addItem(selection_list)
+        if config["last_dir"] is not None:
+            self.curr_dir_comboBox.setCurrentText(config["last_dir"])
+        else:
+            self.curr_dir_comboBox.setCurrentText("  (none)")
+        self.curr_dir_comboBox.blockSignals(False)
 
     # gets executed when the user selects or swaps the schema and updates the TreeView
     def combobox_selected(self):
@@ -498,7 +561,8 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
                     schema_title = jsonio_lib.schema_to_title_gen(schema_read)
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_type, schema_title, schema_descr,
-                        TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                                     TreeClass(
+                                                         data=["Schema", "Title", "Value", "Type", "Description"]))
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -522,24 +586,92 @@ class Ui_RunnerInstance(QMainWindow, Ui_MainWindow):
         match result:
             case 0:
                 tk.messagebox.showinfo(
-                    title = "[pyJSON.validate_Function/INFO]",
-                    message = "The JSON is valid against the schema!"
+                    title="[pyJSON.validate_Function/INFO]",
+                    message="The JSON is valid against the schema!"
                 )
             case 1:
                 tk.messagebox.showerror(
-                    title = "[pyJSON.validate_Function/ERROR]",
-                    message = "The JSON is not valid against the schema!"
+                    title="[pyJSON.validate_Function/ERROR]",
+                    message="The JSON is not valid against the schema!"
                 )
             case 2:
                 tk.messagebox.showerror(
-                    title = "[pyJSON.validate_Function/ERROR]",
-                    message = "The schema is not valid against its meta schema!"
+                    title="[pyJSON.validate_Function/ERROR]",
+                    message="The schema is not valid against its meta schema!"
                 )
             case -999:
                 tk.messagebox.showerror(
                     title="[pyJSON.validate_Function/ERROR]",
                     message="The schema is not accessible!"
                 )
+
+    # SEARCH RELATED FUNCTIONS
+
+    # search_Dirs shall init the search and open up the search window, if not present.
+    def search_Dirs(self):
+        if self.searchList is None:
+            self.searchList = SearchWindow()
+
+        if not self.searchList.isVisible():
+            # get geometries
+            mainCurrW = self.geometry().width()
+            mainCurrH = self.geometry().height()
+            mainCurrX = self.geometry().x()
+            mainCurrY = self.geometry().y()
+            currScreen = QGuiApplication.screenAt(QPoint(mainCurrX, mainCurrY))
+            desktopW = currScreen.availableGeometry().width()
+
+            # multi desktop setups handling
+            if desktopW < mainCurrX:
+                desktopW += QGuiApplication.screenAt(QPoint(1, 1)).availableGeometry().width()
+            if mainCurrX + mainCurrW + 315 > desktopW:
+                offsetX = mainCurrX + mainCurrW - 315
+            else:
+                offsetX = mainCurrX + mainCurrW + 15
+
+            # call the window
+            self.searchList.setGeometry(offsetX, mainCurrY, 300, mainCurrH)
+            self.searchList.show()
+        if self.curr_dir_comboBox.currentText() != "  (none)":
+            path = self.curr_dir_comboBox.currentText()
+            currSchem = self.curr_schem_ddm.currentText()
+            if index_dict[path] and os.path.exists(path):
+                indexJsonFile = os.path.join(script_dir, "Indexes", "index" + str(index_dict[path]) + ".json")
+                fileIndex = json.load(open(indexJsonFile))
+                lg.info("[pyJSON.search_Dirs/INFO]: Retrieved index of " + path + ".")
+                resultIndex = jsonsearch_lib.schemaMatchingSearch(fileIndex["files"], currSchem, script_dir)
+                tree = self.TreeView.model()
+                jsonFrame = jsonio_lib.tree_to_py(tree.root_node.childItems)
+                flattenedFrame = {}
+                flattenedFrame = jsonsearch_lib.dictFlattenDict(jsonFrame, flattenedFrame)
+                for i in list(flattenedFrame.keys()):
+                    if flattenedFrame[i] == "":
+                        del flattenedFrame[i]
+                if len(flattenedFrame) > 0:
+                    resultIndex = jsonsearch_lib.fSearch(resultIndex, flattenedFrame)
+                if len(resultIndex) != 0:
+                    resultModel = QStandardItemModel()
+                    for i in resultIndex:
+                        item = QStandardItem(i)
+                        resultModel.appendRow(item)
+                        self.searchList.searchListView.setModel(resultModel)
+                else:
+                    lg.warning("[pyJSON.search_Dirs/WARN]: No results found!")
+                    tk.messagebox.showwarning(
+                        title="[pyJSON.search_Dirs/WARN]",
+                        message="No results found!"
+                    )
+        else:
+            lg.warning("[pyJSON.search_Dirs/WARN]: No directory for search selected!")
+            tk.messagebox.showwarning(
+                title = "[pyJSON.search_Dirs/WARN]",
+                message = "No directory for search selected!"
+            )
+
+    # a specific handler for not only closing the main window, but all windows of the app.
+    def closeEvent(self, event):
+        if self.searchList:
+            self.searchList.close()
 
 class BackgroundBrushDelegate(QStyledItemDelegate):
     def __init__(self, brush: QBrush, parent):
@@ -557,7 +689,7 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
 
 
 if __name__ == "__main__":
-    multiprocessing.freeze_support() # needed function for the subprocess crawler
+    multiprocessing.freeze_support()  # needed function for the subprocess crawler
     import sys
 
     # set Script Directory
@@ -570,7 +702,7 @@ if __name__ == "__main__":
     # initialize the QtWidget
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_RunnerInstance()
+    ui = UiRunnerInstance()
 
     # initialize logging
     now = datetime.now()
@@ -630,6 +762,24 @@ if __name__ == "__main__":
         deploy_config(script_dir)
     config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json")), cls=json.JSONDecoder)
 
+# Load or create and save the main index file
+    index_dict = {
+        "cur_index": 0
+    }
+    if not (os.path.isfile(os.path.join(script_dir, "Indexes/pyJSON_S_index.json"))):
+        lg.warning("[pyJSON_search/WARN]: Index file is missing. Create index from scratch.")
+        try:
+            os.mkdir(os.path.join(script_dir, "Indexes"))
+        except FileExistsError as err:
+            pass
+        saveMainIndex(script_dir, index_dict)
+    else:
+        try:
+            index_dict = json.load(open(os.path.join(script_dir, "Indexes/pyJSON_S_index.json")), cls=json.JSONDecoder)
+        except OSError as err:
+            lg.error(err)
+            lg.error("[pyJSON_search/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
+
     # If there was a command line parameter, it gets used here, overwriting the config.
     if args.path is not None:
         if os.path.isdir(args.path):
@@ -646,8 +796,8 @@ if __name__ == "__main__":
         lg.error(err)
         lg.error(message)
         tk.messagebox.showerror(
-            title = "[pyJSON.main/ERROR]",
-            message = message
+            title="[pyJSON.main/ERROR]",
+            message=message
         )
         config["last_dir"] = script_dir
         save_config(script_dir, config)
@@ -700,20 +850,20 @@ if __name__ == "__main__":
 
     # column colors using several delegates
     delegate1 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
-    delegate2 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
-    delegate3 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
-    delegate4 = BackgroundBrushDelegate(brush=QBrush(QColor(240, 240, 240, 255)), parent=QBrush(Qt.white))
 
     ui.TreeView.setItemDelegateForColumn(0, delegate1)
-    ui.TreeView.setItemDelegateForColumn(1, delegate2)
-    ui.TreeView.setItemDelegateForColumn(3, delegate3)
-    ui.TreeView.setItemDelegateForColumn(4, delegate4)
+    ui.TreeView.setItemDelegateForColumn(1, delegate1)
+    ui.TreeView.setItemDelegateForColumn(3, delegate1)
+    ui.TreeView.setItemDelegateForColumn(4, delegate1)
     ui.TreeView.expandAll()
 
     ui.combobox_repopulate()
+    ui.dirselect_repopulate()
     ui.curr_schem_ddm.blockSignals(True)
     ui.curr_schem_ddm.setCurrentText(config["last_schema"])
     ui.curr_schem_ddm.blockSignals(False)
+
+    jsonsearch_lib.watchdog(script_dir, index_dict)
 
     # enter main loop
     sys.exit(app.exec_())

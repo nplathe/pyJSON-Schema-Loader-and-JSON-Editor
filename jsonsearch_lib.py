@@ -7,11 +7,221 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
+# system imports
+import logging as lg
+import tkinter as tk
+import tkinter.messagebox
+import regex as re
+import os
+import json
+import jsonschema
+from jsonschema import validate
+
+# custom imports
+from deploy_files import saveIndex, saveMainIndex
 
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
 
+# WATCHDOG FUNCTION
+def watchdog(script_dir, mainIndex):
+    selection_list = list(mainIndex.keys())
+    selection_list.remove("cur_index")
+    for i in selection_list:
+        checkIndex(script_dir, i, mainIndex)
+
+# SCHEMA MATCHER FUNCTIONS
+def schemaMatchingSearch(index, schema, script_dir):
+    lg.info("==========\nSCHEMA MATCHING SEARCH INDEX\n==========")
+    return_index = []
+    for i in index:
+        try:
+            validate(
+                instance=json.load(open(i)),
+                schema=json.load(open(os.path.join(script_dir, "Schemas", schema)))
+            )
+            return_index.append(i)
+        except UnicodeDecodeError as err:
+            lg.error(err)
+            lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: The JSON file cannot be decoded properly" +
+                     " because it seems to use a different charset than expected.")
+        except json.decoder.JSONDecodeError as err:
+            lg.error(err)
+            lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: Invalid JSON structure. Skipping!")
+        except jsonschema.ValidationError as err:
+            lg.info("[pyJSON_search.schemaMatchingSearch/INFO]: JSON not valid against schema.")
+        except jsonschema.SchemaError as err:
+            lg.critical(err)
+            lg.critical("[pyJSON_search.schemaMatchingSearch/CRITICAL]: The schema is invalid!")
+            tk.messagebox.showerror(
+                title="[pyJSON_search.schemaMatchingSearch/CRITICAL]",
+                message="[pyJSON_search.schemaMatchingSearch/CRITICAL]: The schema does not validate against ." +
+                        "its metaschema. Please check your selected schema!"
+            )
+            break
+    return return_index
+
+# VALUE SEARCH
+def fSearch(index, searchDict):
+    resultList = []
+    lg.info("==========\nFLAT SEARCH\n==========")
+    try:
+        for j in searchDict.keys():
+            comp_str = re.compile(str(searchDict[j]))
+            for i in index:
+                lg.info("reading: " + i)
+                try:
+                    json_file = json.load(open(i))
+                    if json_file is None:
+                        raise json.decoder.JSONDecodeError("Content of JSON file is Null.", i, 0)
+                except json.decoder.JSONDecodeError as err:
+                    lg.error(err)
+                    lg.error("[pyJSON_search.fSearchValues/ERROR]: JSON file invalid. Skipping!")
+                    json_file = {}
+                except UnicodeDecodeError as err:
+                    lg.error(err)
+                    lg.error("[pyJSON_search.fSearchValues/ERROR]: The JSON file cannot be decoded properly" +
+                             " because it seems to use a different charset than expected. Skipping!")
+                    json_file = {}
+                check_list = {}
+                check_list = dictFlattenDict(json_file, check_list)
+                hit = False
+                for k in list(check_list):
+                    if re.search(comp_str, str(check_list[k])) and hit is False:
+                        if i not in resultList:
+                            resultList.append(i)
+                        hit = True
+    except re.error as err:
+        lg.error(err)
+        tk.messagebox.showerror(
+            title="[pyJSON_search.flatSearchIndex/ERROR]",
+            message="[pyJSON_search.flatSearchIndex/ERROR]: Your regex pattern seems to be invalid."
+        )
+    except OSError as err:
+        lg.error(err)
+        tk.messagebox.showerror(
+            title="[pyJSON_search.flatSearchIndex/ERROR]",
+            message="[pyJSON_search.flatSearchIndex/ERROR]: JSON could not be inspected for Keyword search."
+        )
+    except AttributeError as err:
+        lg.error(err)
+        tk.messagebox.showerror(
+            title="[pyJSON_search.flatSearchIndex/ERROR]",
+            message="[pyJSON_search.flatSearchIndex/ERROR]: Please select an index for search first."
+        )
+    return resultList
+
+# a dict flattener for the complete dict #TODO: ISSUE WITH ARRAYS
+def dictFlattenDict(target_dict, flat_dict={}):
+    if type(target_dict) is dict:
+        for pair in list(target_dict):
+            str_name = pair
+            if type(target_dict[str_name]) is not dict:
+                alt_name = str_name
+                iterator = 0
+                try:
+                    while flat_dict[alt_name]:
+                        alt_name = str_name + str(iterator)
+                        iterator += 1
+                    flat_dict[alt_name] = target_dict[str_name]
+                    del target_dict[str_name]
+                except KeyError as err:
+                    flat_dict[alt_name] = target_dict[str_name]
+                    del target_dict[str_name]
+                    continue
+            else:
+                flat_dict = dictFlattenDict(target_dict[str_name], flat_dict)
+                del target_dict[str_name]
+    return flat_dict
+
+# INDEXER FUNCTION
+def StartIndex(script_dir, path, index_dict, showBoxes = True):
+    lg.info("==========\nINDEXER\n==========")
+    indexed_files = []
+    try:
+        if not os.path.exists(path):
+            raise OSError
+        lg.info("jsonsearch_lib.StartIndex/INFO] start indexing at:")
+        lg.info(path)
+        if showBoxes:
+            tk.messagebox.showinfo(
+                title ="[jsonsearch_lib.StartIndex/INFO]",
+                message = "Start indexing. This can take a while..."
+            )
+        for root, dirs, files in os.walk(path, topdown = False):
+            for name in files:
+                if re.match("^.*\.json$", name):
+                    indexed_files.append(os.path.normpath(os.path.join(root, name)))
+        if len(indexed_files) == 0:
+            lg.info("[jsonsearch_lib.StartIndex/INFO]: No JSON files found. Index is empty.")
+            if showBoxes:
+                tk.messagebox.showinfo(
+                    title="[jsonsearch_lib.StartIndex/INFO]",
+                    message="No JSON files found. Index is empty."
+                )
+        else:
+            if path in index_dict:
+                cur_index = index_dict[path]
+            else:
+                index_dict["cur_index"] += 1
+                cur_index = index_dict["cur_index"]
+                index_dict[path] = cur_index
+                saveMainIndex(script_dir, index_dict)
+            saveIndex(script_dir, indexed_files, cur_index)
+        lg.info("jsonsearch_lib.StartIndex/INFO] Indexing finished.")
+        if showBoxes:
+            tk.messagebox.showinfo(
+                title ="[jsonsearch_lib.StartIndex/INFO]",
+                message = "Indexing finished"
+            )
+    except OSError as err:
+        message2 = "[jsonsearch_lib.StartIndex/ERROR] Directory (or one of its subdirectories) is not accessible!"
+        lg.error(err)
+        lg.error(message2)
+        if showBoxes:
+            tk.messagebox.showerror(
+                title = "[jsonsearch_lib.StartIndex/ERROR]",
+                message = message2
+            )
+
+def checkIndex(script_dir, path, index_dict):
+    try:
+        if os.path.isdir(os.path.normpath(path)) and index_dict[path]:
+            index_nr = str(index_dict[path])
+            index_path = os.path.join(script_dir, "Indexes", "index" + index_nr + ".json")
+
+            lastChangeJSON = os.path.getmtime(index_path)
+            lastChangeDir = os.path.getmtime(path)
+            changed = False
+            if lastChangeJSON < lastChangeDir:
+                changed = True
+
+            index = json.load(open(index_path))
+            lg.info("[pyJSON_Search.checkIndex/INFO]: Retrieved index of " + path + ".")
+            i = 0
+            while not changed:
+                i = i + 1
+                if i >= len(index["files"]):
+                    break
+                if not os.path.isfile(index["files"][i]):
+                    changed = True
+                    break
+            if changed:
+                message = "[jsonsearch_lib.checkIndex/WARN]: One or more indexed files are missing or changed."
+                lg.warning(message)
+                StartIndex(script_dir, path, index_dict, False)
+            else:
+                message = "[jsonsearch_lib.checkIndex/INFO]: No changes of already existing files detected."
+                lg.info(message)
+    except OSError as err:
+        lg.error(err)
+        lg.error("[jsonsearch_lib.checkIndex/ERROR] Index file missing oder inaccessible.")
+    except KeyError as err:
+        lg.error("[jsonsearch_lib.checkIndex/ERROR]: No valid index from list selected!")
+
 # ----------------------------------------
 # Execution
 # ----------------------------------------
+if __name__ == "__main__":
+    lg.info("Don't run me directly, I'm just a module providing search functions.")

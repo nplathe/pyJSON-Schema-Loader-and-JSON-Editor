@@ -45,6 +45,11 @@ Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --c
 use `--noconsole`. Note, that this removes the possibility to get console output. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time. 
 When using the One-File binary, you'll need to copy the GUI file from sources, the tool cannot start without it. 
 
+**Note:** The `ui-redesign` utilises another mechanism to include the UI. `pyinstaller --clean pyJSON.py` is therefor sufficient.  
+
+**Note 2:** There seems to be a bug with Pyinstaller 4.8 and jsonschema 4.16.0. Use `pyinstaller --clean --collect-all "jsonschema" pyJSON.py` to circumvent
+the issue.
+
 ## Technical information
 
 ### Running with console parameters
