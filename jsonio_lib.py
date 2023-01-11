@@ -94,8 +94,11 @@ def schema_to_py_gen(decoded_schema):
         try:
             match decoded_schema["properties"][element]["type"]:
                 case "string":
-                    return_dict[element] = ""
-                case "array":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
+                    if "default" in decoded_schema["properties"][element]:
+                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                    else:
+                        return_dict[element] = ""
+                case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = []
                 case "number":
                     return_dict[element] = float("0.0")
@@ -118,13 +121,14 @@ def schema_to_ref_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
+                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_ref_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["description"]
         except KeyError as err:
-            lg.critical("[jsonio_lib.schema_to_ref_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag"+
-                  ". JSON may be not valid against corresponding schema anymore.")
+            lg.critical("[jsonio_lib.schema_to_ref_gen/CRITICAL]: Skipping element: " + element +
+                        ", because of missing \"type\"-tag" +
+                        ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
@@ -134,13 +138,14 @@ def schema_to_type_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
+                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_type_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["type"]
         except KeyError as err:
             lg.critical(
-                "[jsonio_lib.schema_to_type_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[jsonio_lib.schema_to_type_gen/CRITICAL]: Skipping element: " + element +
+                ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -151,13 +156,14 @@ def schema_to_title_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "object":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
+                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = schema_to_title_gen(decoded_schema["properties"][element])
                 case _:
                     return_dict[element] = decoded_schema["properties"][element]["title"]
         except KeyError as err:
             lg.critical(
-                "[jsonio_lib.schema_to_title_gen/CRITICAL]: Skipping element: " + element + ", because of missing \"type\"-tag" +
+                "[jsonio_lib.schema_to_title_gen/CRITICAL]: Skipping element: " + element +
+                ", because of missing \"type\"-tag" +
                 ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
@@ -175,8 +181,7 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                 temp_value = str(input_dict[element])
                 if type(input_dict[element]) is list:
                     temp_value = temp_value.replace("'", "")
-                return_tree.add_node(parent = return_tree.root_node, data =
-                [
+                return_tree.add_node(parent = return_tree.root_node, data = [
                     element,
                     title_dict[element],
                     temp_value,
@@ -184,10 +189,13 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     reference_dict[element]
                 ])
             else:
-                return_tree.add_node(parent=return_tree.root_node,
-                                     data=[element, '', '', '', ''])
-                part_tree = py_to_tree(input_dict[element], type_dict[element], title_dict[element], reference_dict[element],
-                                       return_tree=TreeClass(data=["K","Ti", "V", "Ty", "D"]))
+                return_tree.add_node(parent = return_tree.root_node,
+                                     data = [element, '', '', '', ''])
+                part_tree = py_to_tree(input_dict[element],
+                                       type_dict[element],
+                                       title_dict[element],
+                                       reference_dict[element],
+                                       return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
@@ -196,12 +204,15 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
             lg.warning("[jsonio_lib.py_to_tree/INFO]: Key " + element +
                        " may not be present in Schema. Switch to erroneous description")
             if type(input_dict[element]) is not dict:
-                return_tree.add_node(parent = return_tree.root_node, data = [element, 'Erroneous Title', str(input_dict[element]), 'string', 'Schema does not match JSON structure! Type Validation will not work!'])
+                return_tree.add_node(parent = return_tree.root_node,
+                                     data = [element, 'Erroneous Title',
+                                             str(input_dict[element]), 'string',
+                                             'Schema does not match JSON structure! Type Validation will not work!'])
             else:
-                return_tree.add_node(parent=return_tree.root_node,
-                                     data=[element, '', '', '',''])
+                return_tree.add_node(parent = return_tree.root_node,
+                                     data = [element, '', '', '', ''])
                 part_tree = py_to_tree(input_dict[element], {}, {}, {},
-                                       return_tree=TreeClass(data=["K","Ti", "V", "Ty", "D"]))
+                                       return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
@@ -226,7 +237,7 @@ def tree_to_py(array_of_tree_nodes):
                         return_dict[element.getData(0)] = float(value)
                     case "boolean":
                         return_dict[element.getData(0)] = bool(value)
-                    case "array":#TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
+                    case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                         temp_value = value.replace("[", "")
                         temp_value = temp_value.replace("]", "")
                         temp_value = temp_value.replace(" ", "")
@@ -250,4 +261,3 @@ if __name__ == "__main__":
     type_frame = schema_to_type_gen(schema)
     descr_frame = schema_to_ref_gen(schema)
     title_frame = schema_to_title_gen(schema)
-

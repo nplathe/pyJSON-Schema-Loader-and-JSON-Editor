@@ -10,128 +10,313 @@
     <height>768</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <layout class="QHBoxLayout" name="HeaderLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLabel" name="curr_descr_label_1">
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Current JSON:</string>
-          </property>
-          <property name="indent">
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="current_JSON_label">
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_save_md_JSON">
-          <property name="maximumSize">
-           <size>
-            <width>300</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Save/Overwrite as metadata.json in current directory</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <property name="bottomMargin">
-         <number>0</number>
+       <layout class="QVBoxLayout" name="CurrLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMaximumSize</enum>
         </property>
         <item>
-         <widget class="QLabel" name="curr_descr_label2">
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
+         <layout class="QHBoxLayout" name="CurrSchemLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
           </property>
-          <property name="text">
-           <string>Current Schema:</string>
+          <property name="bottomMargin">
+           <number>0</number>
           </property>
-          <property name="indent">
-           <number>5</number>
-          </property>
-         </widget>
+          <item>
+           <widget class="QLabel" name="curr_descr_label2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Current Schema:</string>
+            </property>
+            <property name="indent">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="current_schema_combo_box">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QComboBox" name="current_schema_combo_box"/>
+         <layout class="QHBoxLayout" name="CurrDirLayout">
+          <item>
+           <widget class="QLabel" name="Curr_dir_label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Search directory:</string>
+            </property>
+            <property name="indent">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="curr_dir_comboBox">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="pushButton_load_md_JSON">
-          <property name="maximumSize">
-           <size>
-            <width>300</width>
-            <height>16777215</height>
-           </size>
+         <layout class="QHBoxLayout" name="CurrJSONLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMaximumSize</enum>
           </property>
-          <property name="text">
-           <string>Load metadata.json from current directory</string>
-          </property>
-         </widget>
+          <item>
+           <widget class="QLabel" name="curr_descr_label">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Current JSON:</string>
+            </property>
+            <property name="indent">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="curr_json_label">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="indent">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QTreeView" name="treeView"/>
+       <layout class="QHBoxLayout" name="ButtonBarLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMinimumSize</enum>
+        </property>
+        <property name="leftMargin">
+         <number>20</number>
+        </property>
+        <property name="rightMargin">
+         <number>20</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="pushButton_addSchema">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>addSchema</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_search">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>search</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_dirSel">
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>dirSel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="NOSBarLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetMinimumSize</enum>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="pushButton_new">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>new</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_open">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>open</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_save">
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>save</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QLineEdit" name="lineEdit"/>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QPushButton" name="pushButton">
-          <property name="text">
-           <string>Set new directory!</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="text">
-           <string>Get current directory!</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_3">
-          <property name="text">
-           <string>Select directory!</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
+     <widget class="QTreeView" name="TreeView">
+      <property name="editTriggers">
+       <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_curDir">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="indent">
+       <number>5</number>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -149,7 +334,6 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen_JSON"/>
-    <addaction name="actionOpen_YAML"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
@@ -158,6 +342,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoad_default_for_selected_schema"/>
     <addaction name="actionSave_as_default"/>
+    <addaction name="separator"/>
+    <addaction name="actionCheck_indexes"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -185,11 +371,6 @@
     <string>Open JSON...</string>
    </property>
   </action>
-  <action name="actionOpen_YAML">
-   <property name="text">
-    <string>Open YAML...</string>
-   </property>
-  </action>
   <action name="actionAdd_Schema">
    <property name="text">
     <string>Add Schema...</string>
@@ -203,11 +384,6 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
-   </property>
-  </action>
-  <action name="actionSelect_Schema">
-   <property name="text">
-    <string>Select Schema</string>
    </property>
   </action>
   <action name="actionCreate_JSON_from_selected_Schema">
@@ -243,6 +419,11 @@
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionCheck_indexes">
+   <property name="text">
+    <string>Check indexes</string>
    </property>
   </action>
  </widget>
