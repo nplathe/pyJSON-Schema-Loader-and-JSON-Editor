@@ -131,6 +131,7 @@ class Ui_MainWindow(object):
         self.HeaderLayout.addLayout(self.ButtonBarLayout)
         self.verticalLayout.addLayout(self.HeaderLayout)
         self.TreeView = QtWidgets.QTreeView(self.centralwidget)
+        self.TreeView.setEditTriggers(QtWidgets.QAbstractItemView.AnyKeyPressed|QtWidgets.QAbstractItemView.DoubleClicked|QtWidgets.QAbstractItemView.EditKeyPressed|QtWidgets.QAbstractItemView.SelectedClicked)
         self.TreeView.setObjectName("TreeView")
         self.verticalLayout.addWidget(self.TreeView)
         self.label_curDir = QtWidgets.QLabel(self.centralwidget)
@@ -173,6 +174,8 @@ class Ui_MainWindow(object):
         self.actionSave.setObjectName("actionSave")
         self.actionSave_as = QtWidgets.QAction(MainWindow)
         self.actionSave_as.setObjectName("actionSave_as")
+        self.actionCheck_indexes = QtWidgets.QAction(MainWindow)
+        self.actionCheck_indexes.setObjectName("actionCheck_indexes")
         self.menuFile.addAction(self.actionOpen_JSON)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionSave)
@@ -182,6 +185,8 @@ class Ui_MainWindow(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLoad_default_for_selected_schema)
         self.menuFile.addAction(self.actionSave_as_default)
+        self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionCheck_indexes)
         self.menuEdit.addAction(self.actionCreate_JSON_from_selected_Schema)
         self.menuEdit.addAction(self.actionValidate_input_against_selected_schema)
         self.menuEdit.addAction(self.actionReload_JSON_and_drop_Changes)
@@ -222,6 +227,7 @@ class Ui_MainWindow(object):
         self.actionReload_JSON_and_drop_Changes.setText(_translate("MainWindow", "Reload JSON and drop Changes..."))
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave_as.setText(_translate("MainWindow", "Save as..."))
+        self.actionCheck_indexes.setText(_translate("MainWindow", "Check indexes"))
 
 
 if __name__ == "__main__":

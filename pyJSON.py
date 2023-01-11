@@ -16,6 +16,8 @@ import json
 import logging
 import multiprocessing
 import os
+import subprocess
+import platform
 import regex as re
 import shutil
 import logging as lg
@@ -25,7 +27,8 @@ from datetime import datetime
 from PyQt5 import QtCore, QtGui, QtWidgets, QtTest
 from PyQt5.QtCore import QModelIndex, Qt, QPoint
 from PyQt5.QtGui import QBrush, QColor, QScreen, QGuiApplication, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
+    QItemDelegate
 
 # import tkinter modules
 import tkinter as tk
@@ -51,7 +54,7 @@ class TreeClass(TrCl):
     def flags(self, index):
         match index.column():
             case 2:
-                return Qt.ItemIsEditable | Qt.ItemIsEnabled
+                return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
             case _:
                 return Qt.ItemIsEnabled
 
@@ -95,18 +98,49 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         super(EnumDropDownDelegate, self).__init__()
 
     def createEditor(self, parent, option, index):
-        dropDownEnum = QWidget.QComboBox()
-        return dropDownEnum
-
-    def setEditorData(self, parent, index):
-        item = index.model().data(index, Qt.EditRole)
-        key = item.getDataArray()[1]
         pathList = []
-        curNode = item
-        while curNode.getParent() is not index.model().root_node:
-            pathList.append(curNode.getDataArray[1])
-            curNode = curNode.getParent()
+        curItem = index.model().getItem(index)
+        pathList.append(curItem.getData(0))
+        while curItem.getParent().getData(0) != "Schema":
+            curItem = curItem.getParent()
+            pathList.append(curItem.getData(0))
+        currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"])), cls=json.JSONDecoder)
+        while len(pathList) > 0:
+            currKey = pathList.pop()
+            currSchem = currSchem["properties"][currKey]
+        if "enum" in currSchem.keys():
+            lg.debug("custom delegate editor selected...")
+            dropDownEnum = QtWidgets.QComboBox(parent)
+            dropDownEnum.setFrame(False)
+            for i in currSchem["enum"]:
+                dropDownEnum.addItem(i)
+            return dropDownEnum
+        else:
+            widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
+            return widget
 
+    def setEditorData(self, editor, index):
+        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
+            item = index.model().data(index, Qt.EditRole)
+            value = item.getDataArray()[2]
+            dropDownEnum = QWidget.QComboBox(editor)
+            dropDownEnum.setCurrentText(value)
+        else:
+            QStyledItemDelegate.setEditorData(QStyledItemDelegate(), editor, index)
+
+    def setModelData(self, editor, model, index):
+        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
+            dropDownEnum = QWidget.QComboBox(editor)
+            value = dropDownEnum.getText()
+            model.setData(index, value, Qt.EditRole)
+        else:
+            QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
+
+    def updateEditorGeometry(self, editor, option, index):
+        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
+            editor.setGeometry(option.rect)
+        else:
+            QStyledItemDelegate.updateEditorGeometry(QStyledItemDelegate(), editor, option, index)
 
 # We need a parser of command line arguments:
 parser = argparse.ArgumentParser(
@@ -137,9 +171,36 @@ class SearchWindow(QWidget):
 
         # Widgets
         self.searchListView = QtWidgets.QListView()
+        self.searchListView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.searchListView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.searchListView.customContextMenuRequested.connect(self.onCustomContextMenu)
 
         # Add Widgets to layout
         layout.addWidget(self.searchListView)
+
+    def onCustomContextMenu(self, index):
+        list_index = self.searchListView.indexAt(index)
+        if list_index.isValid():
+            item_menu = QtWidgets.QMenu("Item menu")
+            entry1 = item_menu.addAction("Open...")
+            entry1.triggered.connect(self.openFile)
+            entry2 = item_menu.addAction("Open File Location...")
+            entry2.triggered.connect(self.openFileLocation)
+            item_menu.exec_(self.searchListView.viewport().mapToGlobal(index))
+
+    def openFile(self):
+        index = self.searchListView.selectedIndexes()[0]
+        item = self.searchListView.model().itemFromIndex(index)
+        if platform.system() == "Windows":
+            subprocess.Popen('explorer '+item.text())
+
+    def openFileLocation(self):
+        index = self.searchListView.selectedIndexes()[0]
+        item = self.searchListView.model().itemFromIndex(index)
+        if platform.system() == "Windows":
+            path = os.path.dirname(item.text())
+            lg.info(path)
+            subprocess.Popen('explorer '+path)
 
 
 # class extension of my GUI, containing all functions related to the GUI
@@ -214,6 +275,9 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.actionSave.setStatusTip("Save the current JSON")
         self.actionSave.triggered.connect(self.save_function)
 
+        self.actionCheck_indexes.setStatusTip("Check all indexes and reindex, if needed.")
+        self.actionCheck_indexes.triggered.connect(self.callWatchdog)
+
         self.blank_from_schem = self.findChild(QtWidgets.QAction, 'actionCreate_JSON_from_selected_Schema')
         self.blank_from_schem.setStatusTip("Removes the current JSON and loads a blank from the selected schema.")
         self.blank_from_schem.triggered.connect(self.set_blank_from_schema)
@@ -239,6 +303,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.curr_schem_ddm.currentTextChanged.connect(self.combobox_selected)
 
         self.searchList = None
+
+        # set the delegate for the view
+        self.delegate = EnumDropDownDelegate()
+        self.TreeView.setItemDelegateForColumn(2, self.delegate)
 
         # call the show function
         self.show()
@@ -658,8 +726,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 else:
                     lg.warning("[pyJSON.search_Dirs/WARN]: No results found!")
                     tk.messagebox.showwarning(
-                        title="[pyJSON.search_Dirs/WARN]",
-                        message="No results found!"
+                        title = "[pyJSON.search_Dirs/WARN]",
+                        message = "No results found!"
                     )
         else:
             lg.warning("[pyJSON.search_Dirs/WARN]: No directory for search selected!")
@@ -667,6 +735,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 title = "[pyJSON.search_Dirs/WARN]",
                 message = "No directory for search selected!"
             )
+
+    def callWatchdog(self):
+        tk.messagebox.showinfo(
+            title = "[pyJSON.callWatchdog/INFO]",
+            message = "Checking and updating indexes, if applicable."
+        )
+        jsonsearch_lib.watchdog(script_dir, index_dict)
 
     # a specific handler for not only closing the main window, but all windows of the app.
     def closeEvent(self, event):

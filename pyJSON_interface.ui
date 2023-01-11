@@ -302,7 +302,11 @@
      </layout>
     </item>
     <item>
-     <widget class="QTreeView" name="TreeView"/>
+     <widget class="QTreeView" name="TreeView">
+      <property name="editTriggers">
+       <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QLabel" name="label_curDir">
@@ -338,6 +342,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoad_default_for_selected_schema"/>
     <addaction name="actionSave_as_default"/>
+    <addaction name="separator"/>
+    <addaction name="actionCheck_indexes"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -413,6 +419,11 @@
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionCheck_indexes">
+   <property name="text">
+    <string>Check indexes</string>
    </property>
   </action>
  </widget>

@@ -94,7 +94,10 @@ def schema_to_py_gen(decoded_schema):
         try:
             match decoded_schema["properties"][element]["type"]:
                 case "string":
-                    return_dict[element] = ""
+                    if "default" in decoded_schema["properties"][element]:
+                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                    else:
+                        return_dict[element] = ""
                 case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = []
                 case "number":
