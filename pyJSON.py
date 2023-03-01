@@ -48,10 +48,23 @@ from pyJSON_interface import Ui_MainWindow
 # Variables and Functions
 # ----------------------------------------
 
-# We manipulate our TreeClas with a very specific function that blocks editing for all but the second column.
-# Furthermore, setData needs to be overwritten in order to do input validation.
 class TreeClass(TrCl):
+    """
+    This modified TreeClass provides an adapted routine to set data by trying to cast entered information to the
+    appropriate data type to prevent accidentially entering wrong information. Furthermore, the flag-function
+    gets overwritten in order to provide the proper item roles to prevent users from editing data other than
+    the JSON values to be.
+    """
     def flags(self, index):
+        """
+        Adapted flag function to provide the proper flags for our table-like structure in the TreeView
+
+        Args:
+            index (QModelIndex): the index of an item to be checked
+
+        Returns:
+            int: the role(s) of the cell
+        """
         match index.column():
             case 2:
                 return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -59,6 +72,17 @@ class TreeClass(TrCl):
                 return Qt.ItemIsEnabled
 
     def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
+        """
+        An overwritten setData-function to check the data type via type casting.
+
+        Args:
+            index (QModelIndex): the index of the data to edit.
+            value (object): the new data to be set.
+            role (int): the role of that node.
+
+        Returns:
+            bool: whetever setting the data was successful
+        """
         if role != Qt.EditRole:
             return False
 
@@ -94,10 +118,29 @@ class TreeClass(TrCl):
 
 # Special delegator for the tree model in order to handle enums in the schema
 class EnumDropDownDelegate(QStyledItemDelegate):
+    """
+    A custom delegate class based off QStyledItemDelegate. Passes most data to the standard editor, except for
+    enumerators, which is noted down in the schema.
+    """
     def __init__(self):
+        """
+        Constructor
+        """
         super(EnumDropDownDelegate, self).__init__()
 
     def createEditor(self, parent, option, index):
+        """
+        When data is to be edited, the delegate provides an Editor, which is, most of the time, a QWidget.
+        TODO: Implement QSpinBoxes for integers and floats
+
+        Args:
+            parent (object): parent of the QWidget to be.
+            option (object): option that might be passed to the constructor of the QWidget
+            index (QModelIndex): the QModelIndex of the item that was clicked
+
+        Returns:
+            QWidget: the editor QWidget - a drop down menu for enumerators, a line edit (the standard) otherwise
+        """
         pathList = []
         curItem = index.model().getItem(index)
         pathList.append(curItem.getData(0))
@@ -120,6 +163,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             return widget
 
     def setEditorData(self, editor, index):
+        """
+        Passes the data from the model to the editor
+
+        Args:
+            editor (QWidget): the QWidget for which the data needs to be set
+            index (QModelIndex): the index of the item to be edited
+
+        Returns:
+        """
         if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
             item = index.model().data(index, Qt.EditRole)
             value = item.getDataArray()[2]
@@ -129,6 +181,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             QStyledItemDelegate.setEditorData(QStyledItemDelegate(), editor, index)
 
     def setModelData(self, editor, model, index):
+        """
+        Passes data from the editor to the model
+        Args:
+            editor (QWidget): the QWidget for which the data needs to be set
+            model (TreeClass): the model of the TreeView
+            index (QModelIndex): the index of the item to be edited
+
+        Returns:
+        """
         if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
             dropDownEnum = QWidget.QComboBox(editor)
             value = dropDownEnum.getText()
@@ -137,31 +198,31 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
+        """
+        updates the QWidget, e.g. when the size of the window changes
+
+        Args:
+            editor (QWidget): the QWidget which needs to get updated
+            option (Object): option that needs to be passed to setGeometry
+            index (QModelIndex): the index of the item the editor is located at
+
+        Returns:
+        """
         if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
             editor.setGeometry(option.rect)
         else:
             QStyledItemDelegate.updateEditorGeometry(QStyledItemDelegate(), editor, option, index)
 
-# We need a parser of command line arguments:
-parser = argparse.ArgumentParser(
-    description="pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
-                "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite " +
-                "the last used directory. If a metadata.json file is present, it will be loaded, else, the last " +
-                "schema will be used to generate a blank. When using -v, pyJSON will generate a log file."
-)
-parser.add_argument('-i', '--input-directory',
-                    dest="path",
-                    help="This parameter overwrites the last used directory.")
-parser.add_argument('-v', '--verbose',
-                    action="store_true",
-                    dest="verbose",
-                    help="If set, a log will be generated.")
-args = parser.parse_args()
-
 
 # class for a small additional window showing search results.
 class SearchWindow(QWidget):
+    """
+    The SearchWindow Class is a simple QWidget for showing search results in a list-view.
+    """
     def __init__(self):
+        """
+        Constructor containing all the signal-slot-connections and information about the window
+        """
         super(SearchWindow, self).__init__()
 
         # Layout, Formatting
@@ -179,6 +240,14 @@ class SearchWindow(QWidget):
         layout.addWidget(self.searchListView)
 
     def onCustomContextMenu(self, index):
+        """
+        Custom context Menu
+
+        Args:
+            index (QPoint): The QPoint the right click was executed at.
+
+        Returns:
+        """
         list_index = self.searchListView.indexAt(index)
         if list_index.isValid():
             item_menu = QtWidgets.QMenu("Item menu")
@@ -189,12 +258,23 @@ class SearchWindow(QWidget):
             item_menu.exec_(self.searchListView.viewport().mapToGlobal(index))
 
     def openFile(self):
+        """
+        A function to initialise opening the selected path in the ListView with the associated tool. Conviniently enough
+        with Windows, explorer.exe passes the attempt of opening a file to the app for us.
+
+        Returns:
+        """
         index = self.searchListView.selectedIndexes()[0]
         item = self.searchListView.model().itemFromIndex(index)
         if platform.system() == "Windows":
             subprocess.Popen('explorer '+item.text())
 
     def openFileLocation(self):
+        """
+        Opens the path to the file.
+
+        Returns:
+        """
         index = self.searchListView.selectedIndexes()[0]
         item = self.searchListView.model().itemFromIndex(index)
         if platform.system() == "Windows":
@@ -205,8 +285,15 @@ class SearchWindow(QWidget):
 
 # class extension of my GUI, containing all functions related to the GUI
 class UiRunnerInstance(QMainWindow, Ui_MainWindow):
+    """
+    The main window class, which is a subclass of the converted interface class generated from the ui XML file. It contains
+    all the slots for functionality of the ui.
+    """
     def __init__(self):
-
+        """
+        Constructor. Sets up all signals and slots, decorates the buttons, creates status tips, links the deleagte to
+        the 2nd column, etc...
+        """
         # we first call init from the super class, then load the translated py file file from designer
         super(UiRunnerInstance, self).__init__()
         self.setupUi(self)
@@ -311,10 +398,15 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         # call the show function
         self.show()
 
+
     # Button Function Definitions
 
-    # sets the working directory to the selection
     def diropener(self):
+        """
+        lets the user open a directory to be indexed.
+
+        Returns:
+        """
         dir_path = os.path.normpath(tk.filedialog.askdirectory())
         try:
             os.chdir(dir_path)
@@ -337,10 +429,15 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 lg.warning(err)
         self.dirselect_repopulate()
 
+
     # Definition Actions MenuBar
 
-    # Open a JSON and reload the TreeView with the new information
     def jsonopener(self):
+        """
+        Reads a JSON document, prepares the model for the TreeView widget and attaches it to said view.
+
+        Returns:
+        """
         try:
             filepath_str = tk.filedialog.askopenfilename(
                 filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*')))
@@ -377,8 +474,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         except OSError as err:
             lg.error(err)
 
-    # reloads the contents of the drop-down menu and updates the list with potential new schemas
+
     def combobox_repopulate(self):
+        """
+        sets up the QComboBox for schemas and updates its entries, if a schema gets added.
+
+        Returns:
+        """
         self.curr_schem_ddm.blockSignals(True)
         if self.curr_schem_ddm.count != 0:
             self.curr_schem_ddm.clear()
@@ -388,7 +490,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.curr_schem_ddm.update()
         self.curr_schem_ddm.blockSignals(False)
 
+
     def dirselect_repopulate(self):
+        """
+        Sets up the other QCombobox utilised for the indexed directories and updates its entries accordingly.
+
+        Returns:
+        """
         selection_list = list(index_dict.keys())
         selection_list.remove("cur_index")
         self.curr_dir_comboBox.blockSignals(True)
@@ -407,8 +515,15 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             self.curr_dir_comboBox.setCurrentText("  (none)")
         self.curr_dir_comboBox.blockSignals(False)
 
-    # gets executed when the user selects or swaps the schema and updates the TreeView
+
     def combobox_selected(self):
+        """
+        A slot that gets triggered when the QComboBox emits a changed-Signal. Sets the new schema and reconstructs
+        the model for the TreeView
+
+        Returns:
+
+        """
         lg.info("\n----------\nswapped schema!\n----------")
         selected = self.curr_schem_ddm.currentText()
         try:
@@ -442,8 +557,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 message=str(err)
             )
 
-    # copies a schema to the schema storage
+
     def copy_schema_to_storage(self):
+        """
+        creates an internal copy of said schema. fail-safes in not overwriting existing schemas.
+
+        Returns:
+        """
         lg.info("\n----------\nCopying schema to tool storage.\n-----------")
         try:
             filepath = os.path.normpath(tk.filedialog.askopenfilename(
@@ -470,8 +590,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         except OSError as err:
             lg.error(err)
 
-    # the "Save as..." function
+
     def save_as_function(self):
+        """
+        first, calls a dialog for saving a file. Then creates a dictionary from the TreeView model and writes it as
+        JSON Document to the file system at the given path.
+
+        Returns:
+        """
         selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
             filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
         if selected_path == '' or selected_path == ".":
@@ -494,8 +620,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
-    # the "Save" function.
+
     def save_function(self):
+        """
+        Writes changes of a JSON document to the file system. Calls save_as_function(), if not saved yet.
+
+        Returns:
+
+        """
         if config["last_JSON"] is None:
             self.save_as_function()
         else:
@@ -511,8 +643,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
-    # set_blank_from_schema sets a JSON from the schema, that is completely blank
+
     def set_blank_from_schema(self):
+        """
+        Creates a TreeView model with empty value fields to be edited and exported as JSON document.
+
+        Returns:
+        """
         lg.info("\n----------\nGenerating Blank from Schema\n----------")
         try:
             curr_schem = jsonio_lib.decode_function(
@@ -557,6 +694,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     # saves default values into the default folder.
     def save_default(self):
+        """
+        stores a copy of the current JSON on a schema basis in the "Default" directory, which can be loaded later on.
+
+        Returns:
+        """
         lg.info("\n----------\nSaving default for Schema " + config["last_schema"] + "\n----------")
         tree = self.TreeView.model()
         json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
@@ -571,6 +713,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             )
 
     def load_default(self):
+        """
+        creates a TreeView model from the default that was stored in the tools directory structure
+
+        Returns:
+        """
         lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
         try:
 
@@ -606,8 +753,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 message=str(err)
             )
 
-    # The reloader function ... reloads JSON and Schema...
+
     def reloader_function(self):
+        """
+        drops all changes made and reverts to the last known saved state or a blank.
+
+        Returns:
+        """
         lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
         if config["last_JSON"] is None:
             lg.warning("No last JSON found, defaulting to Blank.")
@@ -647,6 +799,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 )
 
     def validate_Function(self):
+        """
+        converts the tree keys and values to JSON and validates the JSON document agains the selected schema
+
+        Returns:
+        """
         tree = self.TreeView.model()
         curr_json_py = jsonio_lib.tree_to_py(tree.root_node.childItems)
         curr_json = json.dumps(curr_json_py)
@@ -675,8 +832,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     # SEARCH RELATED FUNCTIONS
 
-    # search_Dirs shall init the search and open up the search window, if not present.
+
     def search_Dirs(self):
+        """
+        initialises the search and instances and/or opens the widget containing the search results
+
+        Returns:
+        """
         if self.searchList is None:
             self.searchList = SearchWindow()
 
@@ -737,23 +899,56 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             )
 
     def callWatchdog(self):
+        """
+        function responsible for executing the re-indexing on a regular basis
+        Returns:
+
+        """
         tk.messagebox.showinfo(
             title = "[pyJSON.callWatchdog/INFO]",
             message = "Checking and updating indexes, if applicable."
         )
         jsonsearch_lib.watchdog(script_dir, index_dict)
 
-    # a specific handler for not only closing the main window, but all windows of the app.
+
     def closeEvent(self, event):
+        """
+        a specific handler receiving QCloseEvents of the main window in order
+        to not only closing it, but all windows of the app.
+
+        Args:
+            event (QCloseEvent): the close event to be processed
+
+        Returns:
+
+        """
         if self.searchList:
             self.searchList.close()
 
 class BackgroundBrushDelegate(QStyledItemDelegate):
+    """
+    Another QStyledItemDelegate inheriting class for coloring the not-to-be-edited columns
+    """
     def __init__(self, brush: QBrush, parent):
+        """
+        Constructor
+        Args:
+            brush (QBrush): a brush containing specific parameters, like colors.
+            parent (object): the Parent Object.
+        """
         super(BackgroundBrushDelegate, self).__init__()
         self.brush = brush
 
     def initStyleOption(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
+        """
+        sets the color to the cells the delegate is assigned to
+
+        Args:
+            option (QStyleOptionViewItem):  passes other options
+            index (QModelIndex): the QModelIndex to be modified
+
+        Returns:
+        """
         super(BackgroundBrushDelegate, self).initStyleOption(option, index)
         option.backgroundBrush = self.brush
 
@@ -764,6 +959,22 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
 
 
 if __name__ == "__main__":
+    # We need a parser of command line arguments:
+    parser = argparse.ArgumentParser(
+        description = "pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
+                      "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite " +
+                      "the last used directory. If a metadata.json file is present, it will be loaded, else, the last " +
+                      "schema will be used to generate a blank. When using -v, pyJSON will generate a log file."
+    )
+    parser.add_argument('-i', '--input-directory',
+                        dest = "path",
+                        help = "This parameter overwrites the last used directory.")
+    parser.add_argument('-v', '--verbose',
+                        action = "store_true",
+                        dest = "verbose",
+                        help = "If set, a log will be generated.")
+    args = parser.parse_args()
+
     multiprocessing.freeze_support()  # needed function for the subprocess crawler
     import sys
 

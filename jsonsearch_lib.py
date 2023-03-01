@@ -26,6 +26,16 @@ from deploy_files import saveIndex, saveMainIndex
 
 # WATCHDOG FUNCTION
 def watchdog(script_dir, mainIndex):
+    """
+    The watchdog function is supposed to be called every other intervall of time to check all indexes of the tool
+
+    Args:
+        script_dir (str): The directory in which the tool is executed
+        mainIndex (dict): The dictionary holding all indexes
+
+    Returns:
+
+    """
     selection_list = list(mainIndex.keys())
     selection_list.remove("cur_index")
     for i in selection_list:
@@ -33,6 +43,17 @@ def watchdog(script_dir, mainIndex):
 
 # SCHEMA MATCHER FUNCTIONS
 def schemaMatchingSearch(index, schema, script_dir):
+    """
+    Takes an index and matches all entries against the selected schema. Non-compliant entries are omitted.
+
+    Args:
+        index (list): the index list holding all paths of JSON documents
+        schema (str): the file name of the schema.
+        script_dir (str): The directory in which the tool is executed
+
+    Returns:
+        list: the new index containing all retained entries
+    """
     lg.info("==========\nSCHEMA MATCHING SEARCH INDEX\n==========")
     return_index = []
     for i in index:
@@ -62,8 +83,19 @@ def schemaMatchingSearch(index, schema, script_dir):
             break
     return return_index
 
+
 # VALUE SEARCH
 def fSearch(index, searchDict):
+    """
+    A flat search algorithm for values on a regular expression basis
+
+    Args:
+        index: the list of the index that shall be searched within
+        searchDict: a dictionary containing key-value-pairs to be searched for
+
+    Returns:
+        list: the new index containing all retained entries
+    """
     resultList = []
     lg.info("==========\nFLAT SEARCH\n==========")
     try:
@@ -112,8 +144,19 @@ def fSearch(index, searchDict):
         )
     return resultList
 
-# a dict flattener for the complete dict #TODO: ISSUE WITH ARRAYS
+
 def dictFlattenDict(target_dict, flat_dict={}):
+    """
+    a recursive structural flattener to simplify a search
+    TODO: ISSUE WITH ARRAYS
+
+    Args:
+        target_dict (dict): the dictionary to be flattened
+        flat_dict (dict): the flat dictionary to use. Might be filled already.
+
+    Returns:
+        dict: the (partly) flattened dictionary
+    """
     if type(target_dict) is dict:
         for pair in list(target_dict):
             str_name = pair
@@ -137,6 +180,17 @@ def dictFlattenDict(target_dict, flat_dict={}):
 
 # INDEXER FUNCTION
 def StartIndex(script_dir, path, index_dict, showBoxes = True):
+    """
+    Creates or overwrites an index file for a given path, containing only paths to JSON documents.
+
+    Args:
+        script_dir (str): The directory in which the tool is executed
+        path (str): the path to be indexed
+        index_dict (dict): the main index
+        showBoxes (bool): a parameter to control whetever errors and warnings shall be displayed as message services.
+
+    Returns:
+    """
     lg.info("==========\nINDEXER\n==========")
     indexed_files = []
     try:
@@ -186,6 +240,16 @@ def StartIndex(script_dir, path, index_dict, showBoxes = True):
             )
 
 def checkIndex(script_dir, path, index_dict):
+    """
+    checks a path for recent changes and updates the index accordingly
+
+    Args:
+        script_dir (str): The directory in which the tool is executed
+        path (str): the path to be indexed
+        index_dict (dict): the main index
+
+    Returns:
+    """
     try:
         if os.path.isdir(os.path.normpath(path)) and index_dict[path]:
             index_nr = str(index_dict[path])

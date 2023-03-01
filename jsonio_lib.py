@@ -28,8 +28,17 @@ lg = logging.getLogger(__name__)
 lg.setLevel("DEBUG")
 
 
-# The validator function shall wrap around json.load and validate a JSON file against a Schema file
 def validator_files(json_path, json_schema_path):
+    """
+    The validator function shall wrap around json.load and validate a JSON file against a Schema file.
+
+    Args:
+        json_path (str): path to the JSON document
+        json_schema_path (str): path to the JSON schema
+
+    Returns:
+        int: 0 for success, 1 for failed validation, 2 for invalid schema, -999 for IO issues.
+    """
     try:  # open JSON and schema, deserialize both and validate
         loaded_schema = open(json_schema_path)
         loaded_json = open(json_path)
@@ -49,8 +58,17 @@ def validator_files(json_path, json_schema_path):
     return 0
 
 
-# Similarly to validator_files, but instead with a string representation of the JSON
 def validator_vars(json_str, json_schema_path):
+    """
+    Similarly to validator_files, but instead with a string representation of the JSON
+
+    Args:
+        json_str (str): String representation of a JSON document
+        json_schema_path (str): path to the JSON schema
+
+    Returns:
+        int: 0 for success, 1 for failed validation, 2 for invalid schema, -999 for IO issues.
+    """
     try:  # open JSON and schema, deserialize both and validate
         loaded_schema = open(json_schema_path)
         ds_json = json.loads(json_str)
@@ -72,23 +90,41 @@ def validator_vars(json_str, json_schema_path):
     return 0
 
 
-# Wrapper for the JSONDecoder function
+#
 def decode_function(json_path):
+    """
+    Wrapper for the JSONDecoder function.
+    TODO: PROPERLY IMPLEMENT ERROR HANDLING
+
+    Args:
+        json_path (str): Path to the JSON document
+
+    Returns:
+        dict: the parsed JSON document
+    """
     lg.info("\n----------\nReading " + json_path + "\n----------")
     try:
         loaded_json = open(json_path)
         result = json.load(loaded_json, cls=json.JSONDecoder)
     except json.JSONDecodeError as err:
         lg.error("[jsonio_lib.decode_function/ERROR]: JSON could not be parsed into Python representation!")
-        return {"Error": "Something has gone wrong, the JSON was not parsed properly!"}
+        return -1
     except OSError:
         lg.error("[jsonio_lib.decode_function/ERROR]: JSON is not accessible anymore!")
         return -999
     return result
 
 
-# A function generating a blank JSON-like python structure from the schema.
 def schema_to_py_gen(decoded_schema):
+    """
+    A function generating a blank JSON-like python structure from the schema.
+
+    Args:
+        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
+
+    Returns:
+        dict: a nested dictionary representation of a JSON document, generated from the schema
+    """
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -117,6 +153,16 @@ def schema_to_py_gen(decoded_schema):
 
 # generates a reference containing the description of every field in the schema
 def schema_to_ref_gen(decoded_schema):
+    """
+    Similar to schema_to_py_gen, but return value is a nested dict containing descriptions for
+    each key present in the schema.
+
+    Args:
+        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
+
+    Returns:
+        dict: a nested dictionary containing descriptions for utilised keys inside the schema
+    """
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -134,6 +180,16 @@ def schema_to_ref_gen(decoded_schema):
 
 
 def schema_to_type_gen(decoded_schema):
+    """
+    Similar to schema_to_py_gen, but return value is a nested dict containing the type of
+    each key present in the schema.
+
+    Args:
+        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
+
+    Returns:
+        dict: a nested dictionary containing types of utilised keys inside the schema
+    """
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -152,6 +208,16 @@ def schema_to_type_gen(decoded_schema):
 
 
 def schema_to_title_gen(decoded_schema):
+    """
+    Similar to schema_to_py_gen, but return value is a nested dict containing the title of
+    each key present in the schema.
+
+    Args:
+        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
+
+    Returns:
+        dict: a nested dictionary containing title of utilised keys inside the schema
+    """
     return_dict = {}
     for element in decoded_schema["properties"]:
         try:
@@ -169,9 +235,21 @@ def schema_to_title_gen(decoded_schema):
     return return_dict
 
 
-# py_to_tree takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
-# tree model needed for the TreeView
 def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
+    """
+    takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
+    tree model needed for the TreeView
+
+    Args:
+        input_dict (dict): the parsed JSON document. If a new JSON is created, this shall be empty.
+        type_dict (dict): a dict containing the type for each key
+        title_dict (dict): a dict containing the title for each key
+        reference_dict (dict): a dict containing the description for each key
+        return_tree (TreeClass): An empty QAbstractItemModel-based tree
+
+    Returns:
+        TreeClass: An QAbstractItemModel-based tree containing all needed information for the UI
+    """
     incrementor = 0
     for element in input_dict:
         try:
@@ -220,8 +298,17 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
     return return_tree
 
 
-# converts the tree back to a nested dict. Descriptions get omitted.
 def tree_to_py(array_of_tree_nodes):
+    """
+    converts the tree back to a nested dict. Only keys and values are retained.
+
+    Args:
+        array_of_tree_nodes (iterable): An iterable list of Nodes based on QAbstractItem. Use the childItems of the root
+            node for the entire tree...
+
+    Returns:
+        dict: a nested directory representation of the JSON document.
+    """
     return_dict = {}
     for element in array_of_tree_nodes:
         if len(element.childItems) == 0:

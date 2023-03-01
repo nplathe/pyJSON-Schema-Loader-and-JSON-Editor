@@ -21,6 +21,15 @@ lg = logging.getLogger(__name__)
 
 
 def deploy_schema(path):
+    """
+    deploys the default example schema that is hardcoded here into a path
+
+    Args:
+        path: the path the schema shall be deployed to.
+
+    Returns:
+        bool: True, if deployment was successful, False otherwise.
+    """
     schema = '{\
 	    "$schema": "https://json-schema.org/draft/2020-12/schema",\
 	    "$id": "https://inp-greifswald.de",\
@@ -74,6 +83,14 @@ def deploy_schema(path):
 # main config
 
 def deploy_config(path):
+    """
+    deploys the config file, which retains last used file, schema and directory
+
+    Args:
+        path (str): the path, in which the config shall be deployed
+
+    Returns:
+    """
     config = {
         "last_dir": os.getcwd(),
         "last_schema": "default.json",
@@ -87,6 +104,15 @@ def deploy_config(path):
 
 
 def save_config(path, config):
+    """
+    Writes the config to the harddrive
+
+    Args:
+        path (str): the path, in which the config shall be saved or overwritten
+        config (dict): the config dictionary
+
+    Returns:
+    """
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w") as out:
             json.dump(config, out, indent=4)
@@ -96,6 +122,15 @@ def save_config(path, config):
 
 # indexes
 def saveMainIndex(path, index_dict):
+    """
+    Writes the main index containing information about all indexed directories to the harddrive
+
+    Args:
+        path (str): the path, in which the main index shall be saved or overwritten
+        index_dict (dict): the main index dictionary
+
+    Returns:
+    """
     try:
         with open(os.path.join(path, "Indexes/pyJSON_S_index.json"), "w") as out:
             json.dump(index_dict, out, indent=4)
@@ -104,6 +139,16 @@ def saveMainIndex(path, index_dict):
 
 
 def saveIndex(path, index, count):
+    """
+    Writes the index of a directory to the harddrive
+
+    Args:
+        path (str): the path the index shall be written or overwritten to
+        index (dict): the directory index
+        count (int): the current index number, since the indexes are numbered
+
+    Returns:
+    """
     index_d = {"files": index}
     try:
         with open(os.path.join(path, "Indexes/index" + str(count) + ".json"), "w") as out:
