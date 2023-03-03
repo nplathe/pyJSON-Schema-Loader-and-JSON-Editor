@@ -9,46 +9,16 @@ them from a schema, but neither to generate JSONs or schemas from scratch, in or
 use [the ADAMANT web tool](https://plasma-mds.github.io/adamant/) developed by the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
 the capabilities of this tool are subject to change.
 
-## Requirements
+# Requirements
 
-The pyJSON Schema Loader and JSON Editor requires Python >= 3.10. A proper dependency list is attached as `requirements.txt`.
+In short, pyJSON requires Python 3.10 or newer, PyQt bindings for Qt5, the regex, the future and the jsonschema package.
+Furthermore, the PyInstaller package is needed to freeze the environment and distribute it along an executable for the platform
+of choice. Additional packages are needed for building the documentation. A virtual environment is highly advised.
+Head over to the [installation section](./doc/build/html/installation.html) of the documentation for details
 
-### Virtual environment with Anaconda
+### Build a distributable package with PyInstaller
 
-When developing or testing pyJSON, it is advisable to use an isolated environment to keep other environments or the base evnironment free from dependency issues or specific package conflicts.
-
-First, update your conda environment:
-```
-conda update conda
-conda update --all
-```
-
-Then create a virtual environment that uses Python 3.10 or higher:
-
-```
-conda create -n yourenvname python=3.10.4
-```
-
-Switch to the newly created environment. Optionally, you can install additional packages
-
-```
-conda install -n yourenvname [package]
-conda activate yourenvname
-```
-
-You can leave the virtual environment at any time, using `conda deactivate`.
-
-### Build a binary
-
-Install Pyinstaller with `pip install Pyinstaller` and then run `pyinstaller --clean --add-data './pyJSON_interface.ui;.' pyJSON.py
-`. For removing the black console window for stdin and stdout streams,
-use `--noconsole`. Note, that this removes the possibility to get console output. Add in the `--onefile` parameter for a fancy monolithic file with increased starting time. 
-When using the One-File binary, you'll need to copy the GUI file from sources, the tool cannot start without it. 
-
-**Note:** The `ui-redesign` utilises another mechanism to include the UI. `pyinstaller --clean pyJSON.py` is therefor sufficient.  
-
-**Note 2:** There seems to be a bug with Pyinstaller 4.8 and jsonschema 4.16.0. Use `pyinstaller --clean --collect-all "jsonschema" pyJSON.py` to circumvent
-the issue.
+See the documentation for details.
 
 ## Technical information
 

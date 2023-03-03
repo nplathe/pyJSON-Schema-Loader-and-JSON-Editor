@@ -5,13 +5,9 @@
       <excludeFolder url="file://$MODULE_DIR$/Default" />
       <excludeFolder url="file://$MODULE_DIR$/Logs" />
       <excludeFolder url="file://$MODULE_DIR$/Schemas" />
-      <excludeFolder url="file://$MODULE_DIR$/doc/build/doctrees" />
-      <excludeFolder url="file://$MODULE_DIR$/doc/build/html" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/Indexes" />
-      <excludeFolder url="file://$MODULE_DIR$/doc/build" />
-      <excludeFolder url="file://$MODULE_DIR$/doc/source/generated" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (temp_warp)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

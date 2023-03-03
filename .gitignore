@@ -5,7 +5,5 @@
 /Logs
 /dist
 /build
-/doc/build
-/doc/source/generated
 /pyJSON.spec
 /pyJSON_conf.json
