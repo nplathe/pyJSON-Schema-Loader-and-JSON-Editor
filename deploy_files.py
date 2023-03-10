@@ -72,8 +72,8 @@ def deploy_schema(path):
 	    }\
     }'
     try:
-        with open(os.path.join(path, "default.json"), "w") as out:
-            json.dump(json.loads(schema), out, indent=4)
+        with open(os.path.join(path, "default.json"), "w", encoding='utf8') as out:
+            json.dump(json.loads(schema), out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
         return False
@@ -97,8 +97,8 @@ def deploy_config(path):
         "last_JSON": None
     }
     try:
-        with open(os.path.join(path, "pyJSON_conf.json"), "w") as out:
-            json.dump(config, out, indent=4)
+        with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
+            json.dump(config, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.deploy_config/ERROR]: Could not set default config.")
 
@@ -114,8 +114,8 @@ def save_config(path, config):
     Returns:
     """
     try:
-        with open(os.path.join(path, "pyJSON_conf.json"), "w") as out:
-            json.dump(config, out, indent=4)
+        with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
+            json.dump(config, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.save_config/ERROR]: Could not save config.")
 
@@ -132,8 +132,8 @@ def saveMainIndex(path, index_dict):
     Returns:
     """
     try:
-        with open(os.path.join(path, "Indexes/pyJSON_S_index.json"), "w") as out:
-            json.dump(index_dict, out, indent=4)
+        with open(os.path.join(path, "Indexes/pyJSON_S_index.json"), "w", encoding='utf8') as out:
+            json.dump(index_dict, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.saveMainIndex/ERROR]: Could not save config.")
 
@@ -151,8 +151,8 @@ def saveIndex(path, index, count):
     """
     index_d = {"files": index}
     try:
-        with open(os.path.join(path, "Indexes/index" + str(count) + ".json"), "w") as out:
-            json.dump(index_d, out, indent=4)
+        with open(os.path.join(path, "Indexes/index" + str(count) + ".json"), "w", encoding='utf8') as out:
+            json.dump(index_d, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.saveIndex/ERROR]: Could not save index for " + path + ".")
 

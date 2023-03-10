@@ -144,7 +144,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         pathList = []
         curItem = index.model().getItem(index)
         pathList.append(curItem.getData(0))
-        while curItem.getParent().getData(0) != "Schema":
+        while curItem.getParent().getData(0) != "Schema Key":
             curItem = curItem.getParent()
             pathList.append(curItem.getData(0))
         currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"])), cls=json.JSONDecoder)
@@ -455,7 +455,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             schema_title = jsonio_lib.schema_to_title_gen(schema_read)
             schema_type = jsonio_lib.schema_to_type_gen(schema_read)
             new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
-                                             TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
             self.TreeView.expandAll()
@@ -538,7 +538,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if not config["last_JSON"] is None:
                 read_frame = jsonio_lib.decode_function(config["last_JSON"])
                 new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
-                                                 TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                                 TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
                 self.TreeView.reset()
                 self.TreeView.setModel(new_tree)
                 self.TreeView.expandAll()
@@ -608,8 +608,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             tree = self.TreeView.model()
             json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
             try:
-                with open(selected_path, "w") as out:
-                    json.dump(json_frame, out, indent=4)
+                with open(selected_path, "w", encoding='utf8') as out:
+                    json.dump(json_frame, out, indent=4, ensure_ascii=False)
                     config["last_JSON"] = selected_path
                     save_config(script_dir, config)
                     self.curr_json_label.setText(selected_path)
@@ -634,8 +634,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             tree = self.TreeView.model()
             json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
             try:
-                with open(config["last_JSON"], "w") as out:
-                    json.dump(json_frame, out, indent=4)
+                with open(config["last_JSON"], "w", encoding='utf8') as out:
+                    json.dump(json_frame, out, indent=4, ensure_ascii=False)
             except OSError as err:
                 lg.error(err)
                 tk.messagebox.showerror(
@@ -670,7 +670,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             pre_type = jsonio_lib.schema_to_type_gen(curr_schem)
 
             new_tree = jsonio_lib.py_to_tree(pre_json, pre_type, pre_title, pre_descr,
-                                             TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -703,8 +703,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         tree = self.TreeView.model()
         json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
         try:
-            with open(os.path.join(script_dir, "Default", config["last_schema"]), "w") as out:
-                json.dump(json_frame, out, indent=4)
+            with open(os.path.join(script_dir, "Default", config["last_schema"]), "w", encoding='utf8') as out:
+                json.dump(json_frame, out, indent=4, ensure_ascii=False)
         except OSError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -735,7 +735,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             schema_title = jsonio_lib.schema_to_title_gen(schema_read)
 
             new_tree = jsonio_lib.py_to_tree(default_values, schema_type, schema_title, schema_descr,
-                                             TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -782,7 +782,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_type, schema_title, schema_descr,
                                                      TreeClass(
-                                                         data=["Schema", "Title", "Value", "Type", "Description"]))
+                                                         data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -1122,7 +1122,7 @@ if __name__ == "__main__":
     st_pre_type = jsonio_lib.schema_to_type_gen(frame)
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
     model = jsonio_lib.py_to_tree(st_pre_json, st_pre_type, st_pre_title, st_pre_descr,
-                                  TreeClass(data=["Schema", "Title", "Value", "Type", "Description"]))
+                                  TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
     ui.label_curDir.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)
