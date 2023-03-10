@@ -40,8 +40,8 @@ def validator_files(json_path, json_schema_path):
         int: 0 for success, 1 for failed validation, 2 for invalid schema, -999 for IO issues.
     """
     try:  # open JSON and schema, deserialize both and validate
-        loaded_schema = open(json_schema_path)
-        loaded_json = open(json_path)
+        loaded_schema = open(json_schema_path, encoding = "utf8")
+        loaded_json = open(json_path, encoding = "utf8")
         ds_json = json.load(loaded_json)
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
@@ -70,7 +70,7 @@ def validator_vars(json_str, json_schema_path):
         int: 0 for success, 1 for failed validation, 2 for invalid schema, -999 for IO issues.
     """
     try:  # open JSON and schema, deserialize both and validate
-        loaded_schema = open(json_schema_path)
+        loaded_schema = open(json_schema_path, encoding = "utf8")
         ds_json = json.loads(json_str)
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
@@ -104,7 +104,7 @@ def decode_function(json_path):
     """
     lg.info("\n----------\nReading " + json_path + "\n----------")
     try:
-        loaded_json = open(json_path)
+        loaded_json = open(json_path, encoding = "utf8")
         result = json.load(loaded_json, cls=json.JSONDecoder)
     except json.JSONDecodeError as err:
         lg.error("[jsonio_lib.decode_function/ERROR]: JSON could not be parsed into Python representation!")

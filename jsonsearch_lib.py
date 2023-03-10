@@ -61,8 +61,8 @@ def schemaMatchingSearch(index, schema, script_dir):
     for i in index:
         try:
             validate(
-                instance=json.load(open(i)),
-                schema=json.load(open(os.path.join(script_dir, "Schemas", schema)))
+                instance=json.load(open(i, encoding = "utf8")),
+                schema=json.load(open(os.path.join(script_dir, "Schemas", schema), encoding = "utf8"))
             )
             return_index.append(i)
         except UnicodeDecodeError as err:
@@ -118,7 +118,7 @@ def fSearch(index, searchDict):
             for i in index:
                 lg.info("reading: " + i)
                 try:
-                    json_file = json.load(open(i))
+                    json_file = json.load(open(i, encoding = "utf8"))
                     if json_file is None:
                         raise json.decoder.JSONDecodeError("Content of JSON file is Null.", i, 0)
                 except json.decoder.JSONDecodeError as err:
@@ -276,7 +276,7 @@ def checkIndex(script_dir, path, index_dict):
             if lastChangeJSON < lastChangeDir:
                 changed = True
 
-            index = json.load(open(index_path))
+            index = json.load(open(index_path, encoding = "utf8"))
             lg.info("[pyJSON_Search.checkIndex/INFO]: Retrieved index of " + path + ".")
             i = 0
             while not changed:

@@ -147,7 +147,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         while curItem.getParent().getData(0) != "Schema Key":
             curItem = curItem.getParent()
             pathList.append(curItem.getData(0))
-        currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"])), cls=json.JSONDecoder)
+        currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"]), encoding = "utf8"), cls=json.JSONDecoder)
         while len(pathList) > 0:
             currKey = pathList.pop()
             currSchem = currSchem["properties"][currKey]
@@ -996,7 +996,7 @@ if __name__ == "__main__":
 
     lg = logging.getLogger()
     lg.setLevel("DEBUG")
-    formatter = logging.Formatter(fmt='%(asctime)s: %(message)s')
+    formatter = logging.Formatter(fmt=u'%(asctime)s: %(message)s')
 
     # If -v is used, a log folder is needed.
     if args.verbose:
@@ -1046,7 +1046,7 @@ if __name__ == "__main__":
     if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
         lg.info("[pyJSON.main/INFO]: Config is missing. Creating one for you.")
         deploy_config(script_dir)
-    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json")), cls=json.JSONDecoder)
+    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
 
 # Load or create and save the main index file
     index_dict = {
@@ -1061,7 +1061,7 @@ if __name__ == "__main__":
         saveMainIndex(script_dir, index_dict)
     else:
         try:
-            index_dict = json.load(open(os.path.join(script_dir, "Indexes/pyJSON_S_index.json")), cls=json.JSONDecoder)
+            index_dict = json.load(open(os.path.join(script_dir, "Indexes/pyJSON_S_index.json"), encoding = "utf8"), cls=json.JSONDecoder)
         except OSError as err:
             lg.error(err)
             lg.error("[pyJSON_search/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
