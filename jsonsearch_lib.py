@@ -55,6 +55,8 @@ def schemaMatchingSearch(index, schema, script_dir):
         list: the new index containing all retained entries
     """
     lg.info("==========\nSCHEMA MATCHING SEARCH INDEX\n==========")
+    lg.info("Matching against schema: " + schema)
+    lg.info("----------")
     return_index = []
     for i in index:
         try:
@@ -64,14 +66,22 @@ def schemaMatchingSearch(index, schema, script_dir):
             )
             return_index.append(i)
         except UnicodeDecodeError as err:
+            lg.error(i)
             lg.error(err)
             lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: The JSON file cannot be decoded properly" +
                      " because it seems to use a different charset than expected.")
+            lg.error("----------")
         except json.decoder.JSONDecodeError as err:
+            lg.error(i)
             lg.error(err)
             lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: Invalid JSON structure. Skipping!")
+            lg.error("----------")
         except jsonschema.ValidationError as err:
+            lg.info(i)
+            lg.info(err.message)
+            lg.info(err.schema_path)
             lg.info("[pyJSON_search.schemaMatchingSearch/INFO]: JSON not valid against schema.")
+            lg.info("----------")
         except jsonschema.SchemaError as err:
             lg.critical(err)
             lg.critical("[pyJSON_search.schemaMatchingSearch/CRITICAL]: The schema is invalid!")
@@ -100,6 +110,10 @@ def fSearch(index, searchDict):
     lg.info("==========\nFLAT SEARCH\n==========")
     try:
         for j in searchDict.keys():
+            lg.info("----------")
+            lg.info("Current Search Key: " + j)
+            lg.info("Current Search Term: " + str(searchDict[j]))
+            lg.info("----------")
             comp_str = re.compile(str(searchDict[j]))
             for i in index:
                 lg.info("reading: " + i)
@@ -123,6 +137,7 @@ def fSearch(index, searchDict):
                     if re.search(comp_str, str(check_list[k])) and hit is False:
                         if i not in resultList:
                             resultList.append(i)
+                            lg.info("Added " + i + " to the result list.")
                         hit = True
     except re.error as err:
         lg.error(err)
