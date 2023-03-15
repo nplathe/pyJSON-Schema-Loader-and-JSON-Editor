@@ -94,7 +94,8 @@ def deploy_config(path):
     config = {
         "last_dir": os.getcwd(),
         "last_schema": "default.json",
-        "last_JSON": None
+        "last_JSON": None,
+        "verbose_logging": False
     }
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:

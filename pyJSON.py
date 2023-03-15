@@ -982,21 +982,6 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
 
 
 if __name__ == "__main__":
-    # We need a parser of command line arguments:
-    parser = argparse.ArgumentParser(
-        description = "pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
-                      "JSON Schema.\nWhen starting pyJSON va command line, the parameter -i can be used to overwrite " +
-                      "the last used directory. If a metadata.json file is present, it will be loaded, else, the last " +
-                      "schema will be used to generate a blank. When using -v, pyJSON will generate a log file."
-    )
-    parser.add_argument('-i', '--input-directory',
-                        dest = "path",
-                        help = "This parameter overwrites the last used directory.")
-    parser.add_argument('-v', '--verbose',
-                        action = "store_true",
-                        dest = "verbose",
-                        help = "If set, a log will be generated.")
-    args = parser.parse_args()
 
     multiprocessing.freeze_support()  # needed function for the subprocess crawler
     import sys
@@ -1013,6 +998,12 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QMainWindow()
     ui = UiRunnerInstance()
 
+    # check and create or load the config of the tool
+    if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
+        lg.info("[pyJSON.main/INFO]: Config is missing. Creating one for you.")
+        deploy_config(script_dir)
+    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
+
     # initialize logging
     now = datetime.now()
     print(now)
@@ -1022,7 +1013,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter(fmt=u'%(asctime)s: %(message)s')
 
     # If -v is used, a log folder is needed.
-    if args.verbose:
+    if config["verbose_logging"]:
         if not os.path.isdir(os.path.join(script_dir, "Logs")):
             print("[pyJSON.main/INFO]: Logs Directory is missing! Creating...")
             try:
@@ -1065,12 +1056,6 @@ if __name__ == "__main__":
             str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
             tk.messagebox.showerror("[pyJSON.main/FATAL]", str_message)
 
-    # check and create or load the config of the tool
-    if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
-        lg.info("[pyJSON.main/INFO]: Config is missing. Creating one for you.")
-        deploy_config(script_dir)
-    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
-
 # Load or create and save the main index file
     index_dict = {
         "cur_index": 0
@@ -1088,29 +1073,6 @@ if __name__ == "__main__":
         except OSError as err:
             lg.error(err)
             lg.error("[pyJSON_search/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
-
-    # If there was a command line parameter, it gets used here, overwriting the config.
-    if args.path is not None:
-        if os.path.isdir(args.path):
-            config["last_dir"] = args.path
-            if os.path.isfile(os.path.join(args.path, "metadata.json")):
-                config["last_JSON"] = os.path.join(args.path, "metadata.json")
-            else:
-                config["last_JSON"] = None
-            save_config(script_dir, config)
-    try:
-        os.chdir(config["last_dir"])
-    except OSError as err:
-        message = "[pyJSON.main/ERROR]: Last directory doesn't exist or part of the path was renamed. Switching to script directory."
-        lg.error(err)
-        lg.error(message)
-        tk.messagebox.showerror(
-            title="[pyJSON.main/ERROR]",
-            message=message
-        )
-        config["last_dir"] = script_dir
-        save_config(script_dir, config)
-        os.chdir(script_dir)
 
     # setup the view for the first time
     if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
