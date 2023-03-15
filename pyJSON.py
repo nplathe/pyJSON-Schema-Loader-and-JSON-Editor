@@ -28,7 +28,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, QtTest
 from PyQt5.QtCore import QModelIndex, Qt, QPoint
 from PyQt5.QtGui import QBrush, QColor, QScreen, QGuiApplication, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
-    QItemDelegate
+    QItemDelegate, QFileDialog
 
 # import tkinter modules
 import tkinter as tk
@@ -407,7 +407,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Returns:
         """
-        dir_path = os.path.normpath(tk.filedialog.askdirectory())
+        #dir_path = os.path.normpath(tk.filedialog.askdirectory())
+        dir_path = os.path.normpath(
+            QFileDialog.getExistingDirectory(
+                caption = "Select Directory for indexing",
+                directory = config["last_dir"]
+            )
+        )
         try:
             os.chdir(dir_path)
             if dir_path == '' or dir_path == '.':
@@ -439,8 +445,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         Returns:
         """
         try:
-            filepath_str = tk.filedialog.askopenfilename(
-                filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*')))
+            #filepath_str = tk.filedialog.askopenfilename(
+            #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*')))
+            filepath_str = QFileDialog.getOpenFileName(
+                caption = "Open a JSON Document...",
+                directory = config["last_dir"],
+                filter = "Java Script Object Notation (*.json);; All Files (*.*)"
+            )[0]
             if filepath_str == '':
                 raise OSError("[pyJSON.jsonopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath_str):
@@ -553,8 +564,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title="[pyJSON.copy_schema_to_storage/ERROR]",
-                message=str(err)
+                title = "[pyJSON.copy_schema_to_storage/ERROR]",
+                message = str(err)
             )
 
 
@@ -566,16 +577,21 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         lg.info("\n----------\nCopying schema to tool storage.\n-----------")
         try:
-            filepath = os.path.normpath(tk.filedialog.askopenfilename(
-                filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
+            #filepath = os.path.normpath(tk.filedialog.askopenfilename(
+            #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
+            filepath = QFileDialog.getOpenFileName(
+                caption = "Select a JSON Schema for Import...",
+                directory = config["last_dir"],
+                filter = "Java Script Object Notation (*.json);; All Files (*.*)"
+            )[0]
             if filepath == '':
                 raise OSError("[pyJSON.copy_schema_to_storage/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath):
                 raise FileNotFoundError("[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist.")
             if filepath == os.path.join(script_dir, "Schemas", os.path.basename(filepath)):
                 tk.messagebox.showwarning(
-                    title="[pyJSON.copy_schema_to_storage/WARN]",
-                    message="[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
+                    title = "[pyJSON.copy_schema_to_storage/WARN]",
+                    message = "[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
                             "folder. It will not be copied."
                 )
             else:
@@ -584,8 +600,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
-                title="[pyJSON.copy_schema_to_storage/ERROR]",
-                message="[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
+                title = "[pyJSON.copy_schema_to_storage/ERROR]",
+                message = "[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             lg.error(err)
@@ -598,8 +614,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Returns:
         """
-        selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
-            filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
+        #selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
+        #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
+        selected_path = QFileDialog.getSaveFileName(
+            caption = "Save as...",
+            directory = config["last_dir"] + "/_meta.json",
+            filter = "Java Script Object Notation (*.json);; All Files (*.*)",
+
+        )[0]
         if selected_path == '' or selected_path == ".":
             lg.info("[pyJSON.save_curr_json/INFO]: Either file selection aborted or you have selected a very odd path.")
         else:
@@ -613,6 +635,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     config["last_JSON"] = selected_path
                     save_config(script_dir, config)
                     self.curr_json_label.setText(selected_path)
+                    self.callWatchdog()
             except OSError as err:
                 lg.error(err)
                 tk.messagebox.showerror(

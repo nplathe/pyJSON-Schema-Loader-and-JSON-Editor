@@ -373,7 +373,7 @@
   </action>
   <action name="actionAdd_Schema">
    <property name="text">
-    <string>Add Schema...</string>
+    <string>Import Schema...</string>
    </property>
   </action>
   <action name="actionPreferences">
