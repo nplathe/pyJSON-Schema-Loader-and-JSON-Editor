@@ -68,26 +68,26 @@ def schemaMatchingSearch(index, schema, script_dir):
         except UnicodeDecodeError as err:
             lg.error(i)
             lg.error(err)
-            lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: The JSON file cannot be decoded properly" +
+            lg.error("[jsonsearch_lib.schemaMatchingSearch/ERROR]: The JSON file cannot be decoded properly" +
                      " because it seems to use a different charset than expected.")
             lg.error("----------")
         except json.decoder.JSONDecodeError as err:
             lg.error(i)
             lg.error(err)
-            lg.error("[pyJSON_search.schemaMatchingSearch/ERROR]: Invalid JSON structure. Skipping!")
+            lg.error("[jsonsearch_lib.schemaMatchingSearch/ERROR]: Invalid JSON structure. Skipping!")
             lg.error("----------")
         except jsonschema.ValidationError as err:
             lg.info(i)
             lg.info(err.message)
             lg.info(err.schema_path)
-            lg.info("[pyJSON_search.schemaMatchingSearch/INFO]: JSON not valid against schema.")
+            lg.info("[jsonsearch_lib.schemaMatchingSearch/INFO]: JSON not valid against schema.")
             lg.info("----------")
         except jsonschema.SchemaError as err:
             lg.critical(err)
-            lg.critical("[pyJSON_search.schemaMatchingSearch/CRITICAL]: The schema is invalid!")
+            lg.critical("[jsonsearch_lib.schemaMatchingSearch/CRITICAL]: The schema is invalid!")
             tk.messagebox.showerror(
-                title="[pyJSON_search.schemaMatchingSearch/CRITICAL]",
-                message="[pyJSON_search.schemaMatchingSearch/CRITICAL]: The schema does not validate against ." +
+                title="[jsonsearch_lib.schemaMatchingSearch/CRITICAL]",
+                message="[jsonsearch_lib.schemaMatchingSearch/CRITICAL]: The schema does not validate against ." +
                         "its metaschema. Please check your selected schema!"
             )
             break
@@ -123,11 +123,11 @@ def fSearch(index, searchDict):
                         raise json.decoder.JSONDecodeError("Content of JSON file is Null.", i, 0)
                 except json.decoder.JSONDecodeError as err:
                     lg.error(err)
-                    lg.error("[pyJSON_search.fSearchValues/ERROR]: JSON file invalid. Skipping!")
+                    lg.error("[jsonsearch_lib.fSearchValues/ERROR]: JSON file invalid. Skipping!")
                     json_file = {}
                 except UnicodeDecodeError as err:
                     lg.error(err)
-                    lg.error("[pyJSON_search.fSearchValues/ERROR]: The JSON file cannot be decoded properly" +
+                    lg.error("[jsonsearch_lib.fSearchValues/ERROR]: The JSON file cannot be decoded properly" +
                              " because it seems to use a different charset than expected. Skipping!")
                     json_file = {}
                 check_list = {}
@@ -142,20 +142,20 @@ def fSearch(index, searchDict):
     except re.error as err:
         lg.error(err)
         tk.messagebox.showerror(
-            title="[pyJSON_search.flatSearchIndex/ERROR]",
-            message="[pyJSON_search.flatSearchIndex/ERROR]: Your regex pattern seems to be invalid."
+            title="[jsonsearch_lib.flatSearchIndex/ERROR]",
+            message="[jsonsearch_lib.flatSearchIndex/ERROR]: Your regex pattern seems to be invalid."
         )
     except OSError as err:
         lg.error(err)
         tk.messagebox.showerror(
-            title="[pyJSON_search.flatSearchIndex/ERROR]",
-            message="[pyJSON_search.flatSearchIndex/ERROR]: JSON could not be inspected for Keyword search."
+            title="[jsonsearch_lib.flatSearchIndex/ERROR]",
+            message="[jsonsearch_lib.flatSearchIndex/ERROR]: JSON could not be inspected for Keyword search."
         )
     except AttributeError as err:
         lg.error(err)
         tk.messagebox.showerror(
-            title="[pyJSON_search.flatSearchIndex/ERROR]",
-            message="[pyJSON_search.flatSearchIndex/ERROR]: Please select an index for search first."
+            title="[jsonsearch_lib.flatSearchIndex/ERROR]",
+            message="[jsonsearch_lib.flatSearchIndex/ERROR]: Please select an index for search first."
         )
     return resultList
 
@@ -277,7 +277,7 @@ def checkIndex(script_dir, path, index_dict):
                 changed = True
 
             index = json.load(open(index_path, encoding = "utf8"))
-            lg.info("[pyJSON_Search.checkIndex/INFO]: Retrieved index of " + path + ".")
+            lg.info("[jsonsearch_lib.checkIndex/INFO]: Retrieved index of " + path + ".")
             i = 0
             while not changed:
                 i = i + 1

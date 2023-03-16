@@ -309,81 +309,53 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.pixmap_dirOpen = getattr(QStyle, "SP_FileDialogNewFolder")
         self.icon_dirOpen = self.style().standardIcon(self.pixmap_dirOpen)
         self.pushButton_dirSel.setIcon(self.icon_dirOpen)
-        self.pushButton_dirSel.setStatusTip("Add a new directory to be searchable.")
         self.pushButton_dirSel.setText("")
 
         self.pushButton_new.clicked.connect(self.set_blank_from_schema)
         self.pixmap_new = getattr(QStyle, "SP_FileIcon")
         self.icon_new = self.style().standardIcon(self.pixmap_new)
         self.pushButton_new.setIcon(self.icon_new)
-        self.pushButton_new.setStatusTip("Create a new JSON file from the current schema.")
         self.pushButton_new.setText("")
 
         self.pushButton_open.clicked.connect(self.jsonopener)
         self.pixmap_open = getattr(QStyle, "SP_DirOpenIcon")
         self.icon_open = self.style().standardIcon(self.pixmap_open)
         self.pushButton_open.setIcon(self.icon_open)
-        self.pushButton_open.setStatusTip("Open a JSON file for editing.")
         self.pushButton_open.setText("")
 
         self.pushButton_save.clicked.connect(self.save_function)
         self.pixmap_save = getattr(QStyle, "SP_DialogSaveButton")
         self.icon_save = self.style().standardIcon(self.pixmap_save)
         self.pushButton_save.setIcon(self.icon_save)
-        self.pushButton_save.setStatusTip("Save the current JSON file.")
         self.pushButton_save.setText("")
 
         self.pushButton_search.clicked.connect(self.search_Dirs)
         self.pixmap_search = getattr(QStyle, "SP_FileDialogContentsView")
         self.icon_search = self.style().standardIcon(self.pixmap_search)
         self.pushButton_search.setIcon(self.icon_search)
-        self.pushButton_search.setStatusTip("Search in the currently selected directory with the current Information" +
-                                            " entered.")
         self.pushButton_search.setText("")
 
         self.pushButton_addSchema.clicked.connect(self.copy_schema_to_storage)
         self.pixmap_addSchema = getattr(QStyle, "SP_FileDialogDetailedView")
         self.icon_addSchema = self.style().standardIcon(self.pixmap_addSchema)
         self.pushButton_addSchema.setIcon(self.icon_addSchema)
-        self.pushButton_addSchema.setStatusTip("Adds a JSON Schema to the tool storage.")
         self.pushButton_addSchema.setText("")
 
-        # adding in the action functions (the menu bar)
-        self.actionOpen_JSON.setStatusTip("Open a JSON file for editing.")
+        # JSON related functions in the menu bar
         self.actionOpen_JSON.triggered.connect(self.jsonopener)
-
-        self.actionAdd_Schema.setStatusTip("Copy a schema into the tool storage.")
-        self.actionAdd_Schema.triggered.connect(self.copy_schema_to_storage)
-
-        self.actionSave_as.setStatusTip("Save the current JSON at a specific location of the computer. " +
-                                        "Does not overwrite the working directory.")
         self.actionSave_as.triggered.connect(self.save_as_function)
-
-        self.actionSave.setStatusTip("Save the current JSON")
         self.actionSave.triggered.connect(self.save_function)
+        self.actionReload_JSON_and_drop_Changes.triggered.connect(self.reloader_function)
 
-        self.actionCheck_indexes.setStatusTip("Check all indexes and reindex, if needed.")
-        self.actionCheck_indexes.triggered.connect(self.callWatchdog)
-
-        self.blank_from_schem = self.findChild(QtWidgets.QAction, 'actionCreate_JSON_from_selected_Schema')
-        self.blank_from_schem.setStatusTip("Removes the current JSON and loads a blank from the selected schema.")
-        self.blank_from_schem.triggered.connect(self.set_blank_from_schema)
-
-        self.edit_from_def = self.findChild(QtWidgets.QAction, 'actionLoad_default_for_selected_schema')
-        self.edit_from_def.setStatusTip("Load default values from the Default storage of the tool.")
-        self.edit_from_def.triggered.connect(self.load_default)
-
-        self.actionSave_as_default.setStatusTip("Saves the current values as default for later use. " +
-                                                "The default is named after the schema!")
+        # Schema related functions in the menu bar
+        self.actionAdd_Schema.triggered.connect(self.copy_schema_to_storage)
+        self.actionCreate_JSON_from_selected_Schema.triggered.connect(self.set_blank_from_schema)
+        self.actionLoad_default_for_selected_schema.triggered.connect(self.load_default)
         self.actionSave_as_default.triggered.connect(self.save_default)
+        self.actionValidate_input_against_selected_schema.triggered.connect(self.validate_Function)
 
-        self.validate_Action = self.findChild(QtWidgets.QAction, 'actionValidate_input_against_selected_schema')
-        self.validate_Action.setStatusTip("Validate the current input against the schema.")
-        self.validate_Action.triggered.connect(self.validate_Function)
-
-        self.reload_json = self.findChild(QtWidgets.QAction, 'actionReload_JSON_and_drop_Changes')
-        self.reload_json.setStatusTip("Reload the JSON from the Drive and ommit all changes.")
-        self.reload_json.triggered.connect(self.reloader_function)
+        # Index related functions in the menu bar
+        self.actionCheck_indexes.triggered.connect(self.callWatchdog)
 
         # Drop-Down Menu
         self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
@@ -890,7 +862,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             currSchem = self.curr_schem_ddm.currentText()
             if index_dict[path] and os.path.exists(path):
                 indexJsonFile = os.path.join(script_dir, "Indexes", "index" + str(index_dict[path]) + ".json")
-                fileIndex = json.load(open(indexJsonFile))
+                fileIndex = json.load(open(indexJsonFile, encoding = "utf8"))
                 lg.info("[pyJSON.search_Dirs/INFO]: Retrieved index of " + path + ".")
                 resultIndex = jsonsearch_lib.schemaMatchingSearch(fileIndex["files"], currSchem, script_dir)
                 tree = self.TreeView.model()
@@ -982,9 +954,10 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
 
 
 if __name__ == "__main__":
-
-    multiprocessing.freeze_support()  # needed function for the subprocess crawler
     import sys
+
+    now = datetime.now()
+    multiprocessing.freeze_support()  # needed function for the subprocess crawler
 
     # set Script Directory
     script_dir = os.getcwd()
@@ -1005,9 +978,6 @@ if __name__ == "__main__":
     config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
 
     # initialize logging
-    now = datetime.now()
-    print(now)
-
     lg = logging.getLogger()
     lg.setLevel("DEBUG")
     formatter = logging.Formatter(fmt=u'%(asctime)s: %(message)s')
@@ -1033,6 +1003,16 @@ if __name__ == "__main__":
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(formatter)
     lg.addHandler(stream_handler)
+
+    lg.info("            __ _____ _____ _____ ")
+    lg.info(" ___ _ _ __|  |   __|     |   | |")
+    lg.info("| . | | |  |  |__   |  |  | | | |")
+    lg.info("|  _|_  |_____|_____|_____|_|___|")
+    lg.info("|_| |___|                      ")
+    lg.info("==============================")
+    lg.info("The pyJSON Schema Loader and JSON Editor")
+    lg.info("==============================")
+    lg.info("Start time: " + str(now))
 
     # Do some checkups.
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):

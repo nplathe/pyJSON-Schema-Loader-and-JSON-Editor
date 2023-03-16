@@ -184,6 +184,15 @@
             <height>40</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Adds a JSON Schema to the tool storage.</string>
+          </property>
+          <property name="statusTip">
+           <string>Adds a JSON Schema to the tool storage.</string>
+          </property>
+          <property name="whatsThis">
+           <string>Adds a JSON Schema to the tool storage.</string>
+          </property>
           <property name="text">
            <string>addSchema</string>
           </property>
@@ -203,6 +212,15 @@
             <height>40</height>
            </size>
           </property>
+          <property name="toolTip">
+           <string>Search in the currently selected directory with the current Information entered.</string>
+          </property>
+          <property name="statusTip">
+           <string>Search in the currently selected directory with the current Information entered.</string>
+          </property>
+          <property name="whatsThis">
+           <string>Search in the currently selected directory with the current Information entered.</string>
+          </property>
           <property name="text">
            <string>search</string>
           </property>
@@ -221,6 +239,15 @@
             <width>40</width>
             <height>40</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>Add a new directory to be searchable.</string>
+          </property>
+          <property name="statusTip">
+           <string>Add a new directory to be searchable.</string>
+          </property>
+          <property name="whatsThis">
+           <string>Add a new directory to be searchable.</string>
           </property>
           <property name="text">
            <string>dirSel</string>
@@ -252,6 +279,15 @@
               <height>40</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Create a new JSON file from the current schema.</string>
+            </property>
+            <property name="statusTip">
+             <string>Create a new JSON file from the current schema.</string>
+            </property>
+            <property name="whatsThis">
+             <string>Create a new JSON file from the current schema.</string>
+            </property>
             <property name="text">
              <string>new</string>
             </property>
@@ -271,6 +307,15 @@
               <height>40</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Open a JSON file for editing.</string>
+            </property>
+            <property name="statusTip">
+             <string>Open a JSON file for editing.</string>
+            </property>
+            <property name="whatsThis">
+             <string>Open a JSON file for editing.</string>
+            </property>
             <property name="text">
              <string>open</string>
             </property>
@@ -289,6 +334,15 @@
               <width>40</width>
               <height>40</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>Save the current JSON file.</string>
+            </property>
+            <property name="statusTip">
+             <string>Save the current JSON file.</string>
+            </property>
+            <property name="whatsThis">
+             <string>Save the current JSON file.</string>
             </property>
             <property name="text">
              <string>save</string>
@@ -370,15 +424,42 @@
    <property name="text">
     <string>Open JSON...</string>
    </property>
+   <property name="toolTip">
+    <string>Open a JSON file for editing.</string>
+   </property>
+   <property name="statusTip">
+    <string>Open a JSON file for editing.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Open a JSON file for editing.</string>
+   </property>
   </action>
   <action name="actionAdd_Schema">
    <property name="text">
     <string>Import Schema...</string>
    </property>
+   <property name="toolTip">
+    <string>Copy a schema into the tool storage.</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy a schema into the tool storage.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Copy a schema into the tool storage.</string>
+   </property>
   </action>
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences...</string>
+   </property>
+   <property name="toolTip">
+    <string>Set preferences for the tool behaviour.</string>
+   </property>
+   <property name="statusTip">
+    <string>Set preferences for the tool behaviour.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Set preferences for the tool behaviour.</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -390,40 +471,112 @@
    <property name="text">
     <string>Create Blank from selected schema</string>
    </property>
+   <property name="toolTip">
+    <string>Removes the current JSON and loads a blank from the selected schema.</string>
+   </property>
+   <property name="statusTip">
+    <string>Removes the current JSON and loads a blank from the selected schema.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Removes the current JSON and loads a blank from the selected schema.</string>
+   </property>
   </action>
   <action name="actionValidate_input_against_selected_schema">
    <property name="text">
     <string>Validate input against selected schema</string>
+   </property>
+   <property name="toolTip">
+    <string>Validate the current input against the schema.</string>
+   </property>
+   <property name="statusTip">
+    <string>Validate the current input against the schema.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Validate the current input against the schema.</string>
    </property>
   </action>
   <action name="actionSave_as_default">
    <property name="text">
     <string>Save as default for selected schema</string>
    </property>
+   <property name="toolTip">
+    <string>Saves the current values as default for later use. The default is named after the schema!</string>
+   </property>
+   <property name="statusTip">
+    <string>Saves the current values as default for later use. The default is named after the schema!</string>
+   </property>
+   <property name="whatsThis">
+    <string>Saves the current values as default for later use. The default is named after the schema!</string>
+   </property>
   </action>
   <action name="actionLoad_default_for_selected_schema">
    <property name="text">
     <string>Load default for selected schema</string>
+   </property>
+   <property name="toolTip">
+    <string>Load default values from the Default storage of the tool.</string>
+   </property>
+   <property name="statusTip">
+    <string>Load default values from the Default storage of the tool.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Load default values from the Default storage of the tool.</string>
    </property>
   </action>
   <action name="actionReload_JSON_and_drop_Changes">
    <property name="text">
     <string>Reload JSON and drop Changes...</string>
    </property>
+   <property name="toolTip">
+    <string>Reload the JSON from the Drive and ommit all changes.</string>
+   </property>
+   <property name="statusTip">
+    <string>Reload the JSON from the Drive and ommit all changes.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Reload the JSON from the Drive and ommit all changes.</string>
+   </property>
   </action>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the current JSON</string>
+   </property>
+   <property name="statusTip">
+    <string>Save the current JSON</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save the current JSON</string>
    </property>
   </action>
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
    </property>
+   <property name="toolTip">
+    <string>Save the current JSON at a specific location of the computer. Does not overwrite the working directory.</string>
+   </property>
+   <property name="statusTip">
+    <string>Save the current JSON at a specific location of the computer. Does not overwrite the working directory.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save the current JSON at a specific location of the computer. Does not overwrite the working directory.</string>
+   </property>
   </action>
   <action name="actionCheck_indexes">
    <property name="text">
     <string>Check indexes</string>
+   </property>
+   <property name="toolTip">
+    <string>Check all indexes and reindex, if needed.</string>
+   </property>
+   <property name="statusTip">
+    <string>Check all indexes and reindex, if needed.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Check all indexes and reindex, if needed.</string>
    </property>
   </action>
  </widget>
