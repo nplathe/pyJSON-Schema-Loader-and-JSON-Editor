@@ -155,6 +155,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             lg.debug("custom delegate editor selected...")
             dropDownEnum = QtWidgets.QComboBox(parent)
             dropDownEnum.setFrame(False)
+            dropDownEnum.addItem("(none)")
             for i in currSchem["enum"]:
                 dropDownEnum.addItem(i)
             return dropDownEnum
@@ -172,11 +173,13 @@ class EnumDropDownDelegate(QStyledItemDelegate):
 
         Returns:
         """
-        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
-            item = index.model().data(index, Qt.EditRole)
+        if isinstance(editor, QtWidgets.QComboBox):
+            item = index.model().getItem(index)
             value = item.getDataArray()[2]
-            dropDownEnum = QWidget.QComboBox(editor)
-            dropDownEnum.setCurrentText(value)
+            if value == '':
+                editor.setCurrentText("(none)")
+            else:
+                editor.setCurrentText(value)
         else:
             QStyledItemDelegate.setEditorData(QStyledItemDelegate(), editor, index)
 
@@ -190,10 +193,12 @@ class EnumDropDownDelegate(QStyledItemDelegate):
 
         Returns:
         """
-        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
-            dropDownEnum = QWidget.QComboBox(editor)
-            value = dropDownEnum.getText()
-            model.setData(index, value, Qt.EditRole)
+        if isinstance(editor, QtWidgets.QComboBox):
+            value = editor.currentText()
+            if value == "(none)":
+                model.setData(index, "", Qt.EditRole)
+            else:
+                model.setData(index, value, Qt.EditRole)
         else:
             QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
