@@ -22,20 +22,6 @@ See the documentation for details.
 
 ## Technical information
 
-### Running with console parameters
-
-#### General
-
-When starting pyJSON va command line, the parameter `-i` can be used to overwrite the last used directory. If a `metadata.json`
-file is present, it will be loaded, else, the last schema will be used to generate a blank. When using `-v`, pyJSON will generate
-a log file.
-
-#### Arguments
-- `-i <path>`, `--input-directory <path>`
-  - This parameter overwrites the last used directory.
-- `-v`, `--verbose`
-  - If set, a log with date and time in the file name will be generated. Note that the corresponding log directory will only be created, if you attempt to create a log.
-
 ### Structure of the tool
 
 Depending on the build process and the console parameters, the diectory structure will vary. This will be roughly the structure, when built on a Microsoft Windows OS:

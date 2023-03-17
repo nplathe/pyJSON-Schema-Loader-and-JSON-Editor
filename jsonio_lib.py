@@ -238,7 +238,7 @@ def schema_to_title_gen(decoded_schema):
 def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
     """
     takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
-    tree model needed for the TreeView
+    tree model needed for the TreeView. Inserts errors, if schema does not fit JSON document.
 
     Args:
         input_dict (dict): the parsed JSON document. If a new JSON is created, this shall be empty.
@@ -254,7 +254,7 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
     for element in input_dict:
         try:
             if element not in reference_dict:
-                raise KeyError("[jsonio_lib.py_to_tree/INFO]: Element not in Schema Definition.")
+                raise KeyError("[jsonio_lib.py_to_tree/ERROR]: Element not in Schema Definition.")
             if type(input_dict[element]) is not dict:
                 temp_value = str(input_dict[element])
                 if type(input_dict[element]) is list:
@@ -278,14 +278,27 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
                     return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
             incrementor += 1
-        except KeyError as err:
-            lg.warning("[jsonio_lib.py_to_tree/INFO]: Key " + element +
-                       " may not be present in Schema. Switch to erroneous description")
+        except (KeyError, TypeError) as err:
+
+            titleStr = ""
+            descrStr = ""
+            if isinstance(err, KeyError):
+                lg.error("[jsonio_lib.py_to_tree/ERROR]: KeyError: Key " + element +
+                         " may not be present in Schema. Switch to erroneous description.")
+                titleStr = "KeyError"
+                descrStr = "The key is not present in the current hiearchy level of the schema."
+            if isinstance(err, TypeError):
+                lg.error("[jsonio_lib.py_to_tree/ERROR]: " + str(err))
+                lg.error("[jsonio_lib.py_to_tree/ERROR]: TypeError: Structural missmatch detected. " +
+                         "Switch to erroneous description.")
+                titleStr = "ValueError"
+                descrStr = "Because of a structural missmatch, data that was read from the schema " +\
+                           "is invalid."
             if type(input_dict[element]) is not dict:
                 return_tree.add_node(parent = return_tree.root_node,
-                                     data = [element, 'Erroneous Title',
+                                     data = [element, titleStr,
                                              str(input_dict[element]), 'string',
-                                             'Schema does not match JSON structure! Type Validation will not work!'])
+                                             descrStr])
             else:
                 return_tree.add_node(parent = return_tree.root_node,
                                      data = [element, '', '', '', ''])

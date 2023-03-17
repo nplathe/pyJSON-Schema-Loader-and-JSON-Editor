@@ -11,28 +11,27 @@
 # Libraries
 # ----------------------------------------
 # import 3rd party and system libraries
-import argparse
 import json
 import logging
+import logging as lg
 import multiprocessing
 import os
-import subprocess
 import platform
 import regex as re
 import shutil
-import logging as lg
-from datetime import datetime
-
-# import PyQt libraries
-from PyQt5 import QtCore, QtGui, QtWidgets, QtTest
-from PyQt5.QtCore import QModelIndex, Qt, QPoint
-from PyQt5.QtGui import QBrush, QColor, QScreen, QGuiApplication, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QMainWindow, QLabel, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
-    QItemDelegate, QFileDialog
+import subprocess
 
 # import tkinter modules
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from datetime import datetime
+from tkinter import messagebox
+
+# import PyQt libraries
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QModelIndex, Qt, QPoint
+from PyQt5.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
+    QFileDialog
 
 # import of modules
 import jsonio_lib
@@ -438,6 +437,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             read_frame = jsonio_lib.decode_function(filepath)
             if type(read_frame) is int and read_frame == -999:
                 raise FileNotFoundError("[pyJSON.jsonopener/ERROR]: Specified file does not exist.")
+            # TODO: VALIDATION TESTING HERE
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
             schema_frame = jsonio_lib.schema_to_ref_gen(schema_read)
             schema_title = jsonio_lib.schema_to_title_gen(schema_read)
@@ -987,7 +987,7 @@ if __name__ == "__main__":
     lg.setLevel("DEBUG")
     formatter = logging.Formatter(fmt=u'%(asctime)s: %(message)s')
 
-    # If -v is used, a log folder is needed.
+    # If logging is set to be in file, checkups have to be done
     if config["verbose_logging"]:
         if not os.path.isdir(os.path.join(script_dir, "Logs")):
             print("[pyJSON.main/INFO]: Logs Directory is missing! Creating...")
@@ -1005,6 +1005,7 @@ if __name__ == "__main__":
         lg.addHandler(file_handler)
 
     # A stream handler for the log.
+
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setFormatter(formatter)
     lg.addHandler(stream_handler)
@@ -1018,6 +1019,14 @@ if __name__ == "__main__":
     lg.info("The pyJSON Schema Loader and JSON Editor")
     lg.info("==============================")
     lg.info("Start time: " + str(now))
+    lg.info("Operating System: " + platform.platform())
+    lg.info("Python Version: " + platform.python_version())
+    lg.info("Python Implementation: " + platform.python_implementation())
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        lg.info("Frozen Environment (e.g. PyInstaller) : Yes")
+    else:
+        lg.info("Frozen Environment (e.g. PyInstaller) : No")
+
 
     # Do some checkups.
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):
