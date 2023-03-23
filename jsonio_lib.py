@@ -17,7 +17,7 @@ import json
 import jsonschema
 from jsonschema import validate
 
-from schema_model import TreeClass, TreeItem
+from ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
 # ----------------------------------------
 # Variables and Functions
@@ -137,11 +137,19 @@ def schema_to_py_gen(decoded_schema):
                 case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
                     return_dict[element] = []
                 case "number":
-                    return_dict[element] = float("0.0")
+                    if "default" in decoded_schema["properties"][element]:
+                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                    else:
+                        return_dict[element] = float("0.0")
                 case "integer":
-                    return_dict[element] = 0
+                    if "default" in decoded_schema["properties"][element]:
+                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                    else: return_dict[element] = 0
                 case "boolean":
-                    return_dict[element] = False
+                    if "default" in decoded_schema["properties"][element]:
+                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                    else:
+                        return_dict[element] = False
                 case "object":
                     return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
         except KeyError as err:

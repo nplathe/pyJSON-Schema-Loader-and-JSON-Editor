@@ -1,6 +1,6 @@
 # ----------------------------------------
-# a model for the json schema that implements QAbstractModel
-# almost feature complete implementation from examples of the Qt Documentation...
+# A tree-like model that implements QAbstractModel.
+# Almost feature complete implementation from examples of the Qt Documentation.
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
@@ -12,6 +12,9 @@
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QModelIndex, Qt
 import logging
+
+from TreeItem import TreeItem
+
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -19,132 +22,13 @@ import logging
 lg = logging.getLogger(__name__)
 lg.setLevel("DEBUG")
 
-
-class TreeItem(object):
-    """
-    The TreeItem Class is a structure implementing the needed node functions for the TreeClass.
-    """
-    def __init__(self, parent = None, data = []):
-        self.parentItem = parent
-        self.itemData = data
-        self.childItems = []
-
-    # child functions
-
-    def appendChild(self, child):
-        """
-        Adds a child to childItems
-
-        Args:
-            child: the child to be added
-
-        Returns:
-
-        """
-        self.childItems.append(child)
-
-    def retrieveChildbyIndex(self, child_index):
-        """
-        retrieves a child node by given index
-
-        Args:
-            child_index: The index value of the child to be retrieved
-
-        Returns:
-            TreeItem: the child item to be returns. Returns none, if there is an IndexError.
-        """
-        try:
-            return self.childItems[child_index]
-        except IndexError:
-            return None
-
-    def ChildIndexSelf(self):
-        """
-        returns the own index if being a child of another node
-
-        Returns:
-            int: the own index. Returns 0 if parentItem is None
-        """
-        if self.parentItem is not None:
-            return self.parentItem.childItems.index(self)
-        return 0
-
-    def countChildren(self):
-        """
-        returns the length of the list storing the child items
-        Returns:
-            int: child item count
-        """
-        return len(self.childItems)
-
-    # data functions
-
-    def setDataArray(self, data):
-        """
-        Sets or overwrites the entire data list
-        Args:
-            data (list): the new data to be written
-
-        Returns:
-        """
-        self.itemData = data
-
-    def setData(self, data: str, column: int):
-        """
-        Sets a specific value at the given column value
-        Args:
-            data: value that shall be set
-            column: value of the column to be modified
-
-        Returns:
-            bool: whetever setting or overwriting was a success
-        """
-        if column < 0 or column > len(self.itemData):
-            return False
-        self.itemData[column] = data
-        return True
-
-    def getData(self, column):
-        """
-        retrieves data of a column
-        Args:
-            column: the value of the column to be retrieved
-
-        Returns:
-            object: the object stored inside the column of the data list. Most of the time a string or an int.
-        """
-        if column < 0 or column >= len(self.itemData):
-            return None
-        return self.itemData[column]
-
-    def getDataArray(self):
-        """
-        Returns:
-            list: the full data list of the item
-        """
-        return self.itemData
-
-    def DataLength(self):
-        """
-        Returns:
-            int: length of the data list - which equals the amount of columns in the TreeView later
-        """
-        return len(self.itemData)
-
-    def getParent(self):
-        """
-        Returns:
-            TreeItem: the parent node
-        """
-        return self.parentItem
-
 # The Tree-like Model
 class TreeClass(QtCore.QAbstractItemModel):
     """
     Inhereting QAbstractItemModel, this TreeClass implements the needed functions and elements to be presented
     to the user in the TreeView in the user interface.
     """
-    def __init__(self, parent = None, data = []):
+    def __init__(self, parent = None, data = None):
         """
         Constructor
 
@@ -153,6 +37,8 @@ class TreeClass(QtCore.QAbstractItemModel):
             data: the list of data that shall be used by the root node and determine the column count
         """
         super(TreeClass, self).__init__(parent)
+        if data is None:
+            data = []
         self.root_node = TreeItem(data = data)
 
     def getItem(self, index):
@@ -304,7 +190,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         result = item.setData(column = index.column(), data = value)
         if result:
             self.dataChanged.emit(index, index)
-            lg.info("\n----------\n[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
+            lg.info("\n----------\n[TreeModel.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
             str(item.getDataArray()) + "\n----------")
         return result
 
@@ -336,6 +222,90 @@ class TreeClass(QtCore.QAbstractItemModel):
 
         return Qt.ItemIsEditable | super(TreeClass, self).flags(index)
 
+    def insertColumns(self, position: int, columns: int, parent: QModelIndex = QModelIndex()) -> bool:
+        """
+        Inserts columns into the model via calling the respective function of the root node.
+        Args:
+            position (int): position from which the insertion should start
+            columns (int): amount of columns to be added
+            parent (QModelIndex): The parent for... uh... eh...
+
+        Returns:
+            bool: a boolean value whetever the insertion was a success
+        """
+        self.beginInsertColumns(parent, position, position + columns - 1)
+        success: bool = self.root_node.insertColumns(position, columns)
+        self.endInsertColumns()
+
+        return success
+
+    def insertRows(self, position: int, rows: int, parent: QModelIndex = QModelIndex()) -> bool:
+        """
+        inserts rows at the given position
+        Args:
+            position (int): position of where to enter the rows
+            rows (int): amount of rows to add
+            parent (QModelIndex): parent node
+
+        Returns:
+            bool: a boolean value whetever the insertion was a success
+        """
+        parentItem = self.getItem(parent)
+        self.beginInsertRows(parent, position, position + rows - 1)
+        success: bool = parentItem.insertChildren(position, rows, self.root_node.DataLength())
+        self.endInsertRows()
+
+        return success
+
+    def removeColumns(self, position: int, columns: int, parent: QModelIndex = QModelIndex())  -> bool:
+        """
+        Removes columns and, if no columns are present anymore, all rows.
+
+        Args:
+            position (int): position from which to start the removal
+            columns (int): amount of columns to be removed
+            parent (QModelIndex): parent node.
+
+        Returns:
+            bool: a boolean value whetever removal was a success
+        """
+        self.beginRemoveColumns()
+        success: bool = self.root_node.removeColumns(position, columns)
+        self.endRemoveColumns()
+
+        if self.root_node.DataLength() == 0:
+            self.removeRows(0, self.rowCount())
+
+        return success
+
+    def removeRows(self, position: int, rows: int, parent: QModelIndex = QModelIndex()) -> bool:
+        """
+        Removes rows in the model.
+
+        Args:
+            position (int): position from which the removal starts
+            rows (int): amount of rows to be removed
+            parent (QModelIndex): parent node
+
+        Returns:
+            bool: a boolean value whetever removal was a success
+        """
+        parentItem = self.getItem(parent)
+
+        self.beginRemoveRows(parent, position, position + rows - 1)
+        success: bool = parentItem.removeChildren(position, rows)
+        self.endRemoveRows()
+
+        return success
+
+    def _repr_recursion(self, item: TreeItem, indent: int = 0) -> str:
+        result = " " * indent + repr(item) + "\n"
+        for child in item.childItems:
+            result += self._repr_recursion(child, indent + 2)
+        return result
+
+    def __repr__(self) -> str:
+        return self._repr_recursion(self.root_item)
 
 # ----------------------------------------
 # Execution

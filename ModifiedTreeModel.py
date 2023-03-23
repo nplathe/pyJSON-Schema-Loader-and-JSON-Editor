@@ -1,0 +1,88 @@
+# ----------------------------------------
+# a model for the json schema that implements TreeModel and by extension QAbstractModel
+# author: N. Plathe
+# ----------------------------------------
+# Music recommendation (albums):
+# Feuerschwanz - Memento Mori
+# Bullet for my Valentine - Bullet for my Valentine
+# ----------------------------------------
+# Libraries
+# ----------------------------------------
+from PyQt5.QtCore import Qt, QModelIndex
+import logging
+
+import tkinter as tk
+
+from TreeModel import TreeClass
+
+# ----------------------------------------
+# Variables and Functions
+# ----------------------------------------
+
+class ModifiedTreeClass(TreeClass):
+    """
+    This modified TreeClass provides an adapted routine to set data by trying to cast entered information to the
+    appropriate data type to prevent accidentially entering wrong information. Furthermore, the flag-function
+    gets overwritten in order to provide the proper item roles to prevent users from editing data other than
+    the JSON values to be.
+    """
+    def flags(self, index):
+        """
+        Adapted flag function to provide the proper flags for our table-like structure in the TreeView
+
+        Args:
+            index (QModelIndex): the index of an item to be checked
+
+        Returns:
+            int: the role(s) of the cell
+        """
+        match index.column():
+            case 2:
+                return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            case _:
+                return Qt.ItemIsEnabled
+
+    def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
+        """
+        An overwritten setData-function to check the data type via type casting.
+
+        Args:
+            index (QModelIndex): the index of the data to edit.
+            value (object): the new data to be set.
+            role (int): the role of that node.
+
+        Returns:
+            bool: whetever setting the data was successful
+        """
+        if role != Qt.EditRole:
+            return False
+
+        item = self.getItem(index)
+        item_type = item.getDataArray()[3]
+
+        try:
+            match item_type:
+                case "integer":
+                    int(value)
+                case "number":
+                    float(value)
+                case "boolean":
+                    bool(value)
+                case "array":
+                    pass
+                case _:
+                    pass
+            result = item.setData(column=index.column(), data=value)
+            if result:
+                self.dataChanged.emit(index, index)
+                logging.info("\n----------\n[ModifiedTreeModel.ModifiedTreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
+                        str(item.getDataArray()) + "\n----------")
+            return result
+        except ValueError as err:
+            logging.error("[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]: " +
+                     "Input could not be validated against type proposed from Schema!")
+            tk.messagebox.showerror(
+                title="[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]",
+                message="Input could not be validated against type proposed from Schema!"
+            )
+            return False

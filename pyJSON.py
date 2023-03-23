@@ -37,7 +37,7 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle,
 import jsonio_lib
 import jsonsearch_lib
 from deploy_files import deploy_schema, deploy_config, save_config, saveMainIndex
-from schema_model import TreeClass as TrCl
+from ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
 # import the converted user interface
 from pyJSON_interface import Ui_MainWindow
@@ -47,73 +47,7 @@ from pyJSON_interface import Ui_MainWindow
 # Variables and Functions
 # ----------------------------------------
 
-class TreeClass(TrCl):
-    """
-    This modified TreeClass provides an adapted routine to set data by trying to cast entered information to the
-    appropriate data type to prevent accidentially entering wrong information. Furthermore, the flag-function
-    gets overwritten in order to provide the proper item roles to prevent users from editing data other than
-    the JSON values to be.
-    """
-    def flags(self, index):
-        """
-        Adapted flag function to provide the proper flags for our table-like structure in the TreeView
 
-        Args:
-            index (QModelIndex): the index of an item to be checked
-
-        Returns:
-            int: the role(s) of the cell
-        """
-        match index.column():
-            case 2:
-                return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
-            case _:
-                return Qt.ItemIsEnabled
-
-    def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
-        """
-        An overwritten setData-function to check the data type via type casting.
-
-        Args:
-            index (QModelIndex): the index of the data to edit.
-            value (object): the new data to be set.
-            role (int): the role of that node.
-
-        Returns:
-            bool: whetever setting the data was successful
-        """
-        if role != Qt.EditRole:
-            return False
-
-        item = self.getItem(index)
-        item_type = item.getDataArray()[3]
-
-        try:
-            match item_type:
-                case "integer":
-                    int(value)
-                case "number":
-                    float(value)
-                case "boolean":
-                    bool(value)
-                case "array":
-                    pass
-                case _:
-                    pass
-            result = item.setData(column=index.column(), data=value)
-            if result:
-                self.dataChanged.emit(index, index)
-                lg.info("\n----------\n[schema_model.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
-                        str(item.getDataArray()) + "\n----------")
-            return result
-        except ValueError as err:
-            lg.error("[pyJSON.TreeClass.setData/ERROR]: " +
-                     "Input could not be validated against type proposed from Schema!")
-            tk.messagebox.showerror(
-                title="[pyJSON.TreeClass.setData/ERROR]",
-                message="Input could not be validated against type proposed from Schema!"
-            )
-            return False
 
 # Special delegator for the tree model in order to handle enums in the schema
 class EnumDropDownDelegate(QStyledItemDelegate):
