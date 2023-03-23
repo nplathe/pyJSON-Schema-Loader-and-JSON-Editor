@@ -20,7 +20,6 @@
       BackgroundBrushDelegate
       EnumDropDownDelegate
       SearchWindow
-      TreeClass
       UiRunnerInstance
    
    

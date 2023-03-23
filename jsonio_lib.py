@@ -115,12 +115,13 @@ def decode_function(json_path):
     return result
 
 
-def schema_to_py_gen(decoded_schema):
+def schemaToPyGen(decoded_schema, mode: str = "keys"):
     """
     A function generating a blank JSON-like python structure from the schema.
 
     Args:
         decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
+        mode (str): The mode decides which tree is returned - "keys", "title", "type", "description"
 
     Returns:
         dict: a nested dictionary representation of a JSON document, generated from the schema
@@ -129,116 +130,25 @@ def schema_to_py_gen(decoded_schema):
     for element in decoded_schema["properties"]:
         try:
             match decoded_schema["properties"][element]["type"]:
-                case "string":
-                    if "default" in decoded_schema["properties"][element]:
-                        return_dict[element] = decoded_schema["properties"][element]["default"]
+                case "array":  # the value is a stub, is to be handled, when integrated to the model
+                    if mode == "keys":
+                        return_dict[element] = []
                     else:
-                        return_dict[element] = ""
-                case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
-                    return_dict[element] = []
-                case "number":
-                    if "default" in decoded_schema["properties"][element]:
-                        return_dict[element] = decoded_schema["properties"][element]["default"]
-                    else:
-                        return_dict[element] = float("0.0")
-                case "integer":
-                    if "default" in decoded_schema["properties"][element]:
-                        return_dict[element] = decoded_schema["properties"][element]["default"]
-                    else: return_dict[element] = 0
-                case "boolean":
-                    if "default" in decoded_schema["properties"][element]:
-                        return_dict[element] = decoded_schema["properties"][element]["default"]
-                    else:
-                        return_dict[element] = False
+                        return_dict[element] = decoded_schema["properties"][element][mode]
                 case "object":
-                    return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element])
+                    return_dict[element] = schemaToPyGen(decoded_schema["properties"][element], mode)
+                case _:
+                    match mode:
+                        case "keys":
+                            if "default" in decoded_schema["properties"][element]:
+                                return_dict[element] = decoded_schema["properties"][element]["default"]
+                            else:
+                                return_dict[element] = ""
+                        case _:
+                            return_dict[element] = decoded_schema["properties"][element][mode]
         except KeyError as err:
             lg.critical("[jsonio_lib.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing"
                         + " \"type\"-tag. JSON may be not valid against corresponding schema anymore.")
-            continue
-    return return_dict
-
-
-# generates a reference containing the description of every field in the schema
-def schema_to_ref_gen(decoded_schema):
-    """
-    Similar to schema_to_py_gen, but return value is a nested dict containing descriptions for
-    each key present in the schema.
-
-    Args:
-        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
-
-    Returns:
-        dict: a nested dictionary containing descriptions for utilised keys inside the schema
-    """
-    return_dict = {}
-    for element in decoded_schema["properties"]:
-        try:
-            match decoded_schema["properties"][element]["type"]:
-                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
-                    return_dict[element] = schema_to_ref_gen(decoded_schema["properties"][element])
-                case _:
-                    return_dict[element] = decoded_schema["properties"][element]["description"]
-        except KeyError as err:
-            lg.critical("[jsonio_lib.schema_to_ref_gen/CRITICAL]: Skipping element: " + element +
-                        ", because of missing \"type\"-tag" +
-                        ". JSON may be not valid against corresponding schema anymore.")
-            continue
-    return return_dict
-
-
-def schema_to_type_gen(decoded_schema):
-    """
-    Similar to schema_to_py_gen, but return value is a nested dict containing the type of
-    each key present in the schema.
-
-    Args:
-        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
-
-    Returns:
-        dict: a nested dictionary containing types of utilised keys inside the schema
-    """
-    return_dict = {}
-    for element in decoded_schema["properties"]:
-        try:
-            match decoded_schema["properties"][element]["type"]:
-                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
-                    return_dict[element] = schema_to_type_gen(decoded_schema["properties"][element])
-                case _:
-                    return_dict[element] = decoded_schema["properties"][element]["type"]
-        except KeyError as err:
-            lg.critical(
-                "[jsonio_lib.schema_to_type_gen/CRITICAL]: Skipping element: " + element +
-                ", because of missing \"type\"-tag" +
-                ". JSON may be not valid against corresponding schema anymore.")
-            continue
-    return return_dict
-
-
-def schema_to_title_gen(decoded_schema):
-    """
-    Similar to schema_to_py_gen, but return value is a nested dict containing the title of
-    each key present in the schema.
-
-    Args:
-        decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
-
-    Returns:
-        dict: a nested dictionary containing title of utilised keys inside the schema
-    """
-    return_dict = {}
-    for element in decoded_schema["properties"]:
-        try:
-            match decoded_schema["properties"][element]["type"]:
-                case "object":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
-                    return_dict[element] = schema_to_title_gen(decoded_schema["properties"][element])
-                case _:
-                    return_dict[element] = decoded_schema["properties"][element]["title"]
-        except KeyError as err:
-            lg.critical(
-                "[jsonio_lib.schema_to_title_gen/CRITICAL]: Skipping element: " + element +
-                ", because of missing \"type\"-tag" +
-                ". JSON may be not valid against corresponding schema anymore.")
             continue
     return return_dict
 
@@ -365,7 +275,8 @@ if __name__ == "__main__":
 
     lg.info("Don't run me directly, I just provide some functions.")
     schema = decode_function("Schemas/default.json")
-    blank_frame = schema_to_py_gen(schema)
-    type_frame = schema_to_type_gen(schema)
-    descr_frame = schema_to_ref_gen(schema)
-    title_frame = schema_to_title_gen(schema)
+    blank_frame = schemaToPyGen(schema)
+    type_frame = schemaToPyGen(schema, "type")
+    descr_frame = schemaToPyGen(schema, "description")
+    title_frame = schemaToPyGen(schema, "title")
+    print("success!")

@@ -1,7 +1,7 @@
-﻿schema\_model.TreeItem
-======================
+﻿TreeItem.TreeItem
+=================
 
-.. currentmodule:: schema_model
+.. currentmodule:: TreeItem
 
 .. autoclass:: TreeItem
 
@@ -21,6 +21,11 @@
       ~TreeItem.getData
       ~TreeItem.getDataArray
       ~TreeItem.getParent
+      ~TreeItem.insertChildren
+      ~TreeItem.insertColumns
+      ~TreeItem.lastChild
+      ~TreeItem.removeChildren
+      ~TreeItem.removeColumns
       ~TreeItem.retrieveChildbyIndex
       ~TreeItem.setData
       ~TreeItem.setDataArray

@@ -1,7 +1,7 @@
-﻿schema\_model.TreeClass
-=======================
+﻿TreeModel.TreeClass
+===================
 
-.. currentmodule:: schema_model
+.. currentmodule:: TreeModel
 
 .. autoclass:: TreeClass
 

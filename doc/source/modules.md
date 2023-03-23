@@ -5,7 +5,6 @@
    :toctree: generated
    
    pyJSON
-   pyJSON.TreeClass
    pyJSON.SearchWindow
    pyJSON.EnumDropDownDelegate
    pyJSON.BackgroundBrushDelegate
@@ -13,7 +12,7 @@
    deploy_files
    jsonio_lib
    jsonsearch_lib
-   schema_model
-   schema_model.TreeClass
-   schema_model.TreeItem
+   TreeItem.TreeItem
+   TreeModel.TreeClass
+   ModifiedTreeModel.ModifiedTreeClass
 ```
