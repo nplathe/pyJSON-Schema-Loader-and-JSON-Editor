@@ -61,17 +61,21 @@ class ModifiedTreeClass(TreeClass):
         item_type = item.getDataArray()[3]
 
         try:
-            match item_type:
-                case "integer":
-                    int(value)
-                case "number":
-                    float(value)
-                case "boolean":
-                    bool(value)
-                case "array":
-                    pass
-                case _:
-                    pass
+            if value != '':
+                match item_type:
+                    case "integer":
+                        int(value)
+                    case "number":
+                        float(value)
+                    case "boolean":
+                        bool(value)
+                    case "array":
+                        pass
+                    case _:
+                        pass
+            else:
+                logging.warning("[ModifiedTreeModel.ModifiedTreeClass.setData/WARN]: " +
+                           "Empty value set - type validation bypassed.")
             result = item.setData(column=index.column(), data=value)
             if result:
                 self.dataChanged.emit(index, index)

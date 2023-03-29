@@ -305,7 +305,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         return result
 
     def __repr__(self) -> str:
-        return self._repr_recursion(self.root_item)
+        return self._repr_recursion(self.root_node)
 
 # ----------------------------------------
 # Execution

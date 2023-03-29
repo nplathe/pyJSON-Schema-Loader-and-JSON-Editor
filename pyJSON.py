@@ -36,6 +36,7 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle,
 # import of modules
 import jsonio_lib
 import jsonsearch_lib
+from TreeItem import TreeItem
 from deploy_files import deploy_schema, deploy_config, save_config, saveMainIndex
 from ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
@@ -46,8 +47,6 @@ from pyJSON_interface import Ui_MainWindow
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
-
-
 
 # Special delegator for the tree model in order to handle enums in the schema
 class EnumDropDownDelegate(QStyledItemDelegate):
@@ -81,18 +80,33 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             curItem = curItem.getParent()
             pathList.append(curItem.getData(0))
         currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"]), encoding = "utf8"), cls=json.JSONDecoder)
-        while len(pathList) > 0:
-            currKey = pathList.pop()
-            currSchem = currSchem["properties"][currKey]
-        if "enum" in currSchem.keys():
-            lg.debug("custom delegate editor selected...")
-            dropDownEnum = QtWidgets.QComboBox(parent)
-            dropDownEnum.setFrame(False)
-            dropDownEnum.addItem("(none)")
-            for i in currSchem["enum"]:
-                dropDownEnum.addItem(i)
-            return dropDownEnum
-        else:
+        try:
+            while len(pathList) > 0:
+                currKey = pathList.pop()
+                currSchem = currSchem["properties"][currKey]
+            lg.debug("Current Type: " + currSchem["type"])
+            match currSchem["type"]:
+                #case "number":
+                    #doubleSpinBox = QtWidgets.QDoubleSpinBox()
+                    #if "maximum" in currSchem.keys():
+                    #    doubleSpinBox.setMaximum(currSchem["maximum"])
+                    #if "minimum" in currSchem.keys():
+                    #    doubleSpinBox.setMinimum(currSchem["minimum"])
+                    #return doubleSpinBox
+                case _:
+                    pass
+            if "enum" in currSchem.keys():
+                lg.debug("custom delegate editor selected...")
+                dropDownEnum = QtWidgets.QComboBox(parent)
+                dropDownEnum.setFrame(False)
+                dropDownEnum.addItem("(none)")
+                for i in currSchem["enum"]:
+                    dropDownEnum.addItem(i)
+                return dropDownEnum
+            else:
+                widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
+                return widget
+        except KeyError as err:
             widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
             return widget
 
@@ -133,7 +147,13 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             else:
                 model.setData(index, value, Qt.EditRole)
         else:
-            QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
+            if model.getItem(index).getData(3) == 'array':
+                model.beginInsertRows(index, index.row(), index.row() + 1)
+                model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Entry"])
+                model.endInsertRows()
+                ui.TreeView.expandAll()
+            else:
+                QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
         """
@@ -146,11 +166,34 @@ class EnumDropDownDelegate(QStyledItemDelegate):
 
         Returns:
         """
-        if index.column == 2 and index.model().data(index, Qt.EditRole).getDataArray()[3]:
-            editor.setGeometry(option.rect)
-        else:
-            QStyledItemDelegate.updateEditorGeometry(QStyledItemDelegate(), editor, option, index)
+        QStyledItemDelegate.updateEditorGeometry(QStyledItemDelegate(), editor, option, index)
 
+class BackgroundBrushDelegate(QStyledItemDelegate):
+    """
+    Another QStyledItemDelegate inheriting class for coloring the not-to-be-edited columns
+    """
+    def __init__(self, brush: QBrush, parent):
+        """
+        Constructor
+        Args:
+            brush (QBrush): a brush containing specific parameters, like colors.
+            parent (object): the Parent Object.
+        """
+        super(BackgroundBrushDelegate, self).__init__()
+        self.brush = brush
+
+    def initStyleOption(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
+        """
+        sets the color to the cells the delegate is assigned to
+
+        Args:
+            option (QStyleOptionViewItem):  passes other options
+            index (QModelIndex): the QModelIndex to be modified
+
+        Returns:
+        """
+        super(BackgroundBrushDelegate, self).initStyleOption(option, index)
+        option.backgroundBrush = self.brush
 
 # class for a small additional window showing search results.
 class SearchWindow(QWidget):
@@ -305,9 +348,30 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.delegate = EnumDropDownDelegate()
         self.TreeView.setItemDelegateForColumn(2, self.delegate)
 
+        # right click context menu
+        self.TreeView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.TreeView.customContextMenuRequested.connect(self.onCustomContextMenu)
+
         # call the show function
         self.show()
 
+    def onCustomContextMenu(self, index):
+        """
+        Custom context menu for the tree view widget.
+
+        Args:
+            index (QPoint): The QPoint the right click was executed at.
+
+        Returns:
+        """
+        listIndex = self.TreeView.indexAt(index)
+        if listIndex.isValid():
+            itemType = self.TreeView.model().getItem(listIndex).getData(3)
+            itemMenu = QtWidgets.QMenu("Item menu")
+            entry1 = itemMenu.addAction("Remove this node...")
+            if itemType == 'array':
+                entry2 = itemMenu.addAction("Add entries to this array...")
+            itemMenu.exec_(self.TreeView.viewport().mapToGlobal(index))
 
     # Button Function Definitions
 
@@ -599,7 +663,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
 
             pre_json = jsonio_lib.schemaToPyGen(curr_schem)
-            pre_descr = jsonio_lib.schemaToPyGen(curr_schem, mode = "descr")
+            pre_descr = jsonio_lib.schemaToPyGen(curr_schem, mode = "description")
             pre_title = jsonio_lib.schemaToPyGen(curr_schem, mode = "title")
             pre_type = jsonio_lib.schemaToPyGen(curr_schem, mode = "type")
 
@@ -858,33 +922,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         if self.searchList:
             self.searchList.close()
-
-class BackgroundBrushDelegate(QStyledItemDelegate):
-    """
-    Another QStyledItemDelegate inheriting class for coloring the not-to-be-edited columns
-    """
-    def __init__(self, brush: QBrush, parent):
-        """
-        Constructor
-        Args:
-            brush (QBrush): a brush containing specific parameters, like colors.
-            parent (object): the Parent Object.
-        """
-        super(BackgroundBrushDelegate, self).__init__()
-        self.brush = brush
-
-    def initStyleOption(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
-        """
-        sets the color to the cells the delegate is assigned to
-
-        Args:
-            option (QStyleOptionViewItem):  passes other options
-            index (QModelIndex): the QModelIndex to be modified
-
-        Returns:
-        """
-        super(BackgroundBrushDelegate, self).initStyleOption(option, index)
-        option.backgroundBrush = self.brush
 
 
 # ----------------------------------------

@@ -18,6 +18,7 @@ import jsonschema
 from jsonschema import validate
 
 from ModifiedTreeModel import ModifiedTreeClass as TreeClass
+from TreeItem import TreeItem
 
 # ----------------------------------------
 # Variables and Functions
@@ -173,7 +174,7 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
         try:
             if element not in reference_dict:
                 raise KeyError("[jsonio_lib.py_to_tree/ERROR]: Element not in Schema Definition.")
-            if type(input_dict[element]) is not dict:
+            if (type(input_dict[element]) is not dict) and (type(input_dict[element]) is not list):
                 temp_value = str(input_dict[element])
                 if type(input_dict[element]) is list:
                     temp_value = temp_value.replace("'", "")
@@ -185,16 +186,35 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     reference_dict[element]
                 ])
             else:
-                return_tree.add_node(parent = return_tree.root_node,
-                                     data = [element, '', '', '', ''])
-                part_tree = py_to_tree(input_dict[element],
-                                       type_dict[element],
-                                       title_dict[element],
-                                       reference_dict[element],
-                                       return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
-                for node in part_tree.root_node.childItems:
-                    node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
-                    return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+                if type(input_dict[element]) is dict:
+                    return_tree.add_node(parent = return_tree.root_node,
+                                         data = [element, '', '', 'object', ''])
+                    part_tree = py_to_tree(input_dict[element],
+                                           type_dict[element],
+                                           title_dict[element],
+                                           reference_dict[element],
+                                           return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
+                    for node in part_tree.root_node.childItems:
+                        node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
+                        return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+                else:
+                    return_tree.add_node(parent = return_tree.root_node,
+                                         data = [
+                                            element,
+                                            title_dict[element],
+                                            '',
+                                            type_dict[element],
+                                            reference_dict[element]
+                                         ])
+                    if len(input_dict[element]) > 0:
+                        for item in input_dict[element]:
+                            if type(item) is not dict:
+                                return_tree.root_node.lastChild().appendChild(
+                                    TreeItem(
+                                        parent = return_tree.root_node.lastChild(),
+                                        data = ['', '', str(item), 'string', 'Array Item']
+                                    )
+                                )
             incrementor += 1
         except (KeyError, TypeError) as err:
 
@@ -255,16 +275,19 @@ def tree_to_py(array_of_tree_nodes):
                         return_dict[element.getData(0)] = float(value)
                     case "boolean":
                         return_dict[element.getData(0)] = bool(value)
-                    case "array":  # TODO: ARRAYS NEED TO BE HANDLED DIFFERENTLY, E.G. ARRAYS WITH OBJECTS
-                        temp_value = value.replace("[", "")
-                        temp_value = temp_value.replace("]", "")
-                        temp_value = temp_value.replace(" ", "")
-                        temp_arr = re.split(",", temp_value)
-                        return_dict[element.getData(0)] = temp_arr
+                    case "array":
+                        return_dict[element.getData(0)] = []
                     case _:
                         return_dict[element.getData(0)] = value
         else:
-            return_dict[element.getData(0)] = tree_to_py(element.childItems)
+            if element.getData(3) == 'object':
+                return_dict[element.getData(0)] = tree_to_py(element.childItems)
+            else:
+                tempList = []
+                for child in element.childItems:
+                    if type(child.getData(3)) != "object":
+                        tempList.append(child.getData(2))
+                return_dict[element.getData(0)] = tempList
     return return_dict
 # ----------------------------------------
 # Execution
