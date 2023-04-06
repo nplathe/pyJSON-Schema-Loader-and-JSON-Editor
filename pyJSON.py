@@ -29,15 +29,15 @@ from tkinter import messagebox
 # import PyQt libraries
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QModelIndex, Qt, QPoint
-from PyQt5.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
-    QFileDialog
+    QFileDialog, QMessageBox
 
 # import of modules
 import jsonio_lib
 import jsonsearch_lib
 from TreeItem import TreeItem
-from deploy_files import deploy_schema, deploy_config, save_config, saveMainIndex
+from deploy_files import deploy_schema, deploy_config, save_config, save_main_index
 from ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
 # import the converted user interface
@@ -73,40 +73,41 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         Returns:
             QWidget: the editor QWidget - a drop down menu for enumerators, a line edit (the standard) otherwise
         """
-        pathList = []
-        curItem = index.model().getItem(index)
-        pathList.append(curItem.getData(0))
-        while curItem.getParent().getData(0) != "Schema Key":
-            curItem = curItem.getParent()
-            pathList.append(curItem.getData(0))
-        currSchem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"]), encoding = "utf8"), cls=json.JSONDecoder)
+        path_list = []
+        cur_item = index.model().getItem(index)
+        path_list.append(cur_item.get_data(0))
+        while cur_item.get_parent().get_data(0) != "Schema Key":
+            cur_item = cur_item.get_parent()
+            path_list.append(cur_item.get_data(0))
+        curr_schem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"]), encoding = "utf8"), cls=json.JSONDecoder)
         try:
-            while len(pathList) > 0:
-                currKey = pathList.pop()
-                currSchem = currSchem["properties"][currKey]
-            lg.debug("Current Type: " + currSchem["type"])
-            match currSchem["type"]:
+            while len(path_list) > 0:
+                curr_key = path_list.pop()
+                curr_schem = curr_schem["properties"][curr_key]
+            lg.debug("Current Type: " + curr_schem["type"])
+            match curr_schem["type"]:
                 #case "number":
                     #doubleSpinBox = QtWidgets.QDoubleSpinBox()
-                    #if "maximum" in currSchem.keys():
+                    #if "maximum" in curr_schem.keys():
                     #    doubleSpinBox.setMaximum(currSchem["maximum"])
-                    #if "minimum" in currSchem.keys():
+                    #if "minimum" in curr_schem.keys():
                     #    doubleSpinBox.setMinimum(currSchem["minimum"])
                     #return doubleSpinBox
                 case _:
                     pass
-            if "enum" in currSchem.keys():
+            if "enum" in curr_schem.keys():
                 lg.debug("custom delegate editor selected...")
                 dropDownEnum = QtWidgets.QComboBox(parent)
                 dropDownEnum.setFrame(False)
                 dropDownEnum.addItem("(none)")
-                for i in currSchem["enum"]:
+                for i in curr_schem["enum"]:
                     dropDownEnum.addItem(i)
                 return dropDownEnum
             else:
                 widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
                 return widget
         except KeyError as err:
+            lg.debug(err)
             widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
             return widget
 
@@ -122,7 +123,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         """
         if isinstance(editor, QtWidgets.QComboBox):
             item = index.model().getItem(index)
-            value = item.getDataArray()[2]
+            value = item.get_data_array()[2]
             if value == '':
                 editor.setCurrentText("(none)")
             else:
@@ -147,13 +148,19 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             else:
                 model.setData(index, value, Qt.EditRole)
         else:
-            if model.getItem(index).getData(3) == 'array':
+            if model.getItem(index).get_data(3) == 'array':
                 model.beginInsertRows(index, index.row(), index.row() + 1)
-                model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Entry"])
+                model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
                 model.endInsertRows()
                 ui.TreeView.expandAll()
             else:
-                QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
+                if editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
+                    lg.debug("ping")
+                    model.beginRemoveRows(index, index.row(), index.row() + 1)
+                    model.removeRows(index.row(), 1, index.parent())
+                    model.endRemoveRows()
+                else:
+                    QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
         """
@@ -215,12 +222,12 @@ class SearchWindow(QWidget):
         self.searchListView = QtWidgets.QListView()
         self.searchListView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.searchListView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.searchListView.customContextMenuRequested.connect(self.onCustomContextMenu)
+        self.searchListView.customContextMenuRequested.connect(self.on_custom_context_menu)
 
         # Add Widgets to layout
         layout.addWidget(self.searchListView)
 
-    def onCustomContextMenu(self, index):
+    def on_custom_context_menu(self, index):
         """
         Custom context Menu
 
@@ -233,12 +240,12 @@ class SearchWindow(QWidget):
         if list_index.isValid():
             item_menu = QtWidgets.QMenu("Item menu")
             entry1 = item_menu.addAction("Open...")
-            entry1.triggered.connect(self.openFile)
+            entry1.triggered.connect(self.open_file)
             entry2 = item_menu.addAction("Open File Location...")
-            entry2.triggered.connect(self.openFileLocation)
+            entry2.triggered.connect(self.open_file_location)
             item_menu.exec_(self.searchListView.viewport().mapToGlobal(index))
 
-    def openFile(self):
+    def open_file(self):
         """
         A function to initialise opening the selected path in the ListView with the associated tool. Conviniently enough
         with Windows, explorer.exe passes the attempt of opening a file to the app for us.
@@ -250,7 +257,7 @@ class SearchWindow(QWidget):
         if platform.system() == "Windows":
             subprocess.Popen('explorer '+item.text())
 
-    def openFileLocation(self):
+    def open_file_location(self):
         """
         Opens the path to the file.
 
@@ -279,8 +286,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         super(UiRunnerInstance, self).__init__()
         self.setupUi(self)
 
+        # window decoration
         title = "pyJSON Schema Loader and JSON Editor"
         self.setWindowTitle(title)
+        #self.setWindowIcon(QIcon(""))
 
         # text label for the current dir
         self.label_curDir.setText(os.getcwd())
@@ -310,7 +319,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.pushButton_save.setIcon(self.icon_save)
         self.pushButton_save.setText("")
 
-        self.pushButton_search.clicked.connect(self.search_Dirs)
+        self.pushButton_search.clicked.connect(self.search_dirs)
         self.pixmap_search = getattr(QStyle, "SP_FileDialogContentsView")
         self.icon_search = self.style().standardIcon(self.pixmap_search)
         self.pushButton_search.setIcon(self.icon_search)
@@ -333,10 +342,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.actionCreate_JSON_from_selected_Schema.triggered.connect(self.set_blank_from_schema)
         self.actionLoad_default_for_selected_schema.triggered.connect(self.load_default)
         self.actionSave_as_default.triggered.connect(self.save_default)
-        self.actionValidate_input_against_selected_schema.triggered.connect(self.validate_Function)
+        self.actionValidate_input_against_selected_schema.triggered.connect(self.validate_function)
 
         # Index related functions in the menu bar
-        self.actionCheck_indexes.triggered.connect(self.callWatchdog)
+        self.actionCheck_indexes.triggered.connect(self.call_watchdog)
 
         # Drop-Down Menu
         self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
@@ -350,12 +359,12 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         # right click context menu
         self.TreeView.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.TreeView.customContextMenuRequested.connect(self.onCustomContextMenu)
+        self.TreeView.customContextMenuRequested.connect(self.on_custom_context_menu)
 
         # call the show function
         self.show()
 
-    def onCustomContextMenu(self, index):
+    def on_custom_context_menu(self, index):
         """
         Custom context menu for the tree view widget.
 
@@ -364,14 +373,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Returns:
         """
-        listIndex = self.TreeView.indexAt(index)
-        if listIndex.isValid():
-            itemType = self.TreeView.model().getItem(listIndex).getData(3)
-            itemMenu = QtWidgets.QMenu("Item menu")
-            entry1 = itemMenu.addAction("Remove this node...")
-            if itemType == 'array':
-                entry2 = itemMenu.addAction("Add entries to this array...")
-            itemMenu.exec_(self.TreeView.viewport().mapToGlobal(index))
+        list_index = self.TreeView.indexAt(index)
+        if list_index.isValid():
+            item_type = self.TreeView.model().getItem(list_index).get_data(3)
+            item_menu = QtWidgets.QMenu("Item menu")
+            entry1 = item_menu.addAction("Remove this node...")
+            if item_type == 'array':
+                entry2 = item_menu.addAction("Add entries to this array...")
+            item_menu.exec_(self.TreeView.viewport().mapToGlobal(index))
 
     # Button Function Definitions
 
@@ -381,7 +390,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Returns:
         """
-        #dir_path = os.path.normpath(tk.filedialog.askdirectory())
         dir_path = os.path.normpath(
             QFileDialog.getExistingDirectory(
                 caption = "Select Directory for indexing",
@@ -395,7 +403,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             config["last_dir"] = dir_path
             save_config(script_dir, config)
             self.label_curDir.setText(dir_path)
-            jsonsearch_lib.StartIndex(script_dir, dir_path, index_dict)
+            jsonsearch_lib.start_index(script_dir, dir_path, index_dict)
         except FileNotFoundError as err:
             lg.error(err)
             tk.messagebox.showerror(
@@ -419,8 +427,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         Returns:
         """
         try:
-            #filepath_str = tk.filedialog.askopenfilename(
-            #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*')))
             filepath_str = QFileDialog.getOpenFileName(
                 caption = "Open a JSON Document...",
                 directory = config["last_dir"],
@@ -437,9 +443,9 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 raise FileNotFoundError("[pyJSON.jsonopener/ERROR]: Specified file does not exist.")
             # TODO: VALIDATION TESTING HERE
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-            schema_frame = jsonio_lib.schemaToPyGen(schema_read, mode = "description")
-            schema_title = jsonio_lib.schemaToPyGen(schema_read, mode = "title")
-            schema_type = jsonio_lib.schemaToPyGen(schema_read, mode = "type")
+            schema_frame = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
+            schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
+            schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
             new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
             self.TreeView.reset()
@@ -453,10 +459,12 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.jsonopener/ERROR]",
-                message="[pyJSON.jsonopener/ERROR]: Specified file does not exist."
-            )
+            QMessageBox.warning(self,
+                            "[pyJSON.jsonopener/ERROR]",
+                            "[pyJSON.jsonopener/ERROR]: Specified file does not exist.",
+                            QMessageBox.Ok,
+                            QMessageBox.Ok
+                        )
         except OSError as err:
             lg.error(err)
 
@@ -517,9 +525,9 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if type(schema) is int and schema == -999:
                 self.combobox_repopulate()
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
-            schema_frame = jsonio_lib.schemaToPyGen(schema, mode = "description")
-            schema_title = jsonio_lib.schemaToPyGen(schema, mode = "title")
-            schema_type = jsonio_lib.schemaToPyGen(schema, mode = "type")
+            schema_frame = jsonio_lib.schema_to_py_gen(schema, mode = "description")
+            schema_title = jsonio_lib.schema_to_py_gen(schema, mode = "title")
+            schema_type = jsonio_lib.schema_to_py_gen(schema, mode = "type")
 
             if not config["last_JSON"] is None:
                 read_frame = jsonio_lib.decode_function(config["last_JSON"])
@@ -610,7 +618,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     config["last_JSON"] = selected_path
                     save_config(script_dir, config)
                     self.curr_json_label.setText(selected_path)
-                    self.callWatchdog()
+                    self.call_watchdog()
             except OSError as err:
                 lg.error(err)
                 tk.messagebox.showerror(
@@ -662,10 +670,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 self.combobox_repopulate()
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
 
-            pre_json = jsonio_lib.schemaToPyGen(curr_schem)
-            pre_descr = jsonio_lib.schemaToPyGen(curr_schem, mode = "description")
-            pre_title = jsonio_lib.schemaToPyGen(curr_schem, mode = "title")
-            pre_type = jsonio_lib.schemaToPyGen(curr_schem, mode = "type")
+            pre_json = jsonio_lib.schema_to_py_gen(curr_schem)
+            pre_descr = jsonio_lib.schema_to_py_gen(curr_schem, mode = "description")
+            pre_title = jsonio_lib.schema_to_py_gen(curr_schem, mode = "title")
+            pre_type = jsonio_lib.schema_to_py_gen(curr_schem, mode = "type")
 
             new_tree = jsonio_lib.py_to_tree(pre_json, pre_type, pre_title, pre_descr,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
@@ -728,9 +736,9 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             default_values = jsonio_lib.decode_function(os.path.join(script_dir, "Default", config["last_schema"]))
 
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-            schema_descr = jsonio_lib.schemaToPyGen(schema_read, mode = "description")
-            schema_type = jsonio_lib.schemaToPyGen(schema_read, mode = "type")
-            schema_title = jsonio_lib.schemaToPyGen(schema_read, mode = "title")
+            schema_descr = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
+            schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
+            schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
 
             new_tree = jsonio_lib.py_to_tree(default_values, schema_type, schema_title, schema_descr,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
@@ -774,9 +782,9 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     values = jsonio_lib.decode_function(os.path.join(config["last_JSON"]))
 
                     schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-                    schema_descr = jsonio_lib.schemaToPyGen(schema_read, mode = "description")
-                    schema_type = jsonio_lib.schemaToPyGen(schema_read, mode = "type")
-                    schema_title = jsonio_lib.schemaToPyGen(schema_read, mode = "title")
+                    schema_descr = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
+                    schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
+                    schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_type, schema_title, schema_descr,
                                                      TreeClass(
@@ -791,12 +799,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
             except FileNotFoundError as err:
                 lg.error(err)
-                tk.messagebox.showerror(
-                    title="[pyJSON.load_default/ERROR]",
-                    message=str(err)
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.load_default/ERROR]",
+                    str(err)
                 )
 
-    def validate_Function(self):
+    def validate_function(self):
         """
         converts the tree keys and values to JSON and validates the JSON document agains the selected schema
 
@@ -808,30 +817,34 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         result = jsonio_lib.validator_vars(curr_json, os.path.join(script_dir, "Schemas", config["last_schema"]))
         match result:
             case 0:
-                tk.messagebox.showinfo(
-                    title="[pyJSON.validate_Function/INFO]",
-                    message="The JSON is valid against the schema!"
+                QMessageBox.information(
+                    self,
+                    "[pyJSON.validate_function/INFO]",
+                    "The JSON is valid against the schema!"
                 )
             case 1:
-                tk.messagebox.showerror(
-                    title="[pyJSON.validate_Function/ERROR]",
-                    message="The JSON is not valid against the schema!"
+                QMessageBox.warning(
+                    self,
+                    "[pyJSON.validate_Function/ERROR]",
+                    "The JSON is not valid against the schema!"
                 )
             case 2:
-                tk.messagebox.showerror(
-                    title="[pyJSON.validate_Function/ERROR]",
-                    message="The schema is not valid against its meta schema!"
+                QMessageBox.warning(
+                    self,
+                    "[pyJSON.validate_Function/ERROR]",
+                    "The schema is not valid against its meta schema!"
                 )
             case -999:
-                tk.messagebox.showerror(
-                    title="[pyJSON.validate_Function/ERROR]",
-                    message="The schema is not accessible!"
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.validate_Function/ERROR]",
+                    "The schema is not accessible!"
                 )
 
     # SEARCH RELATED FUNCTIONS
 
 
-    def search_Dirs(self):
+    def search_dirs(self):
         """
         initialises the search and instances and/or opens the widget containing the search results
 
@@ -842,52 +855,53 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         if not self.searchList.isVisible():
             # get geometries
-            mainCurrW = self.geometry().width()
-            mainCurrH = self.geometry().height()
-            mainCurrX = self.geometry().x()
-            mainCurrY = self.geometry().y()
-            currScreen = QGuiApplication.screenAt(QPoint(mainCurrX, mainCurrY))
-            desktopW = currScreen.availableGeometry().width()
+            main_curr_w = self.geometry().width()
+            main_curr_h = self.geometry().height()
+            main_curr_x = self.geometry().x()
+            main_curr_y = self.geometry().y()
+            curr_screen = QGuiApplication.screenAt(QPoint(main_curr_x, main_curr_y))
+            desktop_w = curr_screen.availableGeometry().width()
 
             # multi desktop setups handling
-            if desktopW < mainCurrX:
-                desktopW += QGuiApplication.screenAt(QPoint(1, 1)).availableGeometry().width()
-            if mainCurrX + mainCurrW + 315 > desktopW:
-                offsetX = mainCurrX + mainCurrW - 315
+            if desktop_w < main_curr_x:
+                desktop_w += QGuiApplication.screenAt(QPoint(1, 1)).availableGeometry().width()
+            if main_curr_x + main_curr_w + 315 > desktop_w:
+                offsetX = main_curr_x + main_curr_w - 315
             else:
-                offsetX = mainCurrX + mainCurrW + 15
+                offsetX = main_curr_x + main_curr_w + 15
 
             # call the window
-            self.searchList.setGeometry(offsetX, mainCurrY, 300, mainCurrH)
+            self.searchList.setGeometry(offsetX, main_curr_y, 300, main_curr_h)
             self.searchList.show()
         if self.curr_dir_comboBox.currentText() != "  (none)":
             path = self.curr_dir_comboBox.currentText()
-            currSchem = self.curr_schem_ddm.currentText()
+            curr_schem = self.curr_schem_ddm.currentText()
             if index_dict[path] and os.path.exists(path):
-                indexJsonFile = os.path.join(script_dir, "Indexes", "index" + str(index_dict[path]) + ".json")
-                fileIndex = json.load(open(indexJsonFile, encoding = "utf8"))
+                index_json_file = os.path.join(script_dir, "Indexes", "index" + str(index_dict[path]) + ".json")
+                file_index = json.load(open(index_json_file, encoding = "utf8"))
                 lg.info("[pyJSON.search_Dirs/INFO]: Retrieved index of " + path + ".")
-                resultIndex = jsonsearch_lib.schemaMatchingSearch(fileIndex["files"], currSchem, script_dir)
+                result_index = jsonsearch_lib.schema_matching_search(file_index["files"], curr_schem, script_dir)
                 tree = self.TreeView.model()
-                jsonFrame = jsonio_lib.tree_to_py(tree.root_node.childItems)
-                flattenedFrame = {}
-                flattenedFrame = jsonsearch_lib.dictFlattenDict(jsonFrame, flattenedFrame)
-                for i in list(flattenedFrame.keys()):
-                    if flattenedFrame[i] == "":
-                        del flattenedFrame[i]
-                if len(flattenedFrame) > 0:
-                    resultIndex = jsonsearch_lib.fSearch(resultIndex, flattenedFrame)
-                if len(resultIndex) != 0:
-                    resultModel = QStandardItemModel()
-                    for i in resultIndex:
+                json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
+                flattened_frame = {}
+                flattened_frame = jsonsearch_lib.dict_flatten_dict(json_frame, flattened_frame)
+                for i in list(flattened_frame.keys()):
+                    if flattened_frame[i] == "":
+                        del flattened_frame[i]
+                if len(flattened_frame) > 0:
+                    result_index = jsonsearch_lib.f_search(result_index, flattened_frame)
+                if len(result_index) != 0:
+                    result_model = QStandardItemModel()
+                    for i in result_index:
                         item = QStandardItem(i)
-                        resultModel.appendRow(item)
-                        self.searchList.searchListView.setModel(resultModel)
+                        result_model.appendRow(item)
+                        self.searchList.searchListView.setModel(result_model)
                 else:
                     lg.warning("[pyJSON.search_Dirs/WARN]: No results found!")
-                    tk.messagebox.showwarning(
-                        title = "[pyJSON.search_Dirs/WARN]",
-                        message = "No results found!"
+                    QMessageBox.warning(
+                        self,
+                        "[pyJSON.search_Dirs/WARN]",
+                        "No results found!"
                     )
         else:
             lg.warning("[pyJSON.search_Dirs/WARN]: No directory for search selected!")
@@ -896,7 +910,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 message = "No directory for search selected!"
             )
 
-    def callWatchdog(self):
+    def call_watchdog(self):
         """
         function responsible for executing the re-indexing on a regular basis
         Returns:
@@ -1031,7 +1045,7 @@ if __name__ == "__main__":
             os.mkdir(os.path.join(script_dir, "Indexes"))
         except FileExistsError as err:
             pass
-        saveMainIndex(script_dir, index_dict)
+        save_main_index(script_dir, index_dict)
     else:
         try:
             index_dict = json.load(open(os.path.join(script_dir, "Indexes/pyJSON_S_index.json"), encoding = "utf8"), cls=json.JSONDecoder)
@@ -1049,7 +1063,7 @@ if __name__ == "__main__":
         frame = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
     if config["last_JSON"] is None:
         lg.info("\n----------\nGenerating blank from schema\n----------")
-        st_pre_json = jsonio_lib.schemaToPyGen(frame)
+        st_pre_json = jsonio_lib.schema_to_py_gen(frame)
         ui.curr_json_label.setText("None")
     else:
         if os.path.isfile(config["last_JSON"]):
@@ -1061,15 +1075,15 @@ if __name__ == "__main__":
                 title="[pyJSON/WARN]",
                 message="[pyJSON/WARN]: Last JSON not found. Defaulting to blank."
             )
-            st_pre_json = jsonio_lib.schemaToPyGen(frame)
+            st_pre_json = jsonio_lib.schema_to_py_gen(frame)
             ui.curr_json_label.setText("None")
             config["last_JSON"] = None
             save_config(script_dir, config)
 
     lg.info("\n----------\nGenerating reference from schema\n----------")
-    st_pre_descr = jsonio_lib.schemaToPyGen(frame, mode = "description")
-    st_pre_title = jsonio_lib.schemaToPyGen(frame, mode = "title")
-    st_pre_type = jsonio_lib.schemaToPyGen(frame, mode = "type")
+    st_pre_descr = jsonio_lib.schema_to_py_gen(frame, mode = "description")
+    st_pre_title = jsonio_lib.schema_to_py_gen(frame, mode = "title")
+    st_pre_type = jsonio_lib.schema_to_py_gen(frame, mode = "type")
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
     model = jsonio_lib.py_to_tree(st_pre_json, st_pre_type, st_pre_title, st_pre_descr,
                                   TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))

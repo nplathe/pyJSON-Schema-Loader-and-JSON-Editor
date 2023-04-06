@@ -30,7 +30,7 @@ class TreeItem(object):
 
     # child functions
 
-    def appendChild(self, child):
+    def append_child(self, child):
         """
         Adds a child to childItems
 
@@ -42,7 +42,7 @@ class TreeItem(object):
         """
         self.childItems.append(child)
 
-    def retrieveChildbyIndex(self, child_index):
+    def retrieve_child_by_index(self, child_index):
         """
         retrieves a child node by given index
 
@@ -57,7 +57,7 @@ class TreeItem(object):
         except IndexError:
             return None
 
-    def lastChild(self):
+    def last_child(self):
         """
         retrieves the last child of a node.
 
@@ -66,7 +66,7 @@ class TreeItem(object):
         """
         return self.childItems[-1] if self.childItems else None
 
-    def ChildIndexSelf(self):
+    def child_index_self(self):
         """
         returns the own index if being a child of another node
 
@@ -77,7 +77,7 @@ class TreeItem(object):
             return self.parentItem.childItems.index(self)
         return 0
 
-    def countChildren(self):
+    def count_children(self):
         """
         returns the length of the list storing the child items
         Returns:
@@ -87,7 +87,7 @@ class TreeItem(object):
 
     # data functions
 
-    def setDataArray(self, data):
+    def set_data_array(self, data):
         """
         Sets or overwrites the entire data list
         Args:
@@ -97,7 +97,7 @@ class TreeItem(object):
         """
         self.itemData = data
 
-    def setData(self, data: str, column: int):
+    def set_data(self, data: str, column: int):
         """
         Sets a specific value at the given column value
         Args:
@@ -112,7 +112,7 @@ class TreeItem(object):
         self.itemData[column] = data
         return True
 
-    def getData(self, column):
+    def get_data(self, column):
         """
         retrieves data of a column
         Args:
@@ -125,28 +125,28 @@ class TreeItem(object):
             return None
         return self.itemData[column]
 
-    def getDataArray(self):
+    def get_data_array(self):
         """
         Returns:
             list: the full data list of the item
         """
         return self.itemData
 
-    def DataLength(self):
+    def data_length(self):
         """
         Returns:
             int: length of the data list - which equals the amount of columns in the TreeView later
         """
         return len(self.itemData)
 
-    def getParent(self):
+    def get_parent(self):
         """
         Returns:
             TreeItem: the parent node
         """
         return self.parentItem
 
-    def insertChildren(self, position: int, count: int, columns: int) -> bool:
+    def insert_children(self, position: int, count: int, columns: int) -> bool:
         """
         Inserts child nodes into the nodes child list.
 
@@ -167,7 +167,7 @@ class TreeItem(object):
             self.childItems.insert(position, item)
         return True
 
-    def insertColumns(self, position: int, columns: int) -> bool:
+    def insert_columns(self, position: int, columns: int) -> bool:
         """
         Recursively inserts new columns into the model
 
@@ -185,11 +185,11 @@ class TreeItem(object):
             self.itemData.insert(position, None)
 
         for child in self.childItems:
-            child.insertColumns(position, columns)
+            child.insert_columns(position, columns)
 
         return True
 
-    def removeChildren(self, position: int, count: int) -> bool:
+    def remove_children(self, position: int, count: int) -> bool:
         """
         Removes child nodes from the given position
 
@@ -208,7 +208,7 @@ class TreeItem(object):
 
         return True
 
-    def removeColumns(self, position: int, columns: int) -> bool:
+    def remove_columns(self, position: int, columns: int) -> bool:
         """
         Recursively removes columns from the model
 
@@ -226,7 +226,7 @@ class TreeItem(object):
             self.itemData.pop(position)
 
         for child in self.childItems:
-            child.removeColumns(position, columns)
+            child.remove_columns(position, columns)
 
         return True
 

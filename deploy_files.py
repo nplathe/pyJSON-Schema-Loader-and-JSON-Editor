@@ -76,6 +76,7 @@ def deploy_schema(path):
             json.dump(json.loads(schema), out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
+        lg.debug(err)
         return False
     return True
 
@@ -95,13 +96,14 @@ def deploy_config(path):
         "last_dir": os.getcwd(),
         "last_schema": "default.json",
         "last_JSON": None,
-        "verbose_logging": False
+        "verbose_logging": True
     }
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
             json.dump(config, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.deploy_config/ERROR]: Could not set default config.")
+        lg.debug(err)
 
 
 def save_config(path, config):
@@ -119,10 +121,11 @@ def save_config(path, config):
             json.dump(config, out, indent=4, ensure_ascii=False)
     except OSError as err:
         lg.error("[deploy_files.save_config/ERROR]: Could not save config.")
+        lg.debug(err)
 
 
 # indexes
-def saveMainIndex(path, index_dict):
+def save_main_index(path, index_dict):
     """
     Writes the main index containing information about all indexed directories to the harddrive
 
@@ -139,13 +142,13 @@ def saveMainIndex(path, index_dict):
         lg.error("[deploy_files.saveMainIndex/ERROR]: Could not save config.")
 
 
-def saveIndex(path, index, count):
+def save_index(path, index, count):
     """
     Writes the index of a directory to the harddrive
 
     Args:
         path (str): the path the index shall be written or overwritten to
-        index (dict): the directory index
+        index (list): the directory index as a list
         count (int): the current index number, since the indexes are numbered
 
     Returns:

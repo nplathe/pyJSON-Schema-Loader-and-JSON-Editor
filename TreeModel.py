@@ -73,11 +73,11 @@ class TreeClass(QtCore.QAbstractItemModel):
             return QModelIndex()
 
         if not parent.isValid():
-            parentItem = self.root_node
+            parent_item = self.root_node
         else:
-            parentItem = parent.internalPointer()
+            parent_item = parent.internalPointer()
 
-        childItem = parentItem.retrieveChildbyIndex(row)
+        childItem = parent_item.retrieve_child_by_index(row)
         if childItem:
             return self.createIndex(row, column, childItem)
         else:
@@ -95,13 +95,13 @@ class TreeClass(QtCore.QAbstractItemModel):
         if not child.isValid():
             return QModelIndex()
 
-        childItem = child.internalPointer()
-        parentItem = childItem.getParent()
+        child_item = child.internalPointer()
+        parent_item = child_item.get_parent()
 
-        if parentItem == self.root_node:
+        if parent_item == self.root_node:
             return QModelIndex()
 
-        return self.createIndex(parentItem.ChildIndexSelf(), 0, parentItem)
+        return self.createIndex(parent_item.child_index_self(), 0, parent_item)
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         """
@@ -116,11 +116,11 @@ class TreeClass(QtCore.QAbstractItemModel):
         if parent.column() > 0:
             return 0
         if not parent.isValid():
-            parentItem = self.root_node
+            parent_item = self.root_node
         else:
-            parentItem = parent.internalPointer()
+            parent_item = parent.internalPointer()
 
-        return parentItem.countChildren()
+        return parent_item.count_children()
 
     def columnCount(self, parent = QModelIndex()):
         """
@@ -133,9 +133,9 @@ class TreeClass(QtCore.QAbstractItemModel):
             int: column count
         """
         if parent.isValid():
-            return parent.internalPointer().DataLength()
+            return parent.internalPointer().data_length()
         else:
-            return self.root_node.DataLength()
+            return self.root_node.data_length()
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...):
         """
@@ -150,7 +150,7 @@ class TreeClass(QtCore.QAbstractItemModel):
             object: the column header, if orientation is horizontal and role is DisplayRole. Is a string, probably. None otherwise.
         """
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.root_node.getData(section)
+            return self.root_node.get_data(section)
         return None
 
     def data(self, index: QModelIndex, role: int = ...):
@@ -171,7 +171,7 @@ class TreeClass(QtCore.QAbstractItemModel):
             return None
 
         node = self.getItem(index)
-        return node.getData(index.column())
+        return node.get_data(index.column())
 
     def setData(self, index: QModelIndex, value, role: int = Qt.EditRole) -> bool:
         """
@@ -187,11 +187,11 @@ class TreeClass(QtCore.QAbstractItemModel):
         if role != Qt.EditRole:
             return False
         item = self.getItem(index)
-        result = item.setData(column = index.column(), data = value)
+        result = item.set_data(column = index.column(), data = value)
         if result:
             self.dataChanged.emit(index, index)
             lg.info("\n----------\n[TreeModel.TreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
-            str(item.getDataArray()) + "\n----------")
+            str(item.get_data_array()) + "\n----------")
         return result
 
     def add_node(self, parent, data):
@@ -205,7 +205,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         Returns:
         """
         node = TreeItem(data = data, parent = parent)
-        parent.appendChild(node)
+        parent.append_child(node)
 
     def flags(self, index):
         """
@@ -234,7 +234,7 @@ class TreeClass(QtCore.QAbstractItemModel):
             bool: a boolean value whetever the insertion was a success
         """
         self.beginInsertColumns(parent, position, position + columns - 1)
-        success: bool = self.root_node.insertColumns(position, columns)
+        success: bool = self.root_node.insert_columns(position, columns)
         self.endInsertColumns()
 
         return success
@@ -252,7 +252,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         """
         parentItem = self.getItem(parent)
         self.beginInsertRows(parent, position, position + rows - 1)
-        success: bool = parentItem.insertChildren(position, rows, self.root_node.DataLength())
+        success: bool = parentItem.insert_children(position, rows, self.root_node.data_length())
         self.endInsertRows()
 
         return success
@@ -270,10 +270,10 @@ class TreeClass(QtCore.QAbstractItemModel):
             bool: a boolean value whetever removal was a success
         """
         self.beginRemoveColumns()
-        success: bool = self.root_node.removeColumns(position, columns)
+        success: bool = self.root_node.remove_columns(position, columns)
         self.endRemoveColumns()
 
-        if self.root_node.DataLength() == 0:
+        if self.root_node.data_length() == 0:
             self.removeRows(0, self.rowCount())
 
         return success
@@ -293,7 +293,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         parentItem = self.getItem(parent)
 
         self.beginRemoveRows(parent, position, position + rows - 1)
-        success: bool = parentItem.removeChildren(position, rows)
+        success: bool = parentItem.remove_children(position, rows)
         self.endRemoveRows()
 
         return success
@@ -323,22 +323,22 @@ if __name__ == "__main__":
 
     model = TreeClass(data=["Key", "Value", "Descr"])
     model.add_node(parent = model.root_node, data = ["Name","Charizard","The Pokémon name"])
-    model.add_node(parent = model.root_node.retrieveChildbyIndex(0), data = ["Attack Move 1", "Flamethrower", "Powerful Fire Attack with chance of inflicting burns."])
+    model.add_node(parent = model.root_node.retrieve_child_by_index(0), data = ["Attack Move 1", "Flamethrower", "Powerful Fire Attack with chance of inflicting burns."])
 
-    model.add_node(parent = model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(0),
-        data = ["Damage Class", "Special", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(0),
-        data=["Element Type", "Fire", "Determines effectiveness against Foes Element Type"])
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(0),
-        data=["Power", "90", "Determines the Power of the Attack"])
+    model.add_node(parent = model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
+                   data = ["Damage Class", "Special", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
+                   data=["Element Type", "Fire", "Determines effectiveness against Foes Element Type"])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
+                   data=["Power", "90", "Determines the Power of the Attack"])
 
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0), data=["Attack Move 2", "Fly", "Flies up in Round 1, Attacks in Round 2."])
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(1),
-        data=["Damage Class", "Physical", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(1),
-        data=["Element Type", "Flying", "Determines effectiveness against Foes Element Type"])
-    model.add_node(parent=model.root_node.retrieveChildbyIndex(0).retrieveChildbyIndex(1),
-        data=["Power", "90", "Determines the Power of the Attack"])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0), data=["Attack Move 2", "Fly", "Flies up in Round 1, Attacks in Round 2."])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
+                   data=["Damage Class", "Physical", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
+                   data=["Element Type", "Flying", "Determines effectiveness against Foes Element Type"])
+    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
+                   data=["Power", "90", "Determines the Power of the Attack"])
 
     ui.setModel(model)
     ui.show()

@@ -9,9 +9,6 @@
 # Libraries
 # ----------------------------------------
 import logging
-import os
-import sys
-import regex as re
 
 import json
 import jsonschema
@@ -48,8 +45,9 @@ def validator_files(json_path, json_schema_path):
         validate(instance = ds_json, schema = ds_schema)
     except jsonschema.exceptions.ValidationError as err:
         lg.error("[jsonio_lib.validator_files/ERROR]: JSON is not valid against selected Schema!")
+        lg.error(err)
         return 1
-    except jsonschema.exceptions.SchemaError as err:
+    except jsonschema.exceptions.SchemaError:
         lg.error("[jsonio_lib.validator_files/ERROR]: The JSON schema is not valid against its selected meta schema!")
         return 2
     except OSError:
@@ -107,7 +105,7 @@ def decode_function(json_path):
     try:
         loaded_json = open(json_path, encoding = "utf8")
         result = json.load(loaded_json, cls=json.JSONDecoder)
-    except json.JSONDecodeError as err:
+    except json.JSONDecodeError:
         lg.error("[jsonio_lib.decode_function/ERROR]: JSON could not be parsed into Python representation!")
         return -1
     except OSError:
@@ -116,7 +114,7 @@ def decode_function(json_path):
     return result
 
 
-def schemaToPyGen(decoded_schema, mode: str = "keys"):
+def schema_to_py_gen(decoded_schema, mode: str = "keys"):
     """
     A function generating a blank JSON-like python structure from the schema.
 
@@ -137,7 +135,7 @@ def schemaToPyGen(decoded_schema, mode: str = "keys"):
                     else:
                         return_dict[element] = decoded_schema["properties"][element][mode]
                 case "object":
-                    return_dict[element] = schemaToPyGen(decoded_schema["properties"][element], mode)
+                    return_dict[element] = schema_to_py_gen(decoded_schema["properties"][element], mode)
                 case _:
                     match mode:
                         case "keys":
@@ -148,6 +146,7 @@ def schemaToPyGen(decoded_schema, mode: str = "keys"):
                         case _:
                             return_dict[element] = decoded_schema["properties"][element][mode]
         except KeyError as err:
+            lg.debug(err)
             lg.critical("[jsonio_lib.schema_to_py_gen/CRITICAL]: Skipping element: " + element + ", because of missing"
                         + " \"type\"-tag. JSON may be not valid against corresponding schema anymore.")
             continue
@@ -195,8 +194,8 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                                            reference_dict[element],
                                            return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
                     for node in part_tree.root_node.childItems:
-                        node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
-                        return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+                        node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
+                        return_tree.root_node.retrieve_child_by_index(incrementor).append_child(node)
                 else:
                     return_tree.add_node(parent = return_tree.root_node,
                                          data = [
@@ -209,9 +208,9 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     if len(input_dict[element]) > 0:
                         for item in input_dict[element]:
                             if type(item) is not dict:
-                                return_tree.root_node.lastChild().appendChild(
+                                return_tree.root_node.last_child().append_child(
                                     TreeItem(
-                                        parent = return_tree.root_node.lastChild(),
+                                        parent = return_tree.root_node.last_child(),
                                         data = ['', '', str(item), 'string', 'Array Item']
                                     )
                                 )
@@ -243,8 +242,8 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                 part_tree = py_to_tree(input_dict[element], {}, {}, {},
                                        return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
-                    node.parentItem = return_tree.root_node.retrieveChildbyIndex(incrementor)
-                    return_tree.root_node.retrieveChildbyIndex(incrementor).appendChild(node)
+                    node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
+                    return_tree.root_node.retrieve_child_by_index(incrementor).append_child(node)
             incrementor += 1
     return return_tree
 
@@ -263,31 +262,31 @@ def tree_to_py(array_of_tree_nodes):
     return_dict = {}
     for element in array_of_tree_nodes:
         if len(element.childItems) == 0:
-            value = element.getData(2)
-            value_type = element.getData(3)
+            value = element.get_data(2)
+            value_type = element.get_data(3)
             if value == '':
-                return_dict[element.getData(0)] = value
+                return_dict[element.get_data(0)] = value
             else:
                 match value_type:
                     case "integer":
-                        return_dict[element.getData(0)] = int(value)
+                        return_dict[element.get_data(0)] = int(value)
                     case "number":
-                        return_dict[element.getData(0)] = float(value)
+                        return_dict[element.get_data(0)] = float(value)
                     case "boolean":
-                        return_dict[element.getData(0)] = bool(value)
+                        return_dict[element.get_data(0)] = bool(value)
                     case "array":
-                        return_dict[element.getData(0)] = []
+                        return_dict[element.get_data(0)] = []
                     case _:
-                        return_dict[element.getData(0)] = value
+                        return_dict[element.get_data(0)] = value
         else:
-            if element.getData(3) == 'object':
-                return_dict[element.getData(0)] = tree_to_py(element.childItems)
+            if element.get_data(3) == 'object':
+                return_dict[element.get_data(0)] = tree_to_py(element.childItems)
             else:
                 tempList = []
                 for child in element.childItems:
-                    if type(child.getData(3)) != "object":
-                        tempList.append(child.getData(2))
-                return_dict[element.getData(0)] = tempList
+                    if type(child.get_data(3)) != "object":
+                        tempList.append(child.get_data(2))
+                return_dict[element.get_data(0)] = tempList
     return return_dict
 # ----------------------------------------
 # Execution
@@ -298,8 +297,8 @@ if __name__ == "__main__":
 
     lg.info("Don't run me directly, I just provide some functions.")
     schema = decode_function("Schemas/default.json")
-    blank_frame = schemaToPyGen(schema)
-    type_frame = schemaToPyGen(schema, "type")
-    descr_frame = schemaToPyGen(schema, "description")
-    title_frame = schemaToPyGen(schema, "title")
+    blank_frame = schema_to_py_gen(schema)
+    type_frame = schema_to_py_gen(schema, "type")
+    descr_frame = schema_to_py_gen(schema, "description")
+    title_frame = schema_to_py_gen(schema, "title")
     print("success!")

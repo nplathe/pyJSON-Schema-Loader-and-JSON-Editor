@@ -58,7 +58,7 @@ class ModifiedTreeClass(TreeClass):
             return False
 
         item = self.getItem(index)
-        item_type = item.getDataArray()[3]
+        item_type = item.get_data_array()[3]
 
         try:
             if value != '':
@@ -76,11 +76,11 @@ class ModifiedTreeClass(TreeClass):
             else:
                 logging.warning("[ModifiedTreeModel.ModifiedTreeClass.setData/WARN]: " +
                            "Empty value set - type validation bypassed.")
-            result = item.setData(column=index.column(), data=value)
+            result = item.set_data(column=index.column(), data=value)
             if result:
                 self.dataChanged.emit(index, index)
                 logging.info("\n----------\n[ModifiedTreeModel.ModifiedTreeClass.setData/INFO]: Data got replaced! New Data is:\n" +
-                        str(item.getDataArray()) + "\n----------")
+                        str(item.get_data_array()) + "\n----------")
             return result
         except ValueError as err:
             logging.error("[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]: " +
