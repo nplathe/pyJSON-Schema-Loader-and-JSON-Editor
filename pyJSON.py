@@ -36,7 +36,6 @@ from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle,
 # import of modules
 import jsonio_lib
 import jsonsearch_lib
-from TreeItem import TreeItem
 from deploy_files import deploy_schema, deploy_config, save_config, save_main_index
 from ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
@@ -83,6 +82,9 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         try:
             while len(path_list) > 0:
                 curr_key = path_list.pop()
+                if curr_key == '':
+                    lg.info("Could not dertermine information about current node...")
+                    break
                 curr_schem = curr_schem["properties"][curr_key]
             lg.debug("Current Type: " + curr_schem["type"])
             match curr_schem["type"]:
@@ -150,12 +152,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         else:
             if model.getItem(index).get_data(3) == 'array':
                 model.beginInsertRows(index, index.row(), index.row() + 1)
+                lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an entry for an array."
+                        + "Inserting the entry as a child node...")
                 model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
                 model.endInsertRows()
                 ui.TreeView.expandAll()
             else:
                 if editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
-                    lg.debug("ping")
+                    lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an empty entry of an array."
+                            + "Removing node from TreeView...")
                     model.beginRemoveRows(index, index.row(), index.row() + 1)
                     model.removeRows(index.row(), 1, index.parent())
                     model.endRemoveRows()
@@ -239,11 +244,21 @@ class SearchWindow(QWidget):
         list_index = self.searchListView.indexAt(index)
         if list_index.isValid():
             item_menu = QtWidgets.QMenu("Item menu")
-            entry1 = item_menu.addAction("Open...")
-            entry1.triggered.connect(self.open_file)
-            entry2 = item_menu.addAction("Open File Location...")
-            entry2.triggered.connect(self.open_file_location)
+            entry1 = item_menu.addAction("Open in pyJSON...")
+            entry1.triggered.connect(self.open_in_pyjson)
+            entry2 = item_menu.addAction("Open in Editor...")
+            entry2.triggered.connect(self.open_file)
+            entry3 = item_menu.addAction("Open File Location...")
+            entry3.triggered.connect(self.open_file_location)
             item_menu.exec_(self.searchListView.viewport().mapToGlobal(index))
+
+    def open_in_pyjson(self):
+        """
+        A function for opening a JSON in the pyJSON window itself
+        """
+        index = self.searchListView.selectedIndexes()[0]
+        item = self.searchListView.model().itemFromIndex(index)
+        ui.jsonopener(filepath_str = item.text())
 
     def open_file(self):
         """
@@ -420,18 +435,20 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     # Definition Actions MenuBar
 
-    def jsonopener(self):
+    def jsonopener(self, filepath_str = None):
         """
         Reads a JSON document, prepares the model for the TreeView widget and attaches it to said view.
 
         Returns:
         """
+        lg.debug(filepath_str)
         try:
-            filepath_str = QFileDialog.getOpenFileName(
-                caption = "Open a JSON Document...",
-                directory = config["last_dir"],
-                filter = "Java Script Object Notation (*.json);; All Files (*.*)"
-            )[0]
+            if not filepath_str:
+                filepath_str = QFileDialog.getOpenFileName(
+                    caption = "Open a JSON Document...",
+                    directory = config["last_dir"],
+                    filter = "Java Script Object Notation (*.json);; All Files (*.*)"
+                )[0]
             if filepath_str == '':
                 raise OSError("[pyJSON.jsonopener/WARN]: File Selection aborted!")
             if not os.path.isfile(filepath_str):
