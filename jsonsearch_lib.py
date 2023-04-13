@@ -14,10 +14,11 @@ import os
 import json
 import jsonschema
 from jsonschema import validate
+from PySide6.QtWidgets import QMessageBox, QWidget
 
 # custom imports
 from deploy_files import save_index, save_main_index
-from PyQt5.QtWidgets import QWidget, QMessageBox
+
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -141,7 +142,7 @@ def f_search(search_index, search_dict):
     except (re.error, OSError, AttributeError) as err:
         lg.error(err)
         if isinstance(err, re.error):
-            msg = "Regex Error: Your regex pattern seems to be invalid."
+            msg = "Regex Error: At least one search term could not be compiled into a regular expression."
         elif isinstance(err, OSError):
             msg = "Operating System Error: JSON could not be inspected for Keyword search."
         else:

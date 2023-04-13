@@ -20,11 +20,11 @@ import shutil
 import subprocess
 from datetime import datetime
 
-# import PyQt libraries
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import QModelIndex, Qt, QPoint
-from PyQt5.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem, QIcon
-from PyQt5.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
+# import PySide libraries
+from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6.QtCore import QModelIndex, Qt, QPoint
+from PySide6.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem, QIcon
+from PySide6.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
     QFileDialog, QMessageBox
 
 # import of modules
@@ -244,7 +244,7 @@ class SearchWindow(QWidget):
             entry2.triggered.connect(self.open_file)
             entry3 = item_menu.addAction("Open File Location...")
             entry3.triggered.connect(self.open_file_location)
-            item_menu.exec_(self.searchListView.viewport().mapToGlobal(index))
+            item_menu.exec(self.searchListView.viewport().mapToGlobal(index))
 
     def open_in_pyjson(self):
         """
@@ -358,8 +358,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         self.actionCheck_indexes.triggered.connect(self.call_watchdog)
 
         # Drop-Down Menu
-        self.curr_schem_ddm = self.findChild(QComboBox, "current_schema_combo_box")
-        self.curr_schem_ddm.currentTextChanged.connect(self.combobox_selected)
+        self.current_schema_combo_box.currentTextChanged.connect(self.combobox_selected)
 
         self.searchList = None
 
@@ -390,7 +389,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             entry1 = item_menu.addAction("Remove this node...")
             if item_type == 'array':
                 entry2 = item_menu.addAction("Add entries to this array...")
-            item_menu.exec_(self.TreeView.viewport().mapToGlobal(index))
+            item_menu.exec(self.TreeView.viewport().mapToGlobal(index))
 
     # Button Function Definitions
 
@@ -403,7 +402,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         dir_path = os.path.normpath(
             QFileDialog.getExistingDirectory(
                 caption = "Select Directory for indexing",
-                directory = config["last_dir"]
+                dir = config["last_dir"]
             )
         )
         try:
@@ -444,7 +443,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if not filepath_str:
                 filepath_str = QFileDialog.getOpenFileName(
                     caption = "Open a JSON Document...",
-                    directory = config["last_dir"],
+                    dir = config["last_dir"],
                     filter = "Java Script Object Notation (*.json);; All Files (*.*)"
                 )[0]
             if filepath_str == '':
@@ -490,14 +489,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Returns:
         """
-        self.curr_schem_ddm.blockSignals(True)
-        if self.curr_schem_ddm.count != 0:
-            self.curr_schem_ddm.clear()
+        self.current_schema_combo_box.blockSignals(True)
+        if self.current_schema_combo_box.count != 0:
+            self.current_schema_combo_box.clear()
         schema_list = os.listdir(os.path.join(script_dir, "Schemas"))
         for x in schema_list:
-            self.curr_schem_ddm.addItem(x)
-        self.curr_schem_ddm.update()
-        self.curr_schem_ddm.blockSignals(False)
+            self.current_schema_combo_box.addItem(x)
+        self.current_schema_combo_box.update()
+        self.current_schema_combo_box.blockSignals(False)
 
 
     def dirselect_repopulate(self):
@@ -534,7 +533,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         """
         lg.info("\n----------\nswapped schema!\n----------")
-        selected = self.curr_schem_ddm.currentText()
+        selected = self.current_schema_combo_box.currentText()
         try:
             schema = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", selected))
             if type(schema) is int and schema == -999:
@@ -580,7 +579,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
             filepath = QFileDialog.getOpenFileName(
                 caption = "Select a JSON Schema for Import...",
-                directory = config["last_dir"],
+                dir = config["last_dir"],
                 filter = "Java Script Object Notation (*.json);; All Files (*.*)"
             )[0]
             if filepath == '':
@@ -619,7 +618,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
         selected_path = QFileDialog.getSaveFileName(
             caption = "Save as...",
-            directory = config["last_dir"] + "/_meta.json",
+            dir = config["last_dir"] + "/_meta.json",
             filter = "Java Script Object Notation (*.json);; All Files (*.*)",
 
         )[0]
@@ -898,7 +897,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             self.searchList.show()
         if self.curr_dir_comboBox.currentText() != "  (none)":
             path = self.curr_dir_comboBox.currentText()
-            curr_schem = self.curr_schem_ddm.currentText()
+            curr_schem = self.current_schema_combo_box.currentText()
             if index_dict[path] and os.path.exists(path):
                 index_json_file = os.path.join(script_dir, "Indexes", "index" + str(index_dict[path]) + ".json")
                 file_index = json.load(open(index_json_file, encoding = "utf8"))
@@ -941,7 +940,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         """
         jsonsearch_lib.watchdog(script_dir, index_dict)
-        if self.sender() and isinstance(self.sender(), QtWidgets.QAction):
+        if self.sender() and isinstance(self.sender(), QtGui.QAction):
             QMessageBox.information(
                 self,
                 "[pyJSON.call_watchdog/INFO]",
@@ -1156,11 +1155,11 @@ if __name__ == "__main__":
 
     ui.combobox_repopulate()
     ui.dirselect_repopulate()
-    ui.curr_schem_ddm.blockSignals(True)
-    ui.curr_schem_ddm.setCurrentText(config["last_schema"])
-    ui.curr_schem_ddm.blockSignals(False)
+    ui.current_schema_combo_box.blockSignals(True)
+    ui.current_schema_combo_box.setCurrentText(config["last_schema"])
+    ui.current_schema_combo_box.blockSignals(False)
 
     jsonsearch_lib.watchdog(script_dir, index_dict)
 
     # enter main loop
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

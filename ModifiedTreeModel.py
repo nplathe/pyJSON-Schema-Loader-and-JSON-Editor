@@ -8,7 +8,7 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
-from PyQt5.QtCore import Qt, QModelIndex
+from PySide6.QtCore import Qt, QModelIndex
 import logging
 
 import tkinter as tk
