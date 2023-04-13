@@ -18,7 +18,7 @@ import logging
 # ----------------------------------------
 
 lg = logging.getLogger(__name__)
-
+lg.setLevel("DEBUG")
 
 def deploy_schema(path):
     """
@@ -74,6 +74,7 @@ def deploy_schema(path):
     try:
         with open(os.path.join(path, "default.json"), "w", encoding='utf8') as out:
             json.dump(json.loads(schema), out, indent=4, ensure_ascii=False)
+            lg.info("[deploy_files.deploy_schema/INFO]: Deployed default schema.")
     except OSError as err:
         lg.error("[deploy_files.deploy_schema/ERROR]: Could not write file to directory!")
         lg.debug(err)
@@ -101,6 +102,7 @@ def deploy_config(path):
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
             json.dump(config, out, indent=4, ensure_ascii=False)
+            lg.info("[deploy_files.deploy_config/INFO]: Deployed config.")
     except OSError as err:
         lg.error("[deploy_files.deploy_config/ERROR]: Could not set default config.")
         lg.debug(err)

@@ -9,8 +9,6 @@
 # ----------------------------------------
 # system imports
 import logging as lg
-import tkinter as tk
-import tkinter.messagebox
 import regex as re
 import os
 import json
@@ -19,7 +17,7 @@ from jsonschema import validate
 
 # custom imports
 from deploy_files import save_index, save_main_index
-
+from PyQt5.QtWidgets import QWidget, QMessageBox
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -85,10 +83,11 @@ def schema_matching_search(index, schema, script_dir):
         except jsonschema.SchemaError as err:
             lg.critical(err)
             lg.critical("[jsonsearch_lib.schema_matching_search/CRITICAL]: The schema is invalid!")
-            tk.messagebox.showerror(
-                title="[jsonsearch_lib.schema_matching_search/CRITICAL]",
-                message="[jsonsearch_lib.schema_matching_search/CRITICAL]: The schema does not validate against ." +
-                        "its metaschema. Please check your selected schema!"
+            QMessageBox(
+                QWidget(),
+                "[jsonsearch_lib.schema_matching_search/CRITICAL]",
+                "[jsonsearch_lib.schema_matching_search/CRITICAL]: The schema does not validate against ." +
+                "its metaschema. Please check your selected schema!"
             )
             break
     return return_index
@@ -139,23 +138,18 @@ def f_search(search_index, search_dict):
                             result_list.append(i)
                             lg.info("Added " + i + " to the result list.")
                         hit = True
-    except re.error as err:
+    except (re.error, OSError, AttributeError) as err:
         lg.error(err)
-        tk.messagebox.showerror(
-            title="[jsonsearch_lib.f_search/ERROR]",
-            message="[jsonsearch_lib.f_search/ERROR]: Your regex pattern seems to be invalid."
-        )
-    except OSError as err:
-        lg.error(err)
-        tk.messagebox.showerror(
-            title="[jsonsearch_lib.f_search/ERROR]",
-            message="[jsonsearch_lib.f_search/ERROR]: JSON could not be inspected for Keyword search."
-        )
-    except AttributeError as err:
-        lg.error(err)
-        tk.messagebox.showerror(
-            title="[jsonsearch_lib.f_search/ERROR]",
-            message="[jsonsearch_lib.f_search/ERROR]: Please select an index for search first."
+        if isinstance(err, re.error):
+            msg = "Regex Error: Your regex pattern seems to be invalid."
+        elif isinstance(err, OSError):
+            msg = "Operating System Error: JSON could not be inspected for Keyword search."
+        else:
+            msg = "Please select an index for search first."
+        QMessageBox.critical(
+            QWidget(),
+            "[jsonsearch_lib.f_search/ERROR]",
+            msg
         )
     return result_list
 
@@ -224,9 +218,10 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
         lg.info("jsonsearch_lib.start_index/INFO] start indexing at:")
         lg.info(path)
         if show_boxes:
-            tk.messagebox.showinfo(
-                title ="[jsonsearch_lib.start_index/INFO]",
-                message = "Start indexing. This can take a while..."
+            QMessageBox.information(
+                QWidget(),
+                "[jsonsearch_lib.start_index/INFO]",
+                "Start indexing. This can take a while..."
             )
         for root, dirs, files in os.walk(path, topdown = False):
             for name in files:
@@ -235,9 +230,10 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
         if len(indexed_files) == 0:
             lg.info("[jsonsearch_lib.start_index/INFO]: No JSON files found. Index is empty.")
             if show_boxes:
-                tk.messagebox.showinfo(
-                    title="[jsonsearch_lib.start_index/INFO]",
-                    message="No JSON files found. Index is empty."
+                QMessageBox.information(
+                    QWidget(),
+                    "[jsonsearch_lib.start_index/INFO]",
+                    "No JSON files found. Index is empty."
                 )
         else:
             if path in index_dict:
@@ -250,18 +246,20 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
             save_index(script_dir, indexed_files, cur_index)
         lg.info("jsonsearch_lib.start_index/INFO] Indexing finished.")
         if show_boxes:
-            tk.messagebox.showinfo(
-                title ="[jsonsearch_lib.start_index/INFO]",
-                message = "Indexing finished"
+            QMessageBox.information(
+                QWidget(),
+                "[jsonsearch_lib.start_index/INFO]",
+                "Indexing finished!"
             )
     except OSError as err:
         message2 = "[jsonsearch_lib.start_index/ERROR] Directory (or one of its subdirectories) is not accessible!"
         lg.debug(err)
         lg.error(message2)
         if show_boxes:
-            tk.messagebox.showerror(
-                title = "[jsonsearch_lib.start_index/ERROR]",
-                message = message2
+            QMessageBox.information(
+                QWidget(),
+                "[jsonsearch_lib.start_index/ERROR]",
+                message2
             )
 
 def check_index(script_dir, path, index_dict):

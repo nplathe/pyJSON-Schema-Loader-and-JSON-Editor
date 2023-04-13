@@ -13,18 +13,12 @@
 # import 3rd party and system libraries
 import json
 import logging
-import logging as lg
-import multiprocessing
 import os
 import platform
 import regex as re
 import shutil
 import subprocess
-
-# import tkinter modules
-import tkinter as tk
 from datetime import datetime
-from tkinter import messagebox
 
 # import PyQt libraries
 from PyQt5 import QtCore, QtWidgets
@@ -258,7 +252,8 @@ class SearchWindow(QWidget):
         """
         index = self.searchListView.selectedIndexes()[0]
         item = self.searchListView.model().itemFromIndex(index)
-        ui.jsonopener(filepath_str = item.text())
+        if ui:
+            ui.jsonopener(filepath_str = item.text())
 
     def open_file(self):
         """
@@ -421,9 +416,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             jsonsearch_lib.start_index(script_dir, dir_path, index_dict)
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.diropener/ERROR]",
-                message="[pyJSON.diropener/ERROR]: Directory does not exist."
+            QMessageBox.critical(
+                self,
+                "[pyJSON.diropener/ERROR]",
+                "[pyJSON.diropener/ERROR]: Directory does not exist."
             )
         except OSError as err:
             if re.match(re.compile('\[WinError\s123\]'), str(err)):
@@ -439,9 +435,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         Reads a JSON document, prepares the model for the TreeView widget and attaches it to said view.
 
+        Args:
+            filepath_str(str): If set, the path to use gets overwritten and QFileDialog is not called
+
         Returns:
         """
-        lg.debug(filepath_str)
         try:
             if not filepath_str:
                 filepath_str = QFileDialog.getOpenFileName(
@@ -563,9 +561,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 self.set_blank_from_schema()
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title = "[pyJSON.copy_schema_to_storage/ERROR]",
-                message = str(err)
+            QMessageBox.critical(
+                self,
+                "[pyJSON.copy_schema_to_storage/ERROR]",
+                str(err)
             )
 
 
@@ -589,19 +588,21 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if not os.path.isfile(filepath):
                 raise FileNotFoundError("[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist.")
             if filepath == os.path.join(script_dir, "Schemas", os.path.basename(filepath)):
-                tk.messagebox.showwarning(
-                    title = "[pyJSON.copy_schema_to_storage/WARN]",
-                    message = "[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
-                            "folder. It will not be copied."
+                QMessageBox.warning(
+                    self,
+                    "[pyJSON.copy_schema_to_storage/WARN]",
+                    "[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
+                    "folder. It will not be copied."
                 )
             else:
                 shutil.copyfile(filepath, os.path.join(script_dir, "Schemas", os.path.basename(filepath)))
             self.combobox_repopulate()
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title = "[pyJSON.copy_schema_to_storage/ERROR]",
-                message = "[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
+            QMessageBox.critical(
+                self,
+                "[pyJSON.copy_schema_to_storage/ERROR]",
+                "[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
             )
         except OSError as err:
             lg.error(err)
@@ -638,9 +639,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     self.call_watchdog()
             except OSError as err:
                 lg.error(err)
-                tk.messagebox.showerror(
-                    title="[pyJSON.save_curr_json/ERROR]",
-                    message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.save_curr_json/ERROR]",
+                    "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
 
@@ -661,9 +663,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     json.dump(json_frame, out, indent=4, ensure_ascii=False)
             except OSError as err:
                 lg.error(err)
-                tk.messagebox.showerror(
-                    title="[pyJSON.save_curr_json/ERROR]",
-                    message="[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.save_curr_json/ERROR]",
+                    "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
                 )
 
 
@@ -707,10 +710,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.set_blank_from_schema/ERROR]",
-                message="[pyJSON.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select " +
-                        "another schema and repeat!"
+            QMessageBox.critical(
+                self,
+                "[pyJSON.set_blank_from_schema/ERROR]",
+                "[pyJSON.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select " +
+                "another schema and repeat!"
             )
         except OSError as err:
             lg.error(err)
@@ -730,9 +734,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 json.dump(json_frame, out, indent=4, ensure_ascii=False)
         except OSError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.save_default/ERROR]",
-                message="[pyJSON.save_default/ERROR]: File seems to neither exist nor writable!"
+            QMessageBox.critical(
+                self,
+                "[pyJSON.save_default/ERROR]",
+                "[pyJSON.save_default/ERROR]: File seems to neither exist nor writable!"
             )
 
     def load_default(self):
@@ -771,9 +776,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 self.curr_json_label.setText("None")
         except FileNotFoundError as err:
             lg.error(err)
-            tk.messagebox.showerror(
-                title="[pyJSON.load_default/ERROR]",
-                message=str(err)
+            QMessageBox.critical(
+                self,
+                "[pyJSON.load_default/ERROR]",
+                str(err)
             )
 
 
@@ -922,9 +928,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     )
         else:
             lg.warning("[pyJSON.search_Dirs/WARN]: No directory for search selected!")
-            tk.messagebox.showwarning(
-                title = "[pyJSON.search_Dirs/WARN]",
-                message = "No directory for search selected!"
+            QMessageBox.warning(
+                self,
+                "[pyJSON.search_Dirs/WARN]",
+                "No directory for search selected!"
             )
 
     def call_watchdog(self):
@@ -933,11 +940,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         Returns:
 
         """
-        tk.messagebox.showinfo(
-            title = "[pyJSON.callWatchdog/INFO]",
-            message = "Checking and updating indexes, if applicable."
-        )
         jsonsearch_lib.watchdog(script_dir, index_dict)
+        if self.sender() and isinstance(self.sender(), QtWidgets.QAction):
+            QMessageBox.information(
+                self,
+                "[pyJSON.call_watchdog/INFO]",
+                "Checked indexed directories and reindexed, if needed."
+            )
+
 
 
     def closeEvent(self, event):
@@ -964,41 +974,54 @@ if __name__ == "__main__":
     import sys
 
     now = datetime.now()
-    multiprocessing.freeze_support()  # needed function for the subprocess crawler
 
     # set Script Directory
     script_dir = os.getcwd()
-
-    # running Tkinter modules to make my life easier
-    tk_root = tk.Tk()
-    tk_root.withdraw()
 
     # initialize the QtWidget
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = UiRunnerInstance()
 
-    # check and create or load the config of the tool
-    if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
-        lg.info("[pyJSON.main/INFO]: Config is missing. Creating one for you.")
-        deploy_config(script_dir)
-    config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
-
     # initialize logging
     lg = logging.getLogger()
     lg.setLevel("DEBUG")
-    formatter = logging.Formatter(fmt=u'%(asctime)s: %(message)s')
+    formatter = logging.Formatter(fmt = u'%(asctime)s: %(message)s')
+
+    # A stream handler for the log. Goes first for occasional messages, especially for the first run.
+
+    stream_handler = logging.StreamHandler(stream = sys.stdout)
+    stream_handler.setFormatter(formatter)
+    lg.addHandler(stream_handler)
+
+    # check and create or load the config of the tool
+    if not os.path.isfile(os.path.join(script_dir, "pyJSON_conf.json")):
+        deploy_config(script_dir)
+        config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"),
+                           cls = json.JSONDecoder)
+        if QMessageBox.question(
+            QWidget(),
+            "[pyJSON.main]",
+            "It seems like pyJSON is started for the first time. Do you want to enable logging to a file?"
+        ):
+            lg.debug("ping")
+    else:
+        config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
 
     # If logging is set to be in file, checkups have to be done
     if config["verbose_logging"]:
         if not os.path.isdir(os.path.join(script_dir, "Logs")):
-            print("[pyJSON.main/INFO]: Logs Directory is missing! Creating...")
+            lg.info("[pyJSON.main/INFO]: Logs Directory is missing! Creating...")
             try:
-                os.makedirs(os.path.join(script_dir, "Logs"), exist_ok=True)
+                os.makedirs(os.path.join(script_dir, "Logs"), exist_ok = True)
             except OSError as err:
                 print(err)
                 str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
-                tk.messagebox.showerror("[pyJSON.main/FATAL]", str_message)
+                QMessageBox.critical(
+                    QWidget(),
+                    "[pyJSON.main/FATAL]",
+                    str_message
+                )
 
         print(os.path.join(os.getcwd(), "Logs", (now.strftime('%Y%m%d_%H_%M_%S') + ".log")))
         file_handler = logging.FileHandler(
@@ -1006,12 +1029,7 @@ if __name__ == "__main__":
         file_handler.setFormatter(formatter)
         lg.addHandler(file_handler)
 
-    # A stream handler for the log.
-
-    stream_handler = logging.StreamHandler(stream=sys.stdout)
-    stream_handler.setFormatter(formatter)
-    lg.addHandler(stream_handler)
-
+    # init proper file logging
     lg.info("            __ _____ _____ _____ ")
     lg.info(" ___ _ _ __|  |   __|     |   | |")
     lg.info("| . | | |  |  |__   |  |  | | | |")
@@ -1029,16 +1047,19 @@ if __name__ == "__main__":
     else:
         lg.info("Frozen Environment (e.g. PyInstaller) : No")
 
-
     # Do some checkups.
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):
         lg.info("[pyJSON.main/INFO]: Schemas Directory is missing! Creating...")
         try:
-            os.makedirs(os.path.join(script_dir, "Schemas"), exist_ok=True)
+            os.makedirs(os.path.join(script_dir, "Schemas"), exist_ok = True)
         except OSError as err:
             lg.error(err)
             str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
-            tk.messagebox.showerror("[pyJSON.main/FATAL]", str_message)
+            QMessageBox.critical(
+                QWidget(),
+                "[pyJSON.main/FATAL]",
+                str_message
+            )
     if not os.path.isfile(os.path.join(script_dir, "Schemas/default.json")):
         lg.info("[pyJSON.main/INFO]: Default File is missing! Deploying...")
         deploy_schema(os.path.join(script_dir, "Schemas"))
@@ -1046,11 +1067,15 @@ if __name__ == "__main__":
     if not os.path.isdir(os.path.join(script_dir, "Default")):
         lg.info("[pyJSON.main/INFO]: Defaults Directory is missing! Creating...")
         try:
-            os.makedirs(os.path.join(script_dir, "Default"), exist_ok=True)
+            os.makedirs(os.path.join(script_dir, "Default"), exist_ok = True)
         except OSError as err:
             lg.error(err)
             str_message = "[pyJSON.main/FATAL]: Cannot create directory. Please check permissions!"
-            tk.messagebox.showerror("[pyJSON.main/FATAL]", str_message)
+            QMessageBox.critical(
+                QWidget(),
+                "[pyJSON.main/FATAL]",
+                str_message
+            )
 
 # Load or create and save the main index file
     index_dict = {
@@ -1065,7 +1090,11 @@ if __name__ == "__main__":
         save_main_index(script_dir, index_dict)
     else:
         try:
-            index_dict = json.load(open(os.path.join(script_dir, "Indexes/pyJSON_S_index.json"), encoding = "utf8"), cls=json.JSONDecoder)
+            index_dict = json.load(open(
+                os.path.join(script_dir, "Indexes/pyJSON_S_index.json"),
+                encoding = "utf8"),
+                cls=json.JSONDecoder
+            )
         except OSError as err:
             lg.error(err)
             lg.error("[pyJSON_search/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
@@ -1088,9 +1117,10 @@ if __name__ == "__main__":
             ui.curr_json_label.setText(os.path.normpath(config["last_JSON"]))
         else:
             lg.warning("\n----------\nJSON is missing!!\nGenerating blank from schema\n----------")
-            tk.messagebox.showwarning(
-                title="[pyJSON/WARN]",
-                message="[pyJSON/WARN]: Last JSON not found. Defaulting to blank."
+            QMessageBox.warning(
+                QWidget(),
+                "[pyJSON.main/WARN]",
+                "Last JSON not found. Defaulting to blank."
             )
             st_pre_json = jsonio_lib.schema_to_py_gen(frame)
             ui.curr_json_label.setText("None")
