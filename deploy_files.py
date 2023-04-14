@@ -90,14 +90,12 @@ def deploy_config(path):
 
     Args:
         path (str): the path, in which the config shall be deployed
-
-    Returns:
     """
     config = {
         "last_dir": os.getcwd(),
         "last_schema": "default.json",
         "last_JSON": None,
-        "verbose_logging": True
+        "verbose_logging": False
     }
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
@@ -115,8 +113,6 @@ def save_config(path, config):
     Args:
         path (str): the path, in which the config shall be saved or overwritten
         config (dict): the config dictionary
-
-    Returns:
     """
     try:
         with open(os.path.join(path, "pyJSON_conf.json"), "w", encoding='utf8') as out:
@@ -134,8 +130,6 @@ def save_main_index(path, index_dict):
     Args:
         path (str): the path, in which the main index shall be saved or overwritten
         index_dict (dict): the main index dictionary
-
-    Returns:
     """
     try:
         with open(os.path.join(path, "Indexes/pyJSON_S_index.json"), "w", encoding='utf8') as out:
@@ -152,8 +146,6 @@ def save_index(path, index, count):
         path (str): the path the index shall be written or overwritten to
         index (list): the directory index as a list
         count (int): the current index number, since the indexes are numbered
-
-    Returns:
     """
     index_d = {"files": index}
     try:

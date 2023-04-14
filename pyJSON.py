@@ -68,6 +68,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         """
         path_list = []
         cur_item = index.model().getItem(index)
+        value_type = cur_item.get_data(3)
         path_list.append(cur_item.get_data(0))
         while cur_item.get_parent().get_data(0) != "Schema Key":
             cur_item = cur_item.get_parent()
@@ -77,11 +78,12 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             while len(path_list) > 0:
                 curr_key = path_list.pop()
                 if curr_key == '':
-                    lg.info("Could not dertermine information about current node...")
+                    lg.debug("Could not dertermine information about current node...")
                     break
                 curr_schem = curr_schem["properties"][curr_key]
-            lg.debug("Current Type: " + curr_schem["type"])
-            match curr_schem["type"]:
+            lg.debug("Last Type fetched: " + curr_schem["type"])
+            lg.debug("Type of item in model: " + value_type)
+            match value_type:
                 #case "number":
                     #doubleSpinBox = QtWidgets.QDoubleSpinBox()
                     #if "maximum" in curr_schem.keys():
@@ -114,8 +116,6 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         Args:
             editor (QWidget): the QWidget for which the data needs to be set
             index (QModelIndex): the index of the item to be edited
-
-        Returns:
         """
         if isinstance(editor, QtWidgets.QComboBox):
             item = index.model().getItem(index)
@@ -130,12 +130,11 @@ class EnumDropDownDelegate(QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         """
         Passes data from the editor to the model
+
         Args:
             editor (QWidget): the QWidget for which the data needs to be set
             model (TreeClass): the model of the TreeView
             index (QModelIndex): the index of the item to be edited
-
-        Returns:
         """
         if isinstance(editor, QtWidgets.QComboBox):
             value = editor.currentText()
@@ -147,19 +146,18 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             if model.getItem(index).get_data(3) == 'array':
                 model.beginInsertRows(index, index.row(), index.row() + 1)
                 lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an entry for an array."
-                        + "Inserting the entry as a child node...")
+                        + " Inserting the entry as a child node...")
                 model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
                 model.endInsertRows()
                 ui.TreeView.expandAll()
+            elif editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
+                lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an empty entry of an array."
+                        + " Removing node from TreeView...")
+                model.beginRemoveRows(index, index.row(), index.row() + 1)
+                model.removeRows(index.row(), 1, index.parent())
+                model.endRemoveRows()
             else:
-                if editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
-                    lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an empty entry of an array."
-                            + "Removing node from TreeView...")
-                    model.beginRemoveRows(index, index.row(), index.row() + 1)
-                    model.removeRows(index.row(), 1, index.parent())
-                    model.endRemoveRows()
-                else:
-                    QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
+                QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
         """
@@ -169,8 +167,6 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             editor (QWidget): the QWidget which needs to get updated
             option (Object): option that needs to be passed to setGeometry
             index (QModelIndex): the index of the item the editor is located at
-
-        Returns:
         """
         QStyledItemDelegate.updateEditorGeometry(QStyledItemDelegate(), editor, option, index)
 
@@ -181,6 +177,7 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
     def __init__(self, brush: QBrush, parent):
         """
         Constructor
+
         Args:
             brush (QBrush): a brush containing specific parameters, like colors.
             parent (object): the Parent Object.
@@ -195,8 +192,6 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
         Args:
             option (QStyleOptionViewItem):  passes other options
             index (QModelIndex): the QModelIndex to be modified
-
-        Returns:
         """
         super(BackgroundBrushDelegate, self).initStyleOption(option, index)
         option.backgroundBrush = self.brush
@@ -232,8 +227,6 @@ class SearchWindow(QWidget):
 
         Args:
             index (QPoint): The QPoint the right click was executed at.
-
-        Returns:
         """
         list_index = self.searchListView.indexAt(index)
         if list_index.isValid():
@@ -259,8 +252,6 @@ class SearchWindow(QWidget):
         """
         A function to initialise opening the selected path in the ListView with the associated tool. Conviniently enough
         with Windows, explorer.exe passes the attempt of opening a file to the app for us.
-
-        Returns:
         """
         index = self.searchListView.selectedIndexes()[0]
         item = self.searchListView.model().itemFromIndex(index)
@@ -270,8 +261,6 @@ class SearchWindow(QWidget):
     def open_file_location(self):
         """
         Opens the path to the file.
-
-        Returns:
         """
         index = self.searchListView.selectedIndexes()[0]
         item = self.searchListView.model().itemFromIndex(index)
@@ -379,8 +368,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Args:
             index (QPoint): The QPoint the right click was executed at.
-
-        Returns:
         """
         list_index = self.TreeView.indexAt(index)
         if list_index.isValid():
@@ -396,8 +383,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def diropener(self):
         """
         lets the user open a directory to be indexed.
-
-        Returns:
         """
         dir_path = os.path.normpath(
             QFileDialog.getExistingDirectory(
@@ -436,8 +421,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Args:
             filepath_str(str): If set, the path to use gets overwritten and QFileDialog is not called
-
-        Returns:
         """
         try:
             if not filepath_str:
@@ -486,8 +469,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def combobox_repopulate(self):
         """
         sets up the QComboBox for schemas and updates its entries, if a schema gets added.
-
-        Returns:
         """
         self.current_schema_combo_box.blockSignals(True)
         if self.current_schema_combo_box.count != 0:
@@ -502,8 +483,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def dirselect_repopulate(self):
         """
         Sets up the other QCombobox utilised for the indexed directories and updates its entries accordingly.
-
-        Returns:
         """
         selection_list = list(index_dict.keys())
         selection_list.remove("cur_index")
@@ -528,9 +507,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         A slot that gets triggered when the QComboBox emits a changed-Signal. Sets the new schema and reconstructs
         the model for the TreeView
-
-        Returns:
-
         """
         lg.info("\n----------\nswapped schema!\n----------")
         selected = self.current_schema_combo_box.currentText()
@@ -569,14 +545,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     def copy_schema_to_storage(self):
         """
-        creates an internal copy of said schema. fail-safes in not overwriting existing schemas.
-
-        Returns:
+        creates an internal copy of said schema. Fail-safes in not overwriting existing schemas.
         """
         lg.info("\n----------\nCopying schema to tool storage.\n-----------")
         try:
-            #filepath = os.path.normpath(tk.filedialog.askopenfilename(
-            #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
             filepath = QFileDialog.getOpenFileName(
                 caption = "Select a JSON Schema for Import...",
                 dir = config["last_dir"],
@@ -590,32 +562,27 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 QMessageBox.warning(
                     self,
                     "[pyJSON.copy_schema_to_storage/WARN]",
-                    "[pyJSON.copy_schema_to_storage/WARN]: Source schema seems to be already in the schema " +
+                    "Source schema seems to be already in the schema " +
                     "folder. It will not be copied."
                 )
             else:
                 shutil.copyfile(filepath, os.path.join(script_dir, "Schemas", os.path.basename(filepath)))
             self.combobox_repopulate()
-        except FileNotFoundError as err:
+        except (FileNotFoundError, OSError) as err:
             lg.error(err)
-            QMessageBox.critical(
-                self,
-                "[pyJSON.copy_schema_to_storage/ERROR]",
-                "[pyJSON.copy_schema_to_storage/ERROR]: Specified file does not exist."
-            )
-        except OSError as err:
-            lg.error(err)
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.copy_schema_to_storage/ERROR]",
+                    "Specified file does not exist."
+                )
 
 
     def save_as_function(self):
         """
         first, calls a dialog for saving a file. Then creates a dictionary from the TreeView model and writes it as
         JSON Document to the file system at the given path.
-
-        Returns:
         """
-        #selected_path = os.path.normpath(tk.filedialog.asksaveasfilename(
-        #    filetypes=(('Java Script Object Notation', '*.json'), ('All Files', '*.*'))))
         selected_path = QFileDialog.getSaveFileName(
             caption = "Save as...",
             dir = config["last_dir"] + "/_meta.json",
@@ -641,16 +608,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(
                     self,
                     "[pyJSON.save_curr_json/ERROR]",
-                    "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                    "File seems to neither exist nor writable!"
                 )
 
 
     def save_function(self):
         """
         Writes changes of a JSON document to the file system. Calls save_as_function(), if not saved yet.
-
-        Returns:
-
         """
         if config["last_JSON"] is None:
             self.save_as_function()
@@ -665,15 +629,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 QMessageBox.critical(
                     self,
                     "[pyJSON.save_curr_json/ERROR]",
-                    "[pyJSON.save_curr_json/ERROR]: File seems to neither exist nor writable!"
+                    "File seems to neither exist nor writable!"
                 )
 
 
     def set_blank_from_schema(self):
         """
         Creates a TreeView model with empty value fields to be edited and exported as JSON document.
-
-        Returns:
         """
         lg.info("\n----------\nGenerating Blank from Schema\n----------")
         try:
@@ -707,23 +669,19 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 save_config(script_dir, config)
                 self.curr_json_label.setText("None")
 
-        except FileNotFoundError as err:
+        except (FileNotFoundError, OSError) as err:
             lg.error(err)
-            QMessageBox.critical(
-                self,
-                "[pyJSON.set_blank_from_schema/ERROR]",
-                "[pyJSON.set_blank_from_schema/ERROR]: Specified schema does not exist.\nPlease select " +
-                "another schema and repeat!"
-            )
-        except OSError as err:
-            lg.error(err)
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.set_blank_from_schema/ERROR]",
+                    "Specified schema does not exist.\nPlease select another schema and repeat!"
+                )
 
     # saves default values into the default folder.
     def save_default(self):
         """
         stores a copy of the current JSON on a schema basis in the "Default" directory, which can be loaded later on.
-
-        Returns:
         """
         lg.info("\n----------\nSaving default for Schema " + config["last_schema"] + "\n----------")
         tree = self.TreeView.model()
@@ -736,14 +694,12 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(
                 self,
                 "[pyJSON.save_default/ERROR]",
-                "[pyJSON.save_default/ERROR]: File seems to neither exist nor writable!"
+                "File seems to neither exist nor writable!"
             )
 
     def load_default(self):
         """
         creates a TreeView model from the default that was stored in the tools directory structure
-
-        Returns:
         """
         lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
         try:
@@ -785,8 +741,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def reloader_function(self):
         """
         drops all changes made and reverts to the last known saved state or a blank.
-
-        Returns:
         """
         lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
         if config["last_JSON"] is None:
@@ -830,8 +784,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def validate_function(self):
         """
         converts the tree keys and values to JSON and validates the JSON document agains the selected schema
-
-        Returns:
         """
         tree = self.TreeView.model()
         curr_json_py = jsonio_lib.tree_to_py(tree.root_node.childItems)
@@ -936,8 +888,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     def call_watchdog(self):
         """
         function responsible for executing the re-indexing on a regular basis
-        Returns:
-
         """
         jsonsearch_lib.watchdog(script_dir, index_dict)
         if self.sender() and isinstance(self.sender(), QtGui.QAction):
@@ -956,9 +906,6 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
         Args:
             event (QCloseEvent): the close event to be processed
-
-        Returns:
-
         """
         if self.searchList:
             self.searchList.close()
@@ -1003,7 +950,8 @@ if __name__ == "__main__":
             "[pyJSON.main]",
             "It seems like pyJSON is started for the first time. Do you want to enable logging to a file?"
         ):
-            lg.debug("ping")
+            config["verbose_logging"] = True
+            save_config(script_dir, config)
     else:
         config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
 

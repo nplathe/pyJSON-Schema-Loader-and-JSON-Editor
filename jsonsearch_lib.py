@@ -31,9 +31,6 @@ def watchdog(script_dir, main_index):
     Args:
         script_dir (str): The directory in which the tool is executed
         main_index (dict): The dictionary holding all indexes
-
-    Returns:
-
     """
     selection_list = list(main_index.keys())
     selection_list.remove("cur_index")
@@ -208,8 +205,6 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
         path (str): the path to be indexed
         index_dict (dict): the main index
         show_boxes (bool): a parameter to control whetever errors and warnings shall be displayed as message services.
-
-    Returns:
     """
     lg.info("==========\nINDEXER\n==========")
     indexed_files = []
@@ -271,8 +266,6 @@ def check_index(script_dir, path, index_dict):
         script_dir (str): The directory in which the tool is executed
         path (str): the path to be indexed
         index_dict (dict): the main index
-
-    Returns:
     """
     try:
         if os.path.isdir(os.path.normpath(path)) and index_dict[path]:
