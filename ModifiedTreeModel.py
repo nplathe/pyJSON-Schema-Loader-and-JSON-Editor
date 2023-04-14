@@ -8,10 +8,10 @@
 # ----------------------------------------
 # Libraries
 # ----------------------------------------
-from PyQt5.QtCore import Qt, QModelIndex
 import logging
 
-import tkinter as tk
+from PySide6.QtCore import Qt, QModelIndex
+from PySide6.QtWidgets import QMessageBox, QWidget
 
 from TreeModel import TreeClass
 
@@ -48,7 +48,7 @@ class ModifiedTreeClass(TreeClass):
 
         Args:
             index (QModelIndex): the index of the data to edit.
-            value (object): the new data to be set.
+            value (str): the new data to be set.
             role (int): the role of that node.
 
         Returns:
@@ -85,8 +85,9 @@ class ModifiedTreeClass(TreeClass):
         except ValueError as err:
             logging.error("[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]: " +
                      "Input could not be validated against type proposed from Schema!")
-            tk.messagebox.showerror(
-                title="[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]",
-                message="Input could not be validated against type proposed from Schema!"
+            QMessageBox.critical(
+                QWidget(),
+                "[ModifiedTreeModel.ModifiedTreeClass.setData/ERROR]",
+                "Input could not be validated against type proposed from Schema!"
             )
             return False

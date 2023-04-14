@@ -36,9 +36,6 @@ class TreeItem(object):
 
         Args:
             child: the child to be added
-
-        Returns:
-
         """
         self.childItems.append(child)
 
@@ -80,6 +77,7 @@ class TreeItem(object):
     def count_children(self):
         """
         returns the length of the list storing the child items
+
         Returns:
             int: child item count
         """
@@ -90,16 +88,16 @@ class TreeItem(object):
     def set_data_array(self, data):
         """
         Sets or overwrites the entire data list
+
         Args:
             data (list): the new data to be written
-
-        Returns:
         """
         self.itemData = data
 
     def set_data(self, data: str, column: int):
         """
         Sets a specific value at the given column value
+
         Args:
             data: value that shall be set
             column: value of the column to be modified
@@ -115,6 +113,7 @@ class TreeItem(object):
     def get_data(self, column):
         """
         retrieves data of a column
+
         Args:
             column: the value of the column to be retrieved
 
@@ -127,6 +126,8 @@ class TreeItem(object):
 
     def get_data_array(self):
         """
+        fetches the full data of an item
+
         Returns:
             list: the full data list of the item
         """
@@ -134,6 +135,8 @@ class TreeItem(object):
 
     def data_length(self):
         """
+        retrieves the data length
+
         Returns:
             int: length of the data list - which equals the amount of columns in the TreeView later
         """
@@ -141,6 +144,8 @@ class TreeItem(object):
 
     def get_parent(self):
         """
+        retrieves the parent
+
         Returns:
             TreeItem: the parent node
         """

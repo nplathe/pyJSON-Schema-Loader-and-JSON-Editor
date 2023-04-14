@@ -14,10 +14,11 @@ import os
 import json
 import jsonschema
 from jsonschema import validate
+from PySide6.QtWidgets import QMessageBox, QWidget
 
 # custom imports
 from deploy_files import save_index, save_main_index
-from PyQt5.QtWidgets import QWidget, QMessageBox
+
 # ----------------------------------------
 # Variables and Functions
 # ----------------------------------------
@@ -30,9 +31,6 @@ def watchdog(script_dir, main_index):
     Args:
         script_dir (str): The directory in which the tool is executed
         main_index (dict): The dictionary holding all indexes
-
-    Returns:
-
     """
     selection_list = list(main_index.keys())
     selection_list.remove("cur_index")
@@ -141,7 +139,7 @@ def f_search(search_index, search_dict):
     except (re.error, OSError, AttributeError) as err:
         lg.error(err)
         if isinstance(err, re.error):
-            msg = "Regex Error: Your regex pattern seems to be invalid."
+            msg = "Regex Error: At least one search term could not be compiled into a regular expression."
         elif isinstance(err, OSError):
             msg = "Operating System Error: JSON could not be inspected for Keyword search."
         else:
@@ -207,8 +205,6 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
         path (str): the path to be indexed
         index_dict (dict): the main index
         show_boxes (bool): a parameter to control whetever errors and warnings shall be displayed as message services.
-
-    Returns:
     """
     lg.info("==========\nINDEXER\n==========")
     indexed_files = []
@@ -270,8 +266,6 @@ def check_index(script_dir, path, index_dict):
         script_dir (str): The directory in which the tool is executed
         path (str): the path to be indexed
         index_dict (dict): the main index
-
-    Returns:
     """
     try:
         if os.path.isdir(os.path.normpath(path)) and index_dict[path]:
