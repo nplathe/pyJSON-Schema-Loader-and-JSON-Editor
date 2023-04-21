@@ -12,7 +12,7 @@ prior to python 3.10! See [PEP 636](https://peps.python.org/pep-0636/) for detai
 For running pyJSON, the following packages are needed:
 
 * jsonvalidate (~=4.17.3)
-* PyQt5 (~=5.15.7)
+* PySide6 (~=6.5.0)
 * regex (~=2022.7.9)
 * future (~=0.18.2)
 
@@ -55,6 +55,12 @@ conda install -n <yourenvname> [package-name]
 ```{warning}
 Some packages are not located in the standard conda repository, but e.g. in the conda-forge repository.
 Use `conda install -c conda-forge -n <yourenvname> [package-name]` for installation then.
+```
+
+For **PySide6**, it is advised to install it via pip. In your environment, run:
+
+```bash
+pip install PySide6
 ```
 
 ## Building a distributable package

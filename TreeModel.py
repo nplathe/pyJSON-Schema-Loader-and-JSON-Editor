@@ -1,6 +1,6 @@
 # ----------------------------------------
 # A tree-like model that implements QAbstractModel.
-# Almost feature complete implementation from examples of the Qt Documentation.
+# Implementation based on examples of the Qt Documentation.
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
@@ -50,7 +50,7 @@ class TreeClass(QtCore.QAbstractItemModel):
             index (QModelIndex): A QModelIndex holding the position of the item to get from the model
 
         Returns:
-            object: the item or node in the tree model
+            TreeItem: the item or node in the tree model
         """
         if index.isValid():
             node = index.internalPointer()
@@ -84,9 +84,10 @@ class TreeClass(QtCore.QAbstractItemModel):
         else:
             return QModelIndex()
 
-    def parent(self, child: QModelIndex) -> QModelIndex:
+    def parent(self, child: QModelIndex) -> QModelIndex: # function is overloaded in QAbstractItemModel
         """
         returns the parent of a child node
+
         Args:
             child (QModelIndex): the index of a child node
 
@@ -179,7 +180,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         sets or overwrites data. Checks Qts item flags before actually doing so.
         Args:
             index (QModelIndex): the index of the data to edit.
-            value (object): the new data to be set.
+            value (str): the new data to be set.
             role (int): the role of that node.
 
         Returns:
@@ -270,7 +271,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         Returns:
             bool: a boolean value whetever removal was a success
         """
-        self.beginRemoveColumns()
+        self.beginRemoveColumns(parent, position, position + columns - 1)
         success: bool = self.root_node.remove_columns(position, columns)
         self.endRemoveColumns()
 

@@ -23,9 +23,9 @@ from datetime import datetime
 # import PySide libraries
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import QModelIndex, Qt, QPoint
-from PySide6.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem, QIcon
-from PySide6.QtWidgets import QMainWindow, QComboBox, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
-    QFileDialog, QMessageBox
+from PySide6.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem
+from PySide6.QtWidgets import QMainWindow, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
+    QFileDialog, QMessageBox, QStyleOptionViewItem
 
 # import of modules
 import jsonio_lib
@@ -59,7 +59,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         TODO: Implement QSpinBoxes for integers and floats
 
         Args:
-            parent (object): parent of the QWidget to be.
+            parent (QWidget): parent of the QWidget to be.
             option (object): option that might be passed to the constructor of the QWidget
             index (QModelIndex): the QModelIndex of the item that was clicked
 
@@ -185,7 +185,7 @@ class BackgroundBrushDelegate(QStyledItemDelegate):
         super(BackgroundBrushDelegate, self).__init__()
         self.brush = brush
 
-    def initStyleOption(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
         """
         sets the color to the cells the delegate is assigned to
 
@@ -378,9 +378,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 entry2 = item_menu.addAction("Add entries to this array...")
             item_menu.exec(self.TreeView.viewport().mapToGlobal(index))
 
-    # Button Function Definitions
 
-    def diropener(self):
+    def diropener(self): # Button Function Definitions
         """
         lets the user open a directory to be indexed.
         """
@@ -398,24 +397,18 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             save_config(script_dir, config)
             self.label_curDir.setText(dir_path)
             jsonsearch_lib.start_index(script_dir, dir_path, index_dict)
-        except FileNotFoundError as err:
+        except (FileNotFoundError, OSError) as err:
             lg.error(err)
-            QMessageBox.critical(
-                self,
-                "[pyJSON.diropener/ERROR]",
-                "[pyJSON.diropener/ERROR]: Directory does not exist."
-            )
-        except OSError as err:
-            if re.match(re.compile('\[WinError\s123\]'), str(err)):
-                lg.warning("[pyJSON.diropener/WARN]: Directory selection aborted!")
-            else:
-                lg.warning(err)
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.critical(
+                    self,
+                    "[pyJSON.diropener/ERROR]",
+                    "Directory does not exist."
+                )
         self.dirselect_repopulate()
 
 
-    # Definition Actions MenuBar
-
-    def jsonopener(self, filepath_str = None):
+    def jsonopener(self, filepath_str = None): # Definition Actions MenuBar
         """
         Reads a JSON document, prepares the model for the TreeView widget and attaches it to said view.
 
@@ -454,16 +447,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 save_config(script_dir, config)
                 self.curr_json_label.setText(filepath)
 
-        except FileNotFoundError as err:
+        except (FileNotFoundError, OSError) as err:
             lg.error(err)
-            QMessageBox.warning(self,
-                            "[pyJSON.jsonopener/ERROR]",
-                            "[pyJSON.jsonopener/ERROR]: Specified file does not exist.",
-                            QMessageBox.Ok,
-                            QMessageBox.Ok
-                        )
-        except OSError as err:
-            lg.error(err)
+            if isinstance(err, FileNotFoundError):
+                QMessageBox.warning(
+                    self,
+                    "[pyJSON.jsonopener/ERROR]",
+                    "[pyJSON.jsonopener/ERROR]: Specified file does not exist.",
+                )
 
 
     def combobox_repopulate(self):
@@ -875,7 +866,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     QMessageBox.warning(
                         self,
                         "[pyJSON.search_Dirs/WARN]",
-                        "No results found!"
+                        "No results found! Search result list is not updated."
                     )
         else:
             lg.warning("[pyJSON.search_Dirs/WARN]: No directory for search selected!")

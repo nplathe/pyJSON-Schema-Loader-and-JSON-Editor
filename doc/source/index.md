@@ -9,8 +9,8 @@ the capabilities of this tool are subject to change.
 
 ## Requirements
 Head over to the [installation](installation) section of the documentation.
-In short, pyJSON requires Python 3.10 or newer, PyQt bindings for Qt5, the regex, the future and the jsonschema package.
-Furthermore, the PyInstaller package is needed to freeze the environment and distribute it along an executable for the platform
+In short, pyJSON requires Python 3.10 or newer, `PySide6` as bindings for Qt6, the `regex`, the `future` and the `jsonschema` package.
+Furthermore, the `PyInstaller` package is needed, if you want to freeze the environment and distribute pyJSON as an executable for the platform
 of choice. Additional packages are needed for building the documentation. A virtual environment is highly advised.
 
 ```{note}
