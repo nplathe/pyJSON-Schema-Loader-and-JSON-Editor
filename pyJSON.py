@@ -23,7 +23,7 @@ from datetime import datetime
 # import PySide libraries
 from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import QModelIndex, Qt, QPoint
-from PySide6.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem
+from PySide6.QtGui import QBrush, QColor, QGuiApplication, QStandardItemModel, QStandardItem, QIcon
 from PySide6.QtWidgets import QMainWindow, QStyledItemDelegate, QStyle, QWidget, QVBoxLayout, \
     QFileDialog, QMessageBox, QStyleOptionViewItem
 
@@ -56,7 +56,6 @@ class EnumDropDownDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """
         When data is to be edited, the delegate provides an Editor, which is, most of the time, a QWidget.
-        TODO: Implement QSpinBoxes for integers and floats
 
         Args:
             parent (QWidget): parent of the QWidget to be.
@@ -288,7 +287,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         # window decoration
         title = "pyJSON Schema Loader and JSON Editor"
         self.setWindowTitle(title)
-        #self.setWindowIcon(QIcon(""))
+        self.setWindowIcon(QIcon("./icon.ico"))
 
         # text label for the current dir
         self.label_curDir.setText(os.getcwd())
@@ -861,6 +860,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                         item = QStandardItem(i)
                         result_model.appendRow(item)
                         self.searchList.searchListView.setModel(result_model)
+                        self.searchList.searchListView.activateWindow() # set focus on this widget
                 else:
                     lg.warning("[pyJSON.search_Dirs/WARN]: No results found!")
                     QMessageBox.warning(
@@ -1020,7 +1020,7 @@ if __name__ == "__main__":
         "cur_index": 0
     }
     if not (os.path.isfile(os.path.join(script_dir, "Indexes/pyJSON_S_index.json"))):
-        lg.warning("[pyJSON_search/WARN]: Index file is missing. Create index from scratch.")
+        lg.warning("[pyJSON.main/WARN]: Index file is missing. Create index from scratch.")
         try:
             os.mkdir(os.path.join(script_dir, "Indexes"))
         except FileExistsError as err:
@@ -1035,7 +1035,7 @@ if __name__ == "__main__":
             )
         except OSError as err:
             lg.error(err)
-            lg.error("[pyJSON_search/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
+            lg.error("[pyJSON.main/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
 
     # setup the view for the first time
     if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):

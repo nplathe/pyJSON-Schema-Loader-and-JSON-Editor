@@ -94,48 +94,55 @@ def schema_matching_search(index, schema, script_dir):
 # VALUE SEARCH
 def f_search(search_index, search_dict):
     """
-    A flat search algorithm for values on a regular expression basis
+        A flat search algorithm for values on a regular expression basis
 
-    Args:
-        search_index: the list of the index that shall be searched within
-        search_dict: a dictionary containing key-value-pairs to be searched for
+        Args:
+            search_index: the list of the index that shall be searched within
+            search_dict: a dictionary containing key-value-pairs to be searched for
 
-    Returns:
-        list: the new index containing all retained entries
-    """
-    result_list = search_index
+        Returns:
+            list: the new index containing all retained entries
+        """
+    copy_index = search_index.copy() # because we need to avoid modifying the original list
+    result_list = []
     lg.info("==========\nFLAT SEARCH\n==========")
     try:
-        for j in search_dict.keys():
-            lg.info("----------")
-            lg.info("Current Search Key: " + j)
-            lg.info("Current Search Term: " + str(search_dict[j]))
-            lg.info("----------")
-            comp_str = re.compile(str(search_dict[j]))
-            for i in search_index:
-                lg.info("reading: " + i)
-                try:
-                    json_file = json.load(open(i, encoding = "utf8"))
-                    if json_file is None:
-                        raise json.decoder.JSONDecodeError("Content of JSON file is Null.", i, 0)
-                except json.decoder.JSONDecodeError as err:
-                    lg.error(err)
-                    lg.error("[jsonsearch_lib.f_search/ERROR]: JSON file invalid. Skipping!")
-                    json_file = {}
-                except UnicodeDecodeError as err:
-                    lg.error(err)
-                    lg.error("[jsonsearch_lib.f_search/ERROR]: The JSON file cannot be decoded properly" +
-                             " because it seems to use a different charset than expected. Skipping!")
-                    json_file = {}
-                check_list = {}
-                check_list = dict_flatten_dict(json_file, check_list)
-                hit = False
-                for k in list(check_list):
-                    if re.search(comp_str, str(check_list[k])) and hit is False:
-                        if i not in result_list:
-                            result_list.append(i)
-                            lg.info("Added " + i + " to the result list.")
-                        hit = True
+        for i in search_index: # for each element in the original handed over list...
+            lg.info("reading: " + i)
+            try: # ... open the file ...
+                json_file = json.load(open(i, encoding = "utf8"))
+                if json_file is None:
+                    raise json.decoder.JSONDecodeError("Content of JSON file is Null.", i, 0)
+            except json.decoder.JSONDecodeError as err:
+                lg.error(err)
+                lg.error("[jsonsearch_lib.f_search/ERROR]: JSON file invalid. Skipping!")
+                json_file = {}
+            except UnicodeDecodeError as err:
+                lg.error(err)
+                lg.error("[jsonsearch_lib.f_search/ERROR]: The JSON file cannot be decoded properly" +
+                         " because it seems to use a different charset than expected. Skipping!")
+                json_file = {}
+            check_list = {} # ... flatten it ...
+            check_list = dict_flatten_dict(json_file, check_list)
+            for j in search_dict.keys(): # ... then match the elements to search against
+                if i not in copy_index: # Skip, if already eliminated
+                    break
+                lg.info("----------")
+                lg.info("Current Search Key: " + j)
+                lg.info("Current Search Term: " + str(search_dict[j]))
+                lg.info("----------")
+                comp_str = re.compile(re.escape(str(search_dict[j])))
+                for k in list(check_list.keys()):
+                    if check_list[k] == "":
+                        del check_list[k]
+                for l in list(check_list.keys()):
+                    if l == j and not re.search(comp_str, str(check_list[l])):
+                        copy_index.remove(i)
+                        lg.debug("\nValue does not match search value for given key.\nRemoved :" + i)
+                if j not in list(check_list.keys()):
+                    copy_index.remove(i)
+                    lg.debug("\nGiven key not present or value for given key was empty.\nRemoved :" + i)
+        result_list = copy_index
     except (re.error, OSError, AttributeError) as err:
         lg.error(err)
         if isinstance(err, re.error):
@@ -178,7 +185,6 @@ def dict_flatten_dict(target_dict, flat_dict = None):
                     flat_dict[alt_name] = target_dict[str_name]
                     del target_dict[str_name]
                 except KeyError as err:
-                    lg.debug(err)
                     flat_dict[alt_name] = target_dict[str_name]
                     del target_dict[str_name]
                     continue
