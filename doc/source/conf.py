@@ -22,7 +22,7 @@ copyright = '2023, Nick Plathe'
 author = 'Nick Plathe'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.2 alpha'
+release = '1.0.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -38,6 +38,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
 ]
+
+autodoc_mock_imports = ["PySide6"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
