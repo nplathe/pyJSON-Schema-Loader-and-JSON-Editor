@@ -13,12 +13,12 @@ jobs:
           pip install sphinx furo myst-parser
       - name: Sphinx build
         run: |
-          sphinx-build doc build
+          sphinx-build doc/source/ doc/build/
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/
+          publish_dir: doc/build/
           force_orphan: true
