@@ -48,7 +48,3 @@ The pyJSON Schema Loader and JSON Editor is capable of opening and saving JSON f
 ### Working with Schemas
 
 A JSON schema can be used to validate information stored in JSON files. The tool uses this fact to generate JSON barebone files from schemas. Additional schemas can be added via `Files -> Add Schema...` and selected via the combobox for the currently selected schema. Defaults for the current schema can be stored and loaded.
-
-### Navigating through folders
-
-In order to make management of several JSON files in the filesystem more affordable, the tool can swap it's working directory and store as well as automagically* load `metadata.json` files, those shall be used in another project later. In a long term goal, the generated and maintained JSON files shall be used with several other tools, including, but not limited to eLabFTW.
