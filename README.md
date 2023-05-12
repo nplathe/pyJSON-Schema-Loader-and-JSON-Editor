@@ -24,7 +24,7 @@ See the documentation for details.
 
 ### Structure of the tool
 
-Depending on the build process and the console parameters, the diectory structure will vary. This will be roughly the structure, when built on a Microsoft Windows OS:
+Depending on the build process and the console parameters, the diectory structure will vary. This will be roughly the structure, when built on a Microsoft Windows OS via PyInstaller:
 ```
 Script Directory
 ├── Logs                    Log directory. Gets created when the first log is written.
