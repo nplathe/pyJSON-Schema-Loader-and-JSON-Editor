@@ -8,5 +8,6 @@
 /__pycache__
 /doc/build
 /doc/source/generated
+/.idea
 /pyJSON.spec
 /pyJSON_conf.json
