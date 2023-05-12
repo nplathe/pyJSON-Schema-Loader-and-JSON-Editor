@@ -8,7 +8,7 @@ This is the repository for the pyJSON Schema Loader and JSON Editor - a limited 
 
 The tool shall be used for storing important metadata within a filesystem-based approach. It doubles as a restricted JSON editor with the capability to read JSON and generate
 them from a schema, but neither to generate JSONs or schemas from scratch, in order to maintain the flow "Schema -> JSON". If you need to create a schema from scratch, you may
-use [the ADAMANT web tool](https://plasma-mds.github.io/adamant/) developed by the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
+use [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)) developed in the context of the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
 the capabilities of this tool are subject to change.
 
 # Requirements
