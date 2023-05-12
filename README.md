@@ -11,10 +11,10 @@ the capabilities of this tool are subject to change.
 
 # Requirements
 
-In short, pyJSON requires Python 3.10 or newer, PyQt bindings for Qt5, the regex, the future and the jsonschema package.
+In short, pyJSON requires Python 3.10 or newer, PySide6 bindings for Qt6, the regex, the future and the jsonschema package.
 Furthermore, the PyInstaller package is needed to freeze the environment and distribute it along an executable for the platform
 of choice. Additional packages are needed for building the documentation. A virtual environment is highly advised.
-Head over to the installation section of the documentation for details
+Head over to the installation section of the documentation for details.
 
 ### Build a distributable package with PyInstaller
 
@@ -41,7 +41,7 @@ Script Directory
 
 ### Reading, Validating and Writing JSON files
 
-The pyJSON GUI is capable of opening and saving JSON files. It supports editing the values and, given the proper schema, provides a title and description for each key-value-pair. Every operation shall be validated against the schema in the future to prevent falsely entered information.
+The pyJSON Schema Loader and JSON Editor is capable of opening and saving JSON files. It supports editing the values and, given the proper schema, provides a title and description for each key-value-pair. Every operation shall be validated against the schema in the future to prevent falsely entered information.
 
 ### Working with Schemas
 
