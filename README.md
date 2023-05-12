@@ -1,5 +1,7 @@
 # pyJSON Schema Loader and JSON Editor
 
+***Note: this tool is in development and everything including the README and the documentation is "under construction"!***
+
 This is the repository for the pyJSON Schema Loader and JSON Editor - a limited feature set editor for JSON files, that utilises JSON Schema to create and validate JSON files.
 
 ## Purpose
@@ -14,11 +16,11 @@ the capabilities of this tool are subject to change.
 In short, pyJSON requires Python 3.10 or newer, PySide6 bindings for Qt6, the regex, the future and the jsonschema package.
 Furthermore, the PyInstaller package is needed to freeze the environment and distribute it along an executable for the platform
 of choice. Additional packages are needed for building the documentation. A virtual environment is highly advised.
-Head over to the installation section of the documentation for details.
+Head over to the [installation section of the documentation](https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/installation.html) for details.
 
 ### Build a distributable package with PyInstaller
 
-See the documentation for details.
+Information about this will be added in the [documentation](https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/index.html) in the future.
 
 ## Technical information
 
