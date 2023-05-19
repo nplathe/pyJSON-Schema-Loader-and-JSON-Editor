@@ -65,7 +65,7 @@ Use `conda install -c conda-forge -n <yourenvname> [package-name]` for installat
 Alternatively, if you are not using Anaconda, you might install all requirements with
 
 ```bash
-pip -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Running pyJSON
@@ -79,7 +79,7 @@ python pyJSON.py
 First, install [PyInstaller](https://pyinstaller.org/en/stable/) into your environement. Make sure to activate your environment, then navigate to the source directory and run
 
 ```bash
-pyinstaller --clean --icon=icon.ico .\pyJSON.py
+pyinstaller --clean --icon=icon.ico ./pyJSON.py
 ```
 
 to generate a distributable frozen environment containing everything for pyJSON in order to run it without a local python installation.

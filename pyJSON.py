@@ -2,6 +2,9 @@
 # pyJSON Schema Loader and JSON Editor - Main Module
 # author: N. Plathe
 # ----------------------------------------
+# pyJSONs main repo:
+# https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor
+# ----------------------------------------
 # Music recommendation (albums):
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine
@@ -943,7 +946,7 @@ if __name__ == "__main__":
             config["verbose_logging"] = True
             save_config(script_dir, config)
     else:
-        config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls=json.JSONDecoder)
+        config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"), cls = json.JSONDecoder)
 
     # If logging is set to be in file, checkups have to be done
     if config["verbose_logging"]:

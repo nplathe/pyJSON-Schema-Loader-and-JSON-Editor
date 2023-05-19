@@ -1,13 +1,21 @@
-# Stuff to ignore...
+# ignore pyJSON-specific directories
 /Default
 /Schemas
 /Indexes
 /Logs
+
+# ignore PyInstaller directories
 /dist
 /build
 /__pycache__
+
+# ignore build and generated files from sphinx
 /doc/build
 /doc/source/generated
+
+# ignore my IDE directory
 /.idea
+
+# ignore the config and the spec file
 /pyJSON.spec
 /pyJSON_conf.json

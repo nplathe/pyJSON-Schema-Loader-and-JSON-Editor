@@ -1,5 +1,5 @@
 # ----------------------------------------
-# pyJSON Converter + GUI deploy_files module
+# pyJSON Schema Loader and JSON Editor - Config Deployment Module
 # author: N. Plathe
 # ----------------------------------------
 # Music recommendation (albums):
