@@ -28,10 +28,9 @@ from PySide6.QtWidgets import QMainWindow, QStyledItemDelegate, QStyle, QWidget,
     QFileDialog, QMessageBox, QStyleOptionViewItem
 
 # import of modules
-import jsonio_lib
-import jsonsearch_lib
-from deploy_files import deploy_schema, deploy_config, save_config, save_main_index
-from ModifiedTreeModel import ModifiedTreeClass as TreeClass
+from Modules import jsonio_lib, jsonsearch_lib
+from Modules.deploy_files import deploy_schema, deploy_config, save_config, save_main_index
+from Modules.ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
 # import the converted user interface
 from pyJSON_interface import Ui_MainWindow

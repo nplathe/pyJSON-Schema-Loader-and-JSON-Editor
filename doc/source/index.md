@@ -1,14 +1,14 @@
 # The pyJSON Schema Loader and Editor Documentation
 
-## Purpose
+## About
+This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based JSON editor capable of creating valid JSON from JSON schema. With pyJSON, one can create, 
+edit, validate and save JSON documents. Furthermore, a simple search function helps keeping track of filesystembased repositories filled with metadata.
 
-The tool shall be used for storing important metadata within a filesystem-based approach. It doubles as a restricted JSON editor with the capability to read JSON and generate
-them from a schema, but neither to generate JSONs or schemas from scratch, in order to maintain the flow "Schema -> JSON". If you need to create a schema from scratch, you may
-use [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)) developed in the context of the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
-the capabilities of this tool are subject to change.
+ For a JSON schema creating software that is capable of being integrated in network workflow structures, please have a look at [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)). 
+
 
 ## Requirements
-Head over to the [installation](installation) section of the documentation.
+Head over to the [installation](installation) section of the documentation for details.
 In short, pyJSON requires Python 3.10 or newer, `PySide6` as bindings for Qt6, the `regex`, the `future` and the `jsonschema` package.
 Furthermore, the `PyInstaller` package is needed, if you want to freeze the environment and distribute pyJSON as an executable for the platform
 of choice. Additional packages are needed for building the documentation. A virtual environment is highly advised.

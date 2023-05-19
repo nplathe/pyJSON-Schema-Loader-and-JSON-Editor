@@ -5,7 +5,7 @@
    :toctree: generated
    
    pyJSON
-   deploy_files
-   jsonio_lib
-   jsonsearch_lib
+   Modules.deploy_files
+   Modules.jsonio_lib
+   Modules.jsonsearch_lib
 ```

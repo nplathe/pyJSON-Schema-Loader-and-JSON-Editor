@@ -2,14 +2,13 @@
 
 ***Note: this tool is in development and everything including the README and the documentation is "under construction"!***
 
-This is the repository for the pyJSON Schema Loader and JSON Editor - a limited feature set editor for JSON files, that utilises JSON Schema to create and validate JSON files.
+This is the repository for the pyJSON Schema Loader and JSON Editor - a JSON schema based JSON Editor and Validator.
 
-## Purpose
+## About
+This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based JSON editor capable of creating valid JSON from JSON schema. With pyJSON, one can create, 
+edit, validate and save JSON documents. Furthermore, a simple search function helps keeping track of filesystembased repositories filled with metadata.
 
-The tool shall be used for storing important metadata within a filesystem-based approach. It doubles as a restricted JSON editor with the capability to read JSON and generate
-them from a schema, but neither to generate JSONs or schemas from scratch, in order to maintain the flow "Schema -> JSON". If you need to create a schema from scratch, you may
-use [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)) developed in the context of the [QPTdat project](https://www.forschungsdaten.org/index.php/QPTDat). It shall be noted that
-the capabilities of this tool are subject to change.
+ For a JSON schema creating software that is capable of being integrated in network workflow structures, please have a look at [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)). 
 
 # Requirements
 
@@ -26,17 +25,17 @@ Information about this will be added in the [documentation](https://nplathe.gith
 
 ### Structure of the tool
 
-Depending on the build process and the console parameters, the diectory structure will vary. This will be roughly the structure, when built on a Microsoft Windows OS via PyInstaller:
+
 ```
-Script Directory
+Repo Directory
 ├── Logs                    Log directory. Gets created when the first log is written.
 ├── Schemas                 The storage for the schemas.
-    └── default.json        The default schema, which doubles as a small test case
-├── Default                 Storage for templates and defaults created by pyJSON
+    └── default.json        The default schema, which doubles as a small test case.
+├── Default                 Storage for templates and defaults created by pyJSON.
+├── Indexes                 Storage for search indexes.
 ...
-├── pyJSON.exe              The binary of pyJSON.              
-├── pyJSON_conf.json        The config file of pyJSON.
-└── pyJSON_interface.ui     The Qt GUI file of pyJSON.
+├── pyJSON.py               The main python file of pyJSON.              
+└── pyJSON_conf.json        The config file of pyJSON.
 ```
 
 ## Featueres

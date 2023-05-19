@@ -14,7 +14,7 @@ from PySide6.QtCore import QModelIndex, Qt
 
 import logging
 
-from TreeItem import TreeItem
+from Modules.TreeItem import TreeItem
 
 # ----------------------------------------
 # Variables and Functions
@@ -345,4 +345,4 @@ if __name__ == "__main__":
     ui.setModel(model)
     ui.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

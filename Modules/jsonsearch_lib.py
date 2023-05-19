@@ -17,7 +17,7 @@ from jsonschema import validate
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 # custom imports
-from deploy_files import save_index, save_main_index
+from Modules.deploy_files import save_index, save_main_index
 
 # ----------------------------------------
 # Variables and Functions

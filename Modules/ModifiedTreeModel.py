@@ -13,7 +13,7 @@ import logging
 from PySide6.QtCore import Qt, QModelIndex
 from PySide6.QtWidgets import QMessageBox, QWidget
 
-from TreeModel import TreeClass
+from Modules.TreeModel import TreeClass
 
 # ----------------------------------------
 # Variables and Functions
@@ -76,7 +76,7 @@ class ModifiedTreeClass(TreeClass):
             else:
                 logging.warning("[ModifiedTreeModel.ModifiedTreeClass.setData/WARN]: " +
                            "Empty value set - type validation bypassed.")
-            result = item.set_data(column=index.column(), data=value)
+            result = item.set_data(column = index.column(), data = value)
             if result:
                 self.dataChanged.emit(index, index)
                 logging.info("\n----------\n[ModifiedTreeModel.ModifiedTreeClass.setData/INFO]: Data got replaced! New Data is:\n" +

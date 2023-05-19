@@ -14,8 +14,8 @@ import json
 import jsonschema
 from jsonschema import validate
 
-from ModifiedTreeModel import ModifiedTreeClass as TreeClass
-from TreeItem import TreeItem
+from Modules.ModifiedTreeModel import ModifiedTreeClass as TreeClass
+from Modules.TreeItem import TreeItem
 
 # ----------------------------------------
 # Variables and Functions
@@ -296,7 +296,7 @@ def tree_to_py(array_of_tree_nodes):
 if __name__ == "__main__":
 
     lg.info("Don't run me directly, I just provide some functions.")
-    schema = decode_function("Schemas/default.json")
+    schema = decode_function("../Schemas/default.json")
     blank_frame = schema_to_py_gen(schema)
     type_frame = schema_to_py_gen(schema, "type")
     descr_frame = schema_to_py_gen(schema, "description")
