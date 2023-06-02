@@ -3,7 +3,7 @@
 ***Note: this tool is in development and everything including the README and the documentation is "under construction"!***
 
 This is the repository for the pyJSON Schema Loader and JSON Editor - a JSON schema based JSON Editor and Validator.
-
+Additional information can be found in the [documentation](https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/)
 
 ## About
 This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based JSON editor capable of creating valid JSON from 

@@ -84,16 +84,6 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                 curr_schem = curr_schem["properties"][curr_key]
             lg.debug("Last Type fetched: " + curr_schem["type"])
             lg.debug("Type of item in model: " + value_type)
-            match value_type:
-                #case "number":
-                    #doubleSpinBox = QtWidgets.QDoubleSpinBox()
-                    #if "maximum" in curr_schem.keys():
-                    #    doubleSpinBox.setMaximum(currSchem["maximum"])
-                    #if "minimum" in curr_schem.keys():
-                    #    doubleSpinBox.setMinimum(currSchem["minimum"])
-                    #return doubleSpinBox
-                case _:
-                    pass
             if "enum" in curr_schem.keys():
                 lg.debug("custom delegate editor selected...")
                 dropDownEnum = QtWidgets.QComboBox(parent)
@@ -145,12 +135,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                 model.setData(index, value, Qt.EditRole)
         else:
             if model.getItem(index).get_data(3) == 'array':
-                model.beginInsertRows(index, index.row(), index.row() + 1)
-                lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an entry for an array."
-                        + " Inserting the entry as a child node...")
-                model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
-                model.endInsertRows()
-                ui.TreeView.expandAll()
+                if editor.text() != '':
+                    model.beginInsertRows(index, index.row(), index.row() + 1)
+                    lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an entry for an array."
+                            + " Inserting the entry as a child node...")
+                    model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
+                    model.endInsertRows()
+                    ui.TreeView.expandAll()
+                else:
+                    lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Will not add a node since text is empty.")
             elif editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
                 lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an empty entry of an array."
                         + " Removing node from TreeView...")
@@ -539,7 +532,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         creates an internal copy of said schema. Fail-safes in not overwriting existing schemas.
         """
-        lg.info("\n----------\nCopying schema to tool storage.\n-----------")
+        lg.info("\n----------\nCopy function - schema to tool storage\n-----------")
         try:
             filepath = QFileDialog.getOpenFileName(
                 caption = "Select a JSON Schema for Import...",
@@ -554,8 +547,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 QMessageBox.warning(
                     self,
                     "[pyJSON.copy_schema_to_storage/WARN]",
-                    "Source schema seems to be already in the schema " +
-                    "folder. It will not be copied."
+                    "Source schema seems to be already in the schema  folder. It will not be copied."
                 )
             else:
                 shutil.copyfile(filepath, os.path.join(script_dir, "Schemas", os.path.basename(filepath)))

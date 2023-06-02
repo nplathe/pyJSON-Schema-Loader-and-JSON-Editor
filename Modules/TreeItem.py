@@ -21,11 +21,14 @@ class TreeItem(object):
     """
     The TreeItem Class is a structure implementing the needed node functions for the TreeClass.
     """
-    def __init__(self, parent = None, data = None):
+    def __init__(self, parent = None, data = None, metadata = None):
         if data is None:
             data = []
+        if metadata is None:
+            metadata = {}
         self.parentItem = parent
         self.itemData = data
+        self.itemMetadata = metadata
         self.childItems = []
 
     # child functions
@@ -234,6 +237,47 @@ class TreeItem(object):
             child.remove_columns(position, columns)
 
         return True
+
+    # metadata functions
+    def add_mdata_pair(self, key, value):
+        """
+        A setter for a key-value pair for metadata.
+
+        Args:
+            key (str): the key to set
+            value(object): any given value
+        """
+        self.itemMetadata[key] = value
+
+    def add_metadata(self, dictionary = None):
+        """
+        Sets or overwrites the metadata dictionary with a copy of the passed dictionary.
+
+        Args:
+            dictionary(dict): a dictionary containing all metadata needed for operation
+        """
+        if dictionary is None:
+            self.itemMetadata = {}
+        else:
+            self.itemMetadata = dictionary.copy()
+
+    def get_metadata(self, key = ''):
+        """
+        Retrieves metadata.
+
+        Args:
+            key(str): a key present in the attached metadata
+
+        Returns: Either value, if present or None.
+
+        """
+        try:
+            if key == '':
+                return None
+            return self.itemMetadata[key]
+        except KeyError as err:
+            lg.error("[TreeItem.get_metadata/ERROR]: No key " + key + "present. Returning None.")
+            return None
 
     def __repr__(self) -> str:
         """

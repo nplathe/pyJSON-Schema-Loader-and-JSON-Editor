@@ -120,7 +120,7 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
 
     Args:
         decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
-        mode (str): The mode decides which tree is returned - "keys", "title", "type", "description"
+        mode (str): The mode decides which tree is returned - "keys", "title", "type", "description", "meta"
 
     Returns:
         dict: a nested dictionary representation of a JSON document, generated from the schema
@@ -132,6 +132,8 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
                 case "array":  # the value is a stub, is to be handled, when integrated to the model
                     if mode == "keys":
                         return_dict[element] = []
+                    elif mode == "meta":
+                        return_dict[element] = ["properties"][element]
                     else:
                         return_dict[element] = decoded_schema["properties"][element][mode]
                 case "object":
@@ -143,6 +145,8 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
                                 return_dict[element] = decoded_schema["properties"][element]["default"]
                             else:
                                 return_dict[element] = ""
+                        case "meta":
+                            return_dict[element] = decoded_schema["properties"][element]
                         case _:
                             return_dict[element] = decoded_schema["properties"][element][mode]
         except KeyError as err:
@@ -264,8 +268,10 @@ def tree_to_py(array_of_tree_nodes):
         if len(element.childItems) == 0:
             value = element.get_data(2)
             value_type = element.get_data(3)
-            if value == '':
+            if value == '' and value_type != 'array':
                 return_dict[element.get_data(0)] = value
+            elif value == '' and value_type == 'array':
+                return_dict[element.get_data(0)] = []
             else:
                 match value_type:
                     case "integer":
@@ -301,4 +307,5 @@ if __name__ == "__main__":
     type_frame = schema_to_py_gen(schema, "type")
     descr_frame = schema_to_py_gen(schema, "description")
     title_frame = schema_to_py_gen(schema, "title")
+    meta_frame = schema_to_py_gen(schema, "meta")
     print("success!")

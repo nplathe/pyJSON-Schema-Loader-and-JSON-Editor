@@ -30,7 +30,7 @@ In order to provide frozen environment builds, PyInstaller is recommended.
 
 It is highly recommended to create a virtual environment for installation and building an executable.
 
-With an [Anaconda installation](https://www.anaconda.com/), a new environment is created via
+With a [conda managed distribution](https://docs.conda.io/en/latest/), a new environment is created via
 
 ```bash
 conda create -n <yourenvname> python=3.10.9
