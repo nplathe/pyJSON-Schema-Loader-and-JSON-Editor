@@ -73,6 +73,10 @@ def validator_vars(json_str, json_schema_path):
         ds_json = json.loads(json_str)
         ds_schema = json.load(loaded_schema)
         validate(instance = ds_json, schema = ds_schema)
+    except json.decoder.JSONDecodeError as err:
+        lg.error("[jsonio_lib.validator_vars/ERROR]: JSON string could not be parsed!")
+        lg.error(err)
+        return -1
     except jsonschema.exceptions.ValidationError as err:
         lg.error("[jsonio_lib.validator_vars/ERROR]: JSON is not valid against selected Schema!")
         lg.error(err)
@@ -120,7 +124,7 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
 
     Args:
         decoded_schema (dict): a parsed JSON schema, represented as a nested dictionary
-        mode (str): The mode decides which tree is returned - "keys", "title", "type", "description", "meta"
+        mode (str): The mode decides which tree is returned - "keys", "meta"
 
     Returns:
         dict: a nested dictionary representation of a JSON document, generated from the schema
@@ -133,7 +137,7 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
                     if mode == "keys":
                         return_dict[element] = []
                     elif mode == "meta":
-                        return_dict[element] = ["properties"][element]
+                        return_dict[element] = decoded_schema["properties"][element]
                     else:
                         return_dict[element] = decoded_schema["properties"][element][mode]
                 case "object":
@@ -157,16 +161,14 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
     return return_dict
 
 
-def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_dict: dict, return_tree) -> TreeClass:
+def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
     """
     takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
     tree model needed for the TreeView. Inserts errors, if schema does not fit JSON document.
 
     Args:
         input_dict (dict): the parsed JSON document. If a new JSON is created, this shall be empty.
-        type_dict (dict): a dict containing the type for each key
-        title_dict (dict): a dict containing the title for each key
-        reference_dict (dict): a dict containing the description for each key
+        meta_dict(dict): the dictionary holding additional information extracted from the schema
         return_tree (TreeClass): An empty QAbstractItemModel-based tree
 
     Returns:
@@ -175,7 +177,7 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
     incrementor = 0
     for element in input_dict:
         try:
-            if element not in reference_dict:
+            if element not in meta_dict:
                 raise KeyError("[jsonio_lib.py_to_tree/ERROR]: Element not in Schema Definition.")
             if (type(input_dict[element]) is not dict) and (type(input_dict[element]) is not list):
                 temp_value = str(input_dict[element])
@@ -183,19 +185,19 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                     temp_value = temp_value.replace("'", "")
                 return_tree.add_node(parent = return_tree.root_node, data = [
                     element,
-                    title_dict[element],
+                    meta_dict[element]["title"],
                     temp_value,
-                    type_dict[element],
-                    reference_dict[element]
-                ])
+                    meta_dict[element]["type"],
+                    meta_dict[element]["description"]
+                ],
+                    metadata = meta_dict[element]
+                )
             else:
                 if type(input_dict[element]) is dict:
                     return_tree.add_node(parent = return_tree.root_node,
                                          data = [element, '', '', 'object', ''])
                     part_tree = py_to_tree(input_dict[element],
-                                           type_dict[element],
-                                           title_dict[element],
-                                           reference_dict[element],
+                                           meta_dict[element],
                                            return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
                     for node in part_tree.root_node.childItems:
                         node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
@@ -203,12 +205,14 @@ def py_to_tree(input_dict: dict, type_dict: dict, title_dict: dict, reference_di
                 else:
                     return_tree.add_node(parent = return_tree.root_node,
                                          data = [
-                                            element,
-                                            title_dict[element],
-                                            '',
-                                            type_dict[element],
-                                            reference_dict[element]
-                                         ])
+                                             element,
+                                             meta_dict[element]["title"],
+                                             '',
+                                             meta_dict[element]["type"],
+                                             meta_dict[element]["description"],
+                                         ],
+                                         metadata = meta_dict[element]
+                                         )
                     if len(input_dict[element]) > 0:
                         for item in input_dict[element]:
                             if type(item) is not dict:
@@ -308,4 +312,6 @@ if __name__ == "__main__":
     descr_frame = schema_to_py_gen(schema, "description")
     title_frame = schema_to_py_gen(schema, "title")
     meta_frame = schema_to_py_gen(schema, "meta")
+    test_tree1 = py_to_tree(blank_frame, type_frame, descr_frame, title_frame, TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+    test_tree2 = py_to_tree(blank_frame, meta_frame, TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
     print("success!")

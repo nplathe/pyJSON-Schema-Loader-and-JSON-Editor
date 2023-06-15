@@ -1,0 +1,25 @@
+{
+    "@id": "",
+    "@type": "CAD-Project",
+    "misc": {
+        "identifier": "Some workpiece",
+        "description": "Some description",
+        "working_dir": "./some_dir",
+        "start_date": "2022-01-31"
+    },
+    "user_info": {
+        "constructor": "Max Mustermann",
+        "engineer": "Someone McSomeone",
+        "tags": [
+            "Tag1",
+            "Tag2",
+            "Tag3"
+        ]
+    },
+    "project": {
+        "title": "Some project title",
+        "department": "Some department",
+        "cost_unit": "Some cost unit",
+        "revision_number": "Some number"
+    }
+}

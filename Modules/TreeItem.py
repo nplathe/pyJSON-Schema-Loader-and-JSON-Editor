@@ -260,6 +260,13 @@ class TreeItem(object):
             self.itemMetadata = {}
         else:
             self.itemMetadata = dictionary.copy()
+    def all_metadata(self):
+        """
+        A helper function to get the full metadata dictionary based on the schema
+
+        Returns: The metadata dictionary.
+        """
+        return self.itemMetadata
 
     def get_metadata(self, key = ''):
         """

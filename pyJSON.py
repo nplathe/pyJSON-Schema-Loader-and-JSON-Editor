@@ -70,6 +70,8 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         path_list = []
         cur_item = index.model().getItem(index)
         value_type = cur_item.get_data(3)
+        cur_meta = cur_item.all_metadata()
+        value_type2 = cur_item.get_metadata("type")
         path_list.append(cur_item.get_data(0))
         while cur_item.get_parent().get_data(0) != "Schema Key":
             cur_item = cur_item.get_parent()
@@ -427,10 +429,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 raise FileNotFoundError("[pyJSON.jsonopener/ERROR]: Specified file does not exist.")
             # TODO: VALIDATION TESTING HERE
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-            schema_frame = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
-            schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
-            schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
-            new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
+            schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
+            new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -500,13 +500,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if type(schema) is int and schema == -999:
                 self.combobox_repopulate()
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
-            schema_frame = jsonio_lib.schema_to_py_gen(schema, mode = "description")
-            schema_title = jsonio_lib.schema_to_py_gen(schema, mode = "title")
-            schema_type = jsonio_lib.schema_to_py_gen(schema, mode = "type")
+            schema_meta = jsonio_lib.schema_to_py_gen(schema, mode = "meta")
 
             if not config["last_JSON"] is None:
                 read_frame = jsonio_lib.decode_function(config["last_JSON"])
-                new_tree = jsonio_lib.py_to_tree(read_frame, schema_type, schema_title, schema_frame,
+                new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
                                                  TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
                 self.TreeView.reset()
                 self.TreeView.setModel(new_tree)
@@ -636,11 +634,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
 
             pre_json = jsonio_lib.schema_to_py_gen(curr_schem)
-            pre_descr = jsonio_lib.schema_to_py_gen(curr_schem, mode = "description")
-            pre_title = jsonio_lib.schema_to_py_gen(curr_schem, mode = "title")
-            pre_type = jsonio_lib.schema_to_py_gen(curr_schem, mode = "type")
-
-            new_tree = jsonio_lib.py_to_tree(pre_json, pre_type, pre_title, pre_descr,
+            pre_meta = jsonio_lib.schema_to_py_gen(curr_schem, mode = "meta")
+            new_tree = jsonio_lib.py_to_tree(pre_json, pre_meta,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
             self.TreeView.reset()
@@ -697,11 +692,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             default_values = jsonio_lib.decode_function(os.path.join(script_dir, "Default", config["last_schema"]))
 
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-            schema_descr = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
-            schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
-            schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
-
-            new_tree = jsonio_lib.py_to_tree(default_values, schema_type, schema_title, schema_descr,
+            schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
+            new_tree = jsonio_lib.py_to_tree(default_values, schema_meta,
                                              TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
             self.TreeView.reset()
@@ -742,13 +734,10 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     values = jsonio_lib.decode_function(os.path.join(config["last_JSON"]))
 
                     schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
-                    schema_descr = jsonio_lib.schema_to_py_gen(schema_read, mode = "description")
-                    schema_type = jsonio_lib.schema_to_py_gen(schema_read, mode = "type")
-                    schema_title = jsonio_lib.schema_to_py_gen(schema_read, mode = "title")
+                    schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
 
-                    new_tree = jsonio_lib.py_to_tree(values, schema_type, schema_title, schema_descr,
-                                                     TreeClass(
-                                                         data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                    new_tree = jsonio_lib.py_to_tree(values, schema_meta,
+                        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -1060,12 +1049,10 @@ if __name__ == "__main__":
             save_config(script_dir, config)
 
     lg.info("\n----------\nGenerating reference from schema\n----------")
-    st_pre_descr = jsonio_lib.schema_to_py_gen(frame, mode = "description")
-    st_pre_title = jsonio_lib.schema_to_py_gen(frame, mode = "title")
-    st_pre_type = jsonio_lib.schema_to_py_gen(frame, mode = "type")
+    st_pre_meta = jsonio_lib.schema_to_py_gen(frame, mode = "meta")
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
-    model = jsonio_lib.py_to_tree(st_pre_json, st_pre_type, st_pre_title, st_pre_descr,
-                                  TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+    model = jsonio_lib.py_to_tree(st_pre_json, st_pre_meta,
+        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
     ui.label_curDir.setText(config["last_dir"])
 
     ui.TreeView.setModel(model)

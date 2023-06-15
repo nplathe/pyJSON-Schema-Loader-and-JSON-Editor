@@ -19,3 +19,6 @@
 # ignore the config and the spec file
 /pyJSON.spec
 /pyJSON_conf.json
+
+# ignore pytest caches
+/.pytest_cache/

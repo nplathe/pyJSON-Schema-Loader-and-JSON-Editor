@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'The pyJSON Schema Loader and Editor'
-copyright = '2023, Nick Plathe'
+copyright = '2023, Nick Plathe, Leibniz-Institut für Plasmaforschung und Technologie e.V.'
 author = 'Nick Plathe'
 
 # The full version, including alpha/beta/rc tags

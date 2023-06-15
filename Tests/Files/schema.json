@@ -1,0 +1,155 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema#",
+	"$id": "https://inp-greifswald.de",
+	"title": "DRAW_mds - a CAD and 3D model metadata schema",
+	"description": "Directory-based, Reusable, Archive Work - this meta data schema shall be used for document metadata of several CAD or 3D files.",
+	"type": "object",
+	"properties":
+	{
+		"@context": {
+			"description": "The JSON-LD context",
+			"anyOf": [
+				{
+					"type": "string"
+				},
+				{
+					"type": "object"
+				},
+				{
+					"type": "array"
+				}
+			]
+		},
+		"@id": {
+			"title": "JSON-LD Identifier",
+			"description": "The IRI identifier for this Object.",
+			"type": "string",
+			"format": "uri"
+		},
+		"@type": {
+			"title": "JSON-LD Type",
+			"description": "The JSON-LD data type.",
+			"type": "string",
+			"default": "CAD-Project"
+		},
+		"misc":
+		{
+			"title": "General Information",
+			"description": "General information about the work piece.",
+			"type": "object",
+			"required": ["type_of_file", "identifier", "start_date"],
+			"properties":
+			{
+				"type_of_file":
+				{
+					"title": "Type of File",
+					"description": "The used file type, needed for further organisation of the data",
+					"type": "string",
+					"enum":
+						[
+						"Autodesk Inventor (.ipt, .iam, .ipn, .dwg, .idw)",
+						"Autodesk AutoCAD (.dwg)",
+						"SolidWorks (.sldprt, .sldasm, .slddrw)",
+						"Stereolithography CAD (.stl)",
+						"X3D (.x3d)",
+						"Blender (.blender)",
+						"Wavefront OBJ (.obj)",
+						"Other/Unknown"
+						]
+				},
+				"identifier":
+				{
+					"title": "Title of the Workpiece",
+					"description": "The name, title or identifier of the workpiece",
+					"type": "string"
+				},
+				"description":
+				{
+					"title": "Description of the Workpiece",
+					"description": "A descriptive short text about the purpose or properties of the workpiece",
+					"type": "string"
+				},
+				"working_dir":
+				{
+					"title": "Working Directory",
+					"description": "The directory the files are located in",
+					"type": "string"
+				},
+				"start_date":
+				{
+					"title": "Start Date",
+					"description": "Start date of the development of the workpiece",
+					"type": "string",
+					"format": "date"
+				}
+			}
+		},
+		"user_info":
+		{
+			"title": "User Information",
+			"description": "Various information about and from the user(s).",
+			"type": "object",
+			"required": ["constructor"],
+			"properties":
+			{
+				"constructor":
+				{
+					"title": "Constructor",
+					"description": "The person creating the workpiece file and constructing the model.",
+					"type": "string"
+				},
+				"engineer":
+				{
+					"title": "Engineer",
+					"description": "The person responsible and asking for the construction. Can be internal or external.",
+					"type": "string"
+				},
+				"tags":
+				{
+					"title": "User generated Tags",
+					"description": "A list of user generated tags, enhancing searchability",
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"uniqueItems": true
+				}
+			}
+		},
+		"project":
+		{
+			"type": "object",
+			"title": "Project Information",
+			"description": "Information about the main project the workpiece is developed for",
+			"required": ["title"], 
+			"properties":
+			{
+				"title":
+				{
+					"title": "Project Title or Name",
+					"description": "A common identifier for the project the workpiece belongs to",
+					"type": "string"
+				},
+				"department":
+				{
+					"title": "Department or Division",
+					"description": "The research department or division using the workpiece",
+					"type": "string"
+				},
+				"cost_unit":
+				{
+					"title": "Cost Unit",
+					"description": "The cost unit providing financial resources to the project.",
+					"type": "string"
+				},
+				"revision_number":
+				{
+					"title": "Revision Number",
+					"description": "Information about the revision. Hint: mayor.minor.patch",
+					"type": "string"
+				}
+			}
+		}
+	},
+	"required": ["misc", "project", "user_info", "@type"]
+}

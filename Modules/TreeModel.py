@@ -196,17 +196,17 @@ class TreeClass(QtCore.QAbstractItemModel):
             str(item.get_data_array()) + "\n----------")
         return result
 
-    def add_node(self, parent, data):
+    def add_node(self, parent, data, metadata = None):
         """
         Adds a node as a child to a given parent
 
         Args:
             parent (TreeItem): the parent node the new node is attached to
             data (list): a list of the data of the new node
-
+            metadata (dict): metadata from the schema
         Returns:
         """
-        node = TreeItem(data = data, parent = parent)
+        node = TreeItem(data = data, parent = parent, metadata = metadata)
         parent.append_child(node)
 
     def flags(self, index):

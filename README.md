@@ -14,7 +14,7 @@ helps keeping track of filesystem-based repositories filled with metadata.
  look at [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)). 
 
 
-## Quick Start
+## Quick start
 
 * Make sure python 3.10 is installed and operational.
 * Clone this repository.
@@ -35,21 +35,21 @@ for more details.
 
 ## Featueres
 
-### Reading, Validating and Writing JSON files
+### Reading, validating and writing JSON files
 
 The pyJSON Schema Loader and JSON Editor is capable of opening and saving JSON files. It supports editing the values and, 
 given the proper schema, provides a title and description for each key-value-pair. Every operation shall be validated 
 against the schema in the future to prevent falsely entered information.
 
 
-### Working with Schemas
+### Working with schemas
 
 A JSON schema can be used to validate information stored in JSON files. The tool uses this fact to generate JSON barebone
 files from schemas. Additional schemas can be added via `Files -> Add Schema...` and selected via the combobox for the 
 currently selected schema. Defaults for the current schema can be stored and loaded.
 
 
-### Organising Schemas on a file system
+### Organising schemas on a file system
 
 pyJSON can index directories for a search functionality based on the validation against a schema and on keywords entered
 into a blank schema. Search results open in a separate window and can be opened in pyJSON, another editing software or 
@@ -94,3 +94,8 @@ Repository Directory
 ├── pyJSON_conf.json         The config file of pyJSON.
 └── pyJSON_interface.py      Converted python file of the UI of pyJSON
 ```
+
+## Grant information
+
+The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A.
+The responsibility for the content of this repository lies with the authors.
