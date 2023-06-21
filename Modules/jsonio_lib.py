@@ -247,7 +247,7 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
             else:
                 return_tree.add_node(parent = return_tree.root_node,
                                      data = [element, '', '', '', ''])
-                part_tree = py_to_tree(input_dict[element], {}, {}, {},
+                part_tree = py_to_tree(input_dict[element], {},
                                        return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:
                     node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
