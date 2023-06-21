@@ -25,6 +25,7 @@ caption: Contents
 ---
 
 installation
+usage
 modules
 ```
 
