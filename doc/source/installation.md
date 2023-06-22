@@ -9,64 +9,68 @@ Due to match cases being used in several parts, pyJSON is explicitly not compati
 prior to python 3.10! See [PEP 636](https://peps.python.org/pep-0636/) for details.
 ```
 
-For running pyJSON, the following packages are needed (also stored in the requirements.txt):
+For running pyJSON, the following packages are needed:
 
-* jsonvalidate (~=4.17.3)
-* PySide6 (~=6.5.0)
-* regex (~=2022.7.9)
-* future (~=0.18.3)
-
-Furthermore, in order to build the documentation, 
-
-* sphinx (~=5.0.2)
-* myst-parser (~=0.18.1)
-* furo (~=2022.12)
-
-should be installed as well.
-
-In order to provide frozen environment builds, PyInstaller is recommended.
+| package      | version    | purpose                              |
+|--------------|------------|--------------------------------------|
+| jsonvalidate | ~=4.17.3   | JSON validation via JSON schema      |
+| PySide6      | ~=6.5.0    | python bindings for the QT framework |
+| regex        | ~=2022.7.9 | regular expressions                  |
+| future       | ~=0.18.3   | compatibility layer                  |
 
 ## Prerequisites
 
-It is highly recommended to create a virtual environment for installation and building an executable.
+```{note}
+It is highly recommended to create a virtual environment for installation and building an executable. Virtual environments 
+keep your main installation free from unneeded packages and introduce a separation of the several packages used, which heavily
+benefits development and avoids unnecessary issues, e.g. package conflicts.
+```
 
-With a [conda managed distribution](https://docs.conda.io/en/latest/), a new environment is created via
+### A: installing packages via pip
 
+In order to run pyJSON, run the following command in the repository directory to install the dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+```{warning}
+As of [PEP 668](https://peps.python.org/pep-0668/), if your base environment is marked as externally managed, you **must**
+use a virtual environment.
+```
+
+### B: conda managed environment
+
+[conda](https://docs.conda.io/en/latest/) is an alternative package manager for python. It is capable of creating and managing
+several sources for packages, creating virtual environments and solving dependencies for packages.
+
+First create a new virtual environment and enter it.
 ```bash
 conda create -n <yourenvname> python=3.10.9
-```
-with `<yourenvname>` being replaced by a name of your choosing.
-You can then switch into your environment with
-
-```bash
 conda activate <yourenvname>
 ```
 
-```{note}
-Leave your environment with `conda deactivate`.
+You can always leave your environment with `conda deactivate`.
+
+Install the dependencies. Note, that, dependent on your settings and distribution of the conda package manager, you might have
+to specify the channel with the `-c` argument, e.g. `-c conda-forge` for the community-driven [conda-forge repository](https://conda-forge.org/),
+which contains all of the needed packages.
+
+```bash
+conda install -n <yourenvname> jsonvalidate regex future
 ```
-After creation of the new environment, packages can be added. For **PySide6**, it is advised to install it via pip. In your environment, run:
 
 ```bash
 pip install PySide6
 ```
 
-Afterwards, you can install packages with:
+## Building the documentation
 
-```bash
-conda install -n <yourenvname> [package-name]
-```
+If you are interested in building the documentation yourself, you need the following packages:
 
-```{warning}
-Some packages are not located in the standard conda repository, but e.g. in the conda-forge repository.
-Use `conda install -c conda-forge -n <yourenvname> [package-name]` for installation then.
-```
-
-Alternatively, if you are not using Anaconda, you might install all requirements with
-
-```bash
-pip install -r requirements.txt
-```
+* sphinx (~=5.0.2)
+* myst-parser (~=0.18.1)
+* furo (~=2022.12)
 
 ## Running pyJSON
 In your python environment in the command line, after installing the prerequisites, navigate to the directory pyJSON is located in and execute 

@@ -33,7 +33,7 @@ highly advised.
 Head over to the [installation section of the documentation](https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/installation.html)
 for more details.
 
-## Featueres
+## Features
 
 ### Reading, validating and writing JSON files
 
@@ -78,24 +78,26 @@ Note that a JSON document always gets fully validated against the selected schem
 
 ### Structure of the tool
 
-Below a list of the repository and an explanation of important files:
+pyJSON features an extensive structure of files and directories. Below, you find an explanation of important files, some being
+created during runtime:
 
 ```
 Repository Directory
 ├── Default                  Storage for templates and defaults created by pyJSON.
 ├── Indexes                  Storage for search indexes.
-    └── pyJSON_S_index.json  The main index file containing pairs of indexes and the path to the corresponding directory.
+|   └── pyJSON_S_index.json  The main index file containing pairs of indexes and the path to the corresponding directory.
 ├── Logs                     Log directory. Gets created when the first log is written.
 ├── Modules                  Directory of the source code for modules of pyJSON.
 ├── Schemas                  The storage for the schemas.
-    └── default.json         The default schema, which doubles as a small test case.
+|   └── default.json         The default schema, which doubles as a small test case.
+├── Tests                    Directory containing PyTest classes for automated testing.
 ...
 ├── pyJSON.py                The main python file of pyJSON.
 ├── pyJSON_conf.json         The config file of pyJSON.
-└── pyJSON_interface.py      Converted python file of the UI of pyJSON
+└── pyJSON_interface.py      Converted python file of the UI of pyJSON.
 ```
 
 ## Grant information
 
-The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A.
+The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A and by "Deutsche Forschungsgemeinschaft (DFG)" - Projektnummer 454848899. 
 The responsibility for the content of this repository lies with the authors.
