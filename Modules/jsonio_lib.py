@@ -2,6 +2,11 @@
 # pyJSON Schema Loader and JSON Editor - IO and Conversion Module
 # author: N. Plathe
 # ----------------------------------------
+"""
+Wraps araound the json and the json schema module. It also converts JSON and JSON schema into appropriate data structures
+for Python and QT.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine
@@ -93,7 +98,6 @@ def validator_vars(json_str, json_schema_path):
     return 0
 
 
-#
 def decode_function(json_path):
     """
     Wrapper for the JSONDecoder function.
@@ -298,20 +302,3 @@ def tree_to_py(array_of_tree_nodes):
                         tempList.append(child.get_data(2))
                 return_dict[element.get_data(0)] = tempList
     return return_dict
-# ----------------------------------------
-# Execution
-# ----------------------------------------
-
-
-if __name__ == "__main__":
-
-    lg.info("Don't run me directly, I just provide some functions.")
-    schema = decode_function("../Schemas/default.json")
-    blank_frame = schema_to_py_gen(schema)
-    type_frame = schema_to_py_gen(schema, "type")
-    descr_frame = schema_to_py_gen(schema, "description")
-    title_frame = schema_to_py_gen(schema, "title")
-    meta_frame = schema_to_py_gen(schema, "meta")
-    test_tree1 = py_to_tree(blank_frame, type_frame, descr_frame, title_frame, TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
-    test_tree2 = py_to_tree(blank_frame, meta_frame, TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
-    print("success!")

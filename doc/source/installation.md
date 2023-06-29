@@ -20,7 +20,7 @@ For running pyJSON, the following packages are needed:
 
 ## Prerequisites
 
-```{note}
+```{hint}
 It is highly recommended to create a virtual environment for installation and building an executable. Virtual environments 
 keep your main installation free from unneeded packages and introduce a separation of the several packages used, which heavily
 benefits development and avoids unnecessary issues, e.g. package conflicts.
@@ -68,9 +68,11 @@ pip install PySide6
 
 If you are interested in building the documentation yourself, you need the following packages:
 
-* sphinx (~=5.0.2)
-* myst-parser (~=0.18.1)
-* furo (~=2022.12)
+| package     | version   | purpose                            |
+|-------------|-----------|------------------------------------|
+| sphinx      | ~=5.0.2   | documentation generation framework |
+| myst-parser | ~=0.18.1  | Markdown parser for sphinx         |
+| furo        | ~=2022.12 | alternative HTML theme for sphinx  |
 
 ## Running pyJSON
 In your python environment in the command line, after installing the prerequisites, navigate to the directory pyJSON is located in and execute 

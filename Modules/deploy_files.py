@@ -2,6 +2,11 @@
 # pyJSON Schema Loader and JSON Editor - Config Deployment Module
 # author: N. Plathe
 # ----------------------------------------
+"""
+This Module deploys a small toy example schema and the config. It also contains smaller functions wrapping around saving the
+config or the index files.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine
@@ -34,7 +39,7 @@ def deploy_schema(path):
 	    "$schema": "https://json-schema.org/draft/2020-12/schema",\
 	    "$id": "https://inp-greifswald.de",\
 	    "title": "Blank Schema",\
-	    "description": "A default Schema for my pyjson converter. Get\'s created by the tool on the fly.",\
+	    "description": "A default Schema for pyJSON. Get\'s created by the tool on the fly.",\
 	    "type": "object",\
 	    "properties": {\
 		    "general": {\

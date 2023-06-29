@@ -2,6 +2,10 @@
 # pyJSON Schema Loader and JSON Editor - Search Functions and Components
 # author: N. Plathe
 # ----------------------------------------
+"""
+Provides functionality around indexing directories and searching inside JSON documents.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Knorkator - Sieg der Vernunft
 # ----------------------------------------
@@ -307,9 +311,3 @@ def check_index(script_dir, path, index_dict):
     except KeyError as err:
         lg.debug(err)
         lg.error("[jsonsearch_lib.checkIndex/ERROR]: No valid index from list selected!")
-
-# ----------------------------------------
-# Execution
-# ----------------------------------------
-if __name__ == "__main__":
-    lg.info("Don't run me directly, I'm just a module providing search functions.")

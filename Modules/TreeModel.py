@@ -3,6 +3,10 @@
 # Implementation based on examples of the Qt Documentation.
 # author: N. Plathe
 # ----------------------------------------
+"""
+A tree-like model that implements QAbstractModel. Implementation based on examples of the Qt Documentation.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine
@@ -84,7 +88,7 @@ class TreeClass(QtCore.QAbstractItemModel):
         else:
             return QModelIndex()
 
-    def parent(self, child: QModelIndex) -> QModelIndex: # function is overloaded in QAbstractItemModel
+    def parent(self, child: QModelIndex) -> QModelIndex: # function is overloaded in QAbstractItemModel in C++
         """
         returns the parent of a child node
 
@@ -308,41 +312,3 @@ class TreeClass(QtCore.QAbstractItemModel):
 
     def __repr__(self) -> str:
         return self._repr_recursion(self.root_node)
-
-# ----------------------------------------
-# Execution
-# ----------------------------------------
-
-if __name__ == "__main__":
-
-    # Just a toy example
-    import sys
-
-    print("Running functional toy example:")
-
-    app = QtWidgets.QApplication(sys.argv)
-    ui = QtWidgets.QTreeView()
-
-    model = TreeClass(data=["Key", "Value", "Descr"])
-    model.add_node(parent = model.root_node, data = ["Name","Charizard","The Pokémon name"])
-    model.add_node(parent = model.root_node.retrieve_child_by_index(0), data = ["Attack Move 1", "Flamethrower", "Powerful Fire Attack with chance of inflicting burns."])
-
-    model.add_node(parent = model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
-                   data = ["Damage Class", "Special", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
-                   data=["Element Type", "Fire", "Determines effectiveness against Foes Element Type"])
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(0),
-                   data=["Power", "90", "Determines the Power of the Attack"])
-
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0), data=["Attack Move 2", "Fly", "Flies up in Round 1, Attacks in Round 2."])
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
-                   data=["Damage Class", "Physical", "Determines whetever using Atk and Def or Sp. Atk and Sp. Def for Damage calculation"])
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
-                   data=["Element Type", "Flying", "Determines effectiveness against Foes Element Type"])
-    model.add_node(parent=model.root_node.retrieve_child_by_index(0).retrieve_child_by_index(1),
-                   data=["Power", "90", "Determines the Power of the Attack"])
-
-    ui.setModel(model)
-    ui.show()
-
-    sys.exit(app.exec())

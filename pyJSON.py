@@ -2,6 +2,10 @@
 # pyJSON Schema Loader and JSON Editor - Main Module
 # author: N. Plathe
 # ----------------------------------------
+"""
+This is the main module, extending on the interface and implementing functions that call on the modules.
+"""
+# ----------------------------------------
 # pyJSONs main repo:
 # https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor
 # ----------------------------------------
@@ -562,7 +566,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     def save_as_function(self):
         """
-        first, calls a dialog for saving a file. Then creates a dictionary from the TreeView model and writes it as
+        first, calls a dialog for saving a file, then creates a dictionary from the TreeView model and writes it as
         JSON Document to the file system at the given path.
         """
         selected_path = QFileDialog.getSaveFileName(

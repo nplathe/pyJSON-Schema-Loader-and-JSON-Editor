@@ -2,6 +2,10 @@
 # a model for the json schema that implements TreeModel and by extension QAbstractModel
 # author: N. Plathe
 # ----------------------------------------
+"""
+This subclass of TreeModel is providing specialised functionality in order to work well with the interface.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Feuerschwanz - Memento Mori
 # Bullet for my Valentine - Bullet for my Valentine

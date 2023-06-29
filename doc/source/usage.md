@@ -45,9 +45,14 @@ pyJSON is in development and the interface might be subject to change.
 Saving a before opened then edited document will overwrite the original *without* further question!
 ```
 
+```{note}
+Currently, value fields for objects are editable, however, any information being entered there gets omitted, when saving the JSON
+document. 
+```
+
 ## Tutorials
 
-### Creating a JSON on a schema basis.
+### Creating a JSON on a schema basis
 A core functionality of the pyJSON Schema Loader and Editor is the creation of a JSON document based on
 a corresponding [JSON Schema](https://json-schema.org/), validating inputs and structure in the process.
 In order to do so, one needs a JSON schema.
@@ -57,10 +62,52 @@ We create a JSON based on the integrated demo schema that gets deployed when fir
 
 1) Start pyJSON.
     * If not the case, select the "default.json" in the "Current Schema" drop down menu. Then, if needed, use the "New from 
-        Schema" Button (see image above, first button of segment 4)
+        Schema" Button (see image above, segment 4, indicated by a blank paper)
 2) Enter some information. You _can_ leave entries blank, however keep in mind that your JSON might not validate against the
     schema, if the field must not be empty.
-3) Click on the "Save" button. A dialog will appear in which you can select the location the file shall be saved in. A name,
+3) Click on the "Save" button (see above, segment 4, indicated by a floppy disk). A dialog will appear in which you can select the location the file shall be saved in. A name,
     `_meta.json`, will be proposed. Navigate to a directory of your choice, change the name, if you want to and save the file.
 4) You can check the file with an editor of your choice.
 
+### Adding a schema to the internal tool storage
+pyJSON can store several schemas for selection as a base for the next JSON document to be created. We assume we know already,
+which JSON schema we want to add. In this example, this will be the [Plasma Metadata Schema (Plasma-MDS)](https://www.plasma-mds.org/),
+a general purpose schema for creating and validating metadata associated with the field of plasma physics.
+
+1) Navigate to https://github.com/plasma-mds/plasma-metadata-schema - the repository of the Plasma-MDS.
+2) Select `json-schema`, then `plasma-mds.json`.
+3) Select `Raw`, then save the document on your computer. Make sure it is saved as a JSON file.
+4) Start pyJSON.
+5) Press the "Add Schema" button (see above, segment 3, indicated by three horizontal bars).
+6) In the appearing dialog window, navigate to the downloaded JSON document and "Open" it.
+
+The schema gets copied and afterwards, it can be selected from the drop down menu.
+
+### Indexing a directory for search
+pyJSON makes it possible to index and search directories for JSON documents. This is helpful, when data has to be managed locally.
+In order to follow this section, create a directory beforehand, add a few more JSON documents and keep in mind, which schema
+you used.
+
+1) When finished with preparation, open pyJSON.
+2) Click the "Add directory" button (see above, segment 3, indicated by a folder and a plus sign).
+3) Select your directory. Wait for the program to report finishing the process.
+
+### Utilising the search
+With a directory added for indexing, we can now use that index to have a look for our JSON documents.
+
+1) Select a JSON Schema.
+2) Select an index.
+   * (Optional) Use the editing interface as a search mask - empty fields will be omitted
+3) Click on the "Search" button. (see above, segment 3, indicated by a magnifying glass)
+
+The search results will be presented in a separate window. It is possible to right click them to either open them
+in pyJSON, in an editing software or in the file manager.
+
+```{hint}
+It might occour that, with only a schema selected and no search terms set, more results are presented than expected. This
+is not necessarily an error, since JSON Schema gets only applied to keywords present in the JSON document, therefor also
+validating JSON documents not having exactly the desired structure. To circumvent that behaviour, the `required` keyword
+must be present in the schema and list all keys that must be present. See
+[this guide by the JSON schema team](https://json-schema.org/blog/posts/applicability-json-schema-fundamentals-part-1)
+for details on how validation works.
+```

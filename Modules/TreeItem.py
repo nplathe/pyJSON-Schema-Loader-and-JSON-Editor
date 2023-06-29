@@ -3,6 +3,10 @@
 # Mostly feature complete implementation of examples found in the Qt documentation
 # author: N. Plathe
 # ----------------------------------------
+"""
+This class is a simple data structuring class retaining needed information for TreeModel.
+"""
+# ----------------------------------------
 # Music recommendation (albums):
 # Harpyie - Blutban
 # ----------------------------------------
