@@ -250,7 +250,7 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
                                              descrStr])
             else:
                 return_tree.add_node(parent = return_tree.root_node,
-                                     data = [element, '', '', '', ''])
+                                     data = [element, '', '', 'object', ''])
                 part_tree = py_to_tree(input_dict[element], {},
                                        return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]))
                 for node in part_tree.root_node.childItems:

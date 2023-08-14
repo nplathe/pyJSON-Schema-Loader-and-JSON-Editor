@@ -13,7 +13,7 @@ Provides functionality around indexing directories and searching inside JSON doc
 # ----------------------------------------
 # system imports
 import logging as lg
-import regex as re
+import regex
 import os
 import json
 import jsonschema
@@ -135,21 +135,21 @@ def f_search(search_index, search_dict):
                 lg.info("Current Search Key: " + j)
                 lg.info("Current Search Term: " + str(search_dict[j]))
                 lg.info("----------")
-                comp_str = re.compile(re.escape(str(search_dict[j])))
+                comp_str = regex.compile(regex.escape(str(search_dict[j])))
                 for k in list(check_list.keys()):
                     if check_list[k] == "":
                         del check_list[k]
                 for l in list(check_list.keys()):
-                    if l == j and not re.search(comp_str, str(check_list[l])):
+                    if l == j and not regex.search(comp_str, str(check_list[l])):
                         copy_index.remove(i)
-                        lg.debug("\nValue does not match search value for given key.\nRemoved :" + i)
+                        lg.debug("\nValue does not match search value for given key.\nRemoved: " + i)
                 if j not in list(check_list.keys()):
                     copy_index.remove(i)
-                    lg.debug("\nGiven key not present or value for given key was empty.\nRemoved :" + i)
+                    lg.debug("\nGiven key not present or value for given key was empty.\nRemoved: " + i)
         result_list = copy_index
-    except (re.error, OSError, AttributeError) as err:
+    except (regex.error, OSError, AttributeError) as err:
         lg.error(err)
-        if isinstance(err, re.error):
+        if isinstance(err, regex.error):
             msg = "Regex Error: At least one search term could not be compiled into a regular expression."
         elif isinstance(err, OSError):
             msg = "Operating System Error: JSON could not be inspected for Keyword search."
@@ -231,7 +231,7 @@ def start_index(script_dir, path, index_dict, show_boxes = True):
             )
         for root, dirs, files in os.walk(path, topdown = False):
             for name in files:
-                if re.match("^.*\.json$", name):
+                if regex.match(r"^.*\.json$", name):
                     indexed_files.append(os.path.normpath(os.path.join(root, name)))
         if len(indexed_files) == 0:
             lg.info("[jsonsearch_lib.start_index/INFO]: No JSON files found. Index is empty.")
