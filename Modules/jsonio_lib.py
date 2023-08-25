@@ -165,15 +165,16 @@ def schema_to_py_gen(decoded_schema, mode: str = "keys"):
     return return_dict
 
 
-def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
+def py_to_tree(input_dict: dict, meta_dict: dict, return_tree, show_errors = True) -> TreeClass:
     """
     takes a dict generated either from a schema or a JSON and a reference dict from a schema and builds the
     tree model needed for the TreeView. Inserts errors, if schema does not fit JSON document.
 
     Args:
         input_dict (dict): the parsed JSON document. If a new JSON is created, this shall be empty.
-        meta_dict(dict): the dictionary holding additional information extracted from the schema
+        meta_dict (dict): the dictionary holding additional information extracted from the schema
         return_tree (TreeClass): An empty QAbstractItemModel-based tree
+        show_errors (bool): Set errorneous descriptions to be visible. Defaults to True.
 
     Returns:
         TreeClass: An QAbstractItemModel-based tree containing all needed information for the UI
@@ -202,7 +203,8 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
                                          data = [element, '', '', 'object', ''])
                     part_tree = py_to_tree(input_dict[element],
                                            meta_dict[element],
-                                           return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]))
+                                           return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]),
+                                           show_errors = show_errors)
                     for node in part_tree.root_node.childItems:
                         node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
                         return_tree.root_node.retrieve_child_by_index(incrementor).append_child(node)
@@ -223,7 +225,7 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
                                 return_tree.root_node.last_child().append_child(
                                     TreeItem(
                                         parent = return_tree.root_node.last_child(),
-                                        data = ['', '', str(item), 'string', 'Array Item']
+                                        data = ['', '', item, return_tree.root_node.last_child().get_metadata("items")["type"], 'Array Item']
                                     )
                                 )
             incrementor += 1
@@ -232,30 +234,50 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree) -> TreeClass:
             titleStr = ""
             descrStr = ""
             if isinstance(err, KeyError):
-                lg.error("[jsonio_lib.py_to_tree/ERROR]: KeyError: Key " + element +
-                         " may not be present in Schema. Switch to erroneous description.")
-                titleStr = "KeyError"
-                descrStr = "The key is not present in the current hiearchy level of the schema."
+                if show_errors:
+                    lg.error("[jsonio_lib.py_to_tree/ERROR]: KeyError: Key " + element +
+                             " may not be present in Schema. Switch to erroneous description.")
+                    titleStr = "KeyError"
+                    descrStr = "The key is not present in the current hiearchy level of the schema."
+                else:
+                    lg.error("[jsonio_lib.py_to_tree/ERROR]: KeyError: Key " + element +
+                             " may not be present in Schema. Switch to blank description.")
             if isinstance(err, TypeError):
                 lg.error("[jsonio_lib.py_to_tree/ERROR]: " + str(err))
-                lg.error("[jsonio_lib.py_to_tree/ERROR]: TypeError: Structural missmatch detected. " +
+                if show_errors:
+                    lg.error("[jsonio_lib.py_to_tree/ERROR]: TypeError: Structural missmatch detected. " +
                          "Switch to erroneous description.")
-                titleStr = "ValueError"
-                descrStr = "Because of a structural missmatch, data that was read from the schema " +\
-                           "is invalid."
-            if type(input_dict[element]) is not dict:
+                    titleStr = "ValueError"
+                    descrStr = "Because of a structural missmatch, data that was read from the schema " +\
+                               "is invalid."
+                else:
+                    lg.error("[jsonio_lib.py_to_tree/ERROR]: TypeError: Structural missmatch detected. " +
+                             "Switch to blank description.")
+            if type(input_dict[element]) is not dict and type(input_dict[element]) is not list:
                 return_tree.add_node(parent = return_tree.root_node,
                                      data = [element, titleStr,
-                                             str(input_dict[element]), 'string',
+                                             input_dict[element], str(type(input_dict[element])),
                                              descrStr])
             else:
-                return_tree.add_node(parent = return_tree.root_node,
-                                     data = [element, '', '', 'object', ''])
-                part_tree = py_to_tree(input_dict[element], {},
-                                       return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]))
-                for node in part_tree.root_node.childItems:
-                    node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
-                    return_tree.root_node.retrieve_child_by_index(incrementor).append_child(node)
+                if type(input_dict[element]) is dict:
+                    return_tree.add_node(parent = return_tree.root_node,
+                                         data = [element, '', '', 'object', ''])
+                    part_tree = py_to_tree(input_dict[element], {},
+                                        return_tree=TreeClass(data=["K", "Ti", "V", "Ty", "D"]),
+                                        show_errors = show_errors)
+                    for node in part_tree.root_node.childItems:
+                        node.parentItem = return_tree.root_node.retrieve_child_by_index(incrementor)
+                        return_tree.root_node.retrieve_child_by_index(incrementor).append_child(node)
+                else:
+                    return_tree.add_node(parent = return_tree.root_node,
+                                         data = [element, '', '', 'array', ''])
+                    for l_element in input_dict[element]:
+                        return_tree.root_node.last_child().append_child(
+                            TreeItem(
+                                parent = return_tree.root_node.last_child(),
+                                data = ['', '', l_element, str(type(l_element)), 'Array Item']
+                            )
+                        )
             incrementor += 1
     return return_tree
 

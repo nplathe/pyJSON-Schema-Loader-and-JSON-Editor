@@ -40,7 +40,8 @@ from Modules.deploy_files import deploy_schema, deploy_config, save_config, save
 from Modules.ModifiedTreeModel import ModifiedTreeClass as TreeClass
 
 # import the converted user interface
-from pyJSON_interface import Ui_MainWindow
+from UserInterfaces.pyJSON_interface import Ui_MainWindow
+from Modules.pref_ui import ui_preferences
 
 
 # ----------------------------------------
@@ -276,22 +277,27 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
     The main window class, which is a subclass of the converted interface class generated from the ui XML file. It contains
     all the slots for functionality of the ui.
     """
-    def __init__(self):
+    def __init__(self, config = None):
         """
         Constructor. Sets up all signals and slots, decorates the buttons, creates status tips, links the deleagte to
         the 2nd column, etc...
+
+        Args:
+            config (dict): handover config from loading before entering the loop.
         """
         # we first call init from the super class, then load the translated py file file from designer
         super(UiRunnerInstance, self).__init__()
         self.setupUi(self)
 
+        if config is None:
+            self.config = {}
+        else:
+            self.config = config
+
         # window decoration
         title = "pyJSON Schema Loader and JSON Editor"
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("./icon.ico"))
-
-        # text label for the current dir
-        self.label_curDir.setText(os.getcwd())
 
         # adding in the signals for the buttons
         self.pushButton_dirSel.clicked.connect(self.diropener)
@@ -346,10 +352,14 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         # Index related functions in the menu bar
         self.actionCheck_indexes.triggered.connect(self.call_watchdog)
 
+        # other menu bar entries
+        self.actionPreferences.triggered.connect(self.call_prefdiag)
+
         # Drop-Down Menu
         self.current_schema_combo_box.currentTextChanged.connect(self.combobox_selected)
 
         self.searchList = None
+        self.prefdiag = None
 
         # set the delegate for the view
         self.delegate = EnumDropDownDelegate()
@@ -386,7 +396,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         dir_path = os.path.normpath(
             QFileDialog.getExistingDirectory(
                 caption = "Select Directory for indexing",
-                dir = config["last_dir"]
+                dir = self.config["last_dir"]
             )
         )
         try:
@@ -394,8 +404,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if dir_path == '' or dir_path == '.':
                 raise OSError("[pyJSON.diropener/WARN]: Directory selection aborted!")
             config["last_dir"] = dir_path
-            save_config(script_dir, config)
-            self.label_curDir.setText(dir_path)
+            save_config(script_dir, self.config)
             jsonsearch_lib.start_index(script_dir, dir_path, index_dict)
         except (FileNotFoundError, OSError) as err:
             lg.error(err)
@@ -419,7 +428,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if not filepath_str:
                 filepath_str = QFileDialog.getOpenFileName(
                     caption = "Open a JSON Document...",
-                    dir = config["last_dir"],
+                    dir = self.config["last_dir"],
                     filter = "Java Script Object Notation (*.json);; All Files (*.*)"
                 )[0]
             if filepath_str == '':
@@ -432,17 +441,18 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if type(read_frame) is int and read_frame == -999:
                 raise FileNotFoundError("[pyJSON.jsonopener/ERROR]: Specified file does not exist.")
             # TODO: VALIDATION TESTING HERE
-            schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+            schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", self.config["last_schema"]))
             schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             self.config["show_error_representation"])
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
             self.TreeView.expandAll()
             new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
             if new_tree:
-                config["last_JSON"] = filepath
-                save_config(script_dir, config)
+                self.config["last_JSON"] = filepath
+                save_config(script_dir, self.config)
                 self.curr_json_label.setText(filepath)
 
         except (FileNotFoundError, OSError) as err:
@@ -485,8 +495,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         else:
             if selection_list is not None:
                 self.curr_dir_comboBox.addItem(selection_list)
-        if config["last_dir"] is not None:
-            self.curr_dir_comboBox.setCurrentText(config["last_dir"])
+        if self.config["last_dir"] is not None:
+            self.curr_dir_comboBox.setCurrentText(self.config["last_dir"])
         else:
             self.curr_dir_comboBox.setCurrentText("  (none)")
         self.curr_dir_comboBox.blockSignals(False)
@@ -506,20 +516,21 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 raise FileNotFoundError("[pyJSON.combobox_selected/ERROR]: Schema File is missing!")
             schema_meta = jsonio_lib.schema_to_py_gen(schema, mode = "meta")
 
-            if not config["last_JSON"] is None:
-                read_frame = jsonio_lib.decode_function(config["last_JSON"])
+            if not self.config["last_JSON"] is None:
+                read_frame = jsonio_lib.decode_function(self.config["last_JSON"])
                 new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
-                                                 TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                                                 TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                                 self.config["show_error_representation"])
                 self.TreeView.reset()
                 self.TreeView.setModel(new_tree)
                 self.TreeView.expandAll()
                 new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
                 if new_tree:
-                    config["last_schema"] = selected
-                    save_config(script_dir, config)
+                    self.config["last_schema"] = selected
+                    save_config(script_dir, self.config)
             else:
-                config["last_schema"] = selected
-                save_config(script_dir, config)
+                self.config["last_schema"] = selected
+                save_config(script_dir, self.config)
                 self.set_blank_from_schema()
         except FileNotFoundError as err:
             lg.error(err)
@@ -538,7 +549,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         try:
             filepath = QFileDialog.getOpenFileName(
                 caption = "Select a JSON Schema for Import...",
-                dir = config["last_dir"],
+                dir = self.config["last_dir"],
                 filter = "Java Script Object Notation (*.json);; All Files (*.*)"
             )[0]
             if filepath == '':
@@ -571,7 +582,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         selected_path = QFileDialog.getSaveFileName(
             caption = "Save as...",
-            dir = config["last_dir"] + "/_meta.json",
+            dir = self.config["last_dir"] + "/_meta.json",
             filter = "Java Script Object Notation (*.json);; All Files (*.*)",
 
         )[0]
@@ -585,8 +596,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             try:
                 with open(selected_path, "w", encoding='utf8') as out:
                     json.dump(json_frame, out, indent=4, ensure_ascii=False)
-                    config["last_JSON"] = selected_path
-                    save_config(script_dir, config)
+                    self.config["last_JSON"] = selected_path
+                    save_config(script_dir, self.config)
                     self.curr_json_label.setText(selected_path)
                     self.call_watchdog()
             except OSError as err:
@@ -602,13 +613,13 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         Writes changes of a JSON document to the file system. Calls save_as_function(), if not saved yet.
         """
-        if config["last_JSON"] is None:
+        if self.config["last_JSON"] is None:
             self.save_as_function()
         else:
             tree = self.TreeView.model()
             json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
             try:
-                with open(config["last_JSON"], "w", encoding='utf8') as out:
+                with open(self.config["last_JSON"], "w", encoding='utf8') as out:
                     json.dump(json_frame, out, indent=4, ensure_ascii=False)
             except OSError as err:
                 lg.error(err)
@@ -629,7 +640,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 os.path.join(
                     script_dir,
                     "Schemas",
-                    config["last_schema"]
+                    self.config["last_schema"]
                 )
             )
 
@@ -640,7 +651,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             pre_json = jsonio_lib.schema_to_py_gen(curr_schem)
             pre_meta = jsonio_lib.schema_to_py_gen(curr_schem, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(pre_json, pre_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             self.config["show_error_representation"])
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -648,8 +660,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
 
             if new_tree:
-                config["last_JSON"] = None
-                save_config(script_dir, config)
+                self.config["last_JSON"] = None
+                save_config(script_dir, self.config)
                 self.curr_json_label.setText("None")
 
         except (FileNotFoundError, OSError) as err:
@@ -666,11 +678,11 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         stores a copy of the current JSON on a schema basis in the "Default" directory, which can be loaded later on.
         """
-        lg.info("\n----------\nSaving default for Schema " + config["last_schema"] + "\n----------")
+        lg.info("\n----------\nSaving default for Schema " + self.config["last_schema"] + "\n----------")
         tree = self.TreeView.model()
         json_frame = jsonio_lib.tree_to_py(tree.root_node.childItems)
         try:
-            with open(os.path.join(script_dir, "Default", config["last_schema"]), "w", encoding='utf8') as out:
+            with open(os.path.join(script_dir, "Default", self.config["last_schema"]), "w", encoding='utf8') as out:
                 json.dump(json_frame, out, indent=4, ensure_ascii=False)
         except OSError as err:
             lg.error(err)
@@ -684,21 +696,22 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         creates a TreeView model from the default that was stored in the tools directory structure
         """
-        lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
+        lg.info("\n----------\nLoading default for Schema " + self.config["last_schema"] + "\n----------")
         try:
 
-            if not os.path.isfile(os.path.join(script_dir, "Default", config["last_schema"])):
+            if not os.path.isfile(os.path.join(script_dir, "Default", self.config["last_schema"])):
                 raise FileNotFoundError("[pyJSON.load_default/ERROR]: No default file found!")
-            if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
+            if not os.path.isfile(os.path.join(script_dir, "Schemas", self.config["last_schema"])):
                 self.combobox_repopulate()
                 raise FileNotFoundError("[pyJSON.load_default/ERROR]: Selected schema not found!")
 
-            default_values = jsonio_lib.decode_function(os.path.join(script_dir, "Default", config["last_schema"]))
+            default_values = jsonio_lib.decode_function(os.path.join(script_dir, "Default", self.config["last_schema"]))
 
-            schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+            schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", self.config["last_schema"]))
             schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(default_values, schema_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             self.config["show_error_representation"])
 
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -706,8 +719,8 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             new_tree.dataChanged.emit(QModelIndex(), QModelIndex())
 
             if new_tree:
-                config["last_JSON"] = None
-                save_config(script_dir, config)
+                self.config["last_JSON"] = None
+                save_config(script_dir, self.config)
                 self.curr_json_label.setText("None")
         except FileNotFoundError as err:
             lg.error(err)
@@ -722,26 +735,27 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         """
         drops all changes made and reverts to the last known saved state or a blank.
         """
-        lg.info("\n----------\nLoading default for Schema " + config["last_schema"] + "\n----------")
-        if config["last_JSON"] is None:
+        lg.info("\n----------\nLoading default for Schema " + self.config["last_schema"] + "\n----------")
+        if self.config["last_JSON"] is None:
             lg.warning("No last JSON found, defaulting to Blank.")
             self.set_blank_from_schema()
         else:
             try:
-                if not config["last_JSON"] is None:
-                    if not os.path.isfile(config["last_JSON"]):
+                if not self.config["last_JSON"] is None:
+                    if not os.path.isfile(self.config["last_JSON"]):
                         raise FileNotFoundError("[pyJSON.reloader_function/ERROR]: Last JSON file not found!")
-                    if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
+                    if not os.path.isfile(os.path.join(script_dir, "Schemas", self.config["last_schema"])):
                         self.combobox_repopulate()
                         raise FileNotFoundError("[pyJSON.reloader_function/ERROR]: Selected schema not found!")
 
-                    values = jsonio_lib.decode_function(os.path.join(config["last_JSON"]))
+                    values = jsonio_lib.decode_function(os.path.join(self.config["last_JSON"]))
 
-                    schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", config["last_schema"]))
+                    schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", self.config["last_schema"]))
                     schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_meta,
-                        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
+                        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                        self.config["show_error_representation"])
 
                     self.TreeView.reset()
                     self.TreeView.setModel(new_tree)
@@ -765,7 +779,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         tree = self.TreeView.model()
         curr_json_py = jsonio_lib.tree_to_py(tree.root_node.childItems)
         curr_json = json.dumps(curr_json_py)
-        result = jsonio_lib.validator_vars(curr_json, os.path.join(script_dir, "Schemas", config["last_schema"]))
+        result = jsonio_lib.validator_vars(curr_json, os.path.join(script_dir, "Schemas", self.config["last_schema"]))
         match result:
             case 0:
                 QMessageBox.information(
@@ -875,6 +889,15 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                 "Checked indexed directories and reindexed, if needed."
             )
 
+
+    def call_prefdiag(self):
+        if self.prefdiag is None:
+            self.prefdiag = ui_preferences()
+        else:
+            self.prefdiag.config = self.config.copy()
+        self.prefdiag.exec()
+        self.config = json.load(open(os.path.join(script_dir, "pyJSON_conf.json"), encoding = "utf8"),
+                  cls = json.JSONDecoder)
 
 
     def closeEvent(self, event):
@@ -1056,8 +1079,11 @@ if __name__ == "__main__":
     st_pre_meta = jsonio_lib.schema_to_py_gen(frame, mode = "meta")
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
     model = jsonio_lib.py_to_tree(st_pre_json, st_pre_meta,
-        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]))
-    ui.label_curDir.setText(config["last_dir"])
+        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+        config["show_error_representation"])
+
+    # set config
+    ui.config = config.copy()
 
     ui.TreeView.setModel(model)
 
@@ -1080,7 +1106,7 @@ if __name__ == "__main__":
     ui.combobox_repopulate()
     ui.dirselect_repopulate()
     ui.current_schema_combo_box.blockSignals(True)
-    ui.current_schema_combo_box.setCurrentText(config["last_schema"])
+    ui.current_schema_combo_box.setCurrentText(ui.config["last_schema"])
     ui.current_schema_combo_box.blockSignals(False)
 
     jsonsearch_lib.watchdog(script_dir, index_dict)

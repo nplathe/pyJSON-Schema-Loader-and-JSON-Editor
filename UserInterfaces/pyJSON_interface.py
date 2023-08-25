@@ -208,16 +208,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.TreeView)
 
-        self.label_curDir = QLabel(self.centralwidget)
-        self.label_curDir.setObjectName(u"label_curDir")
-        self.label_curDir.setIndent(5)
-
-        self.verticalLayout.addWidget(self.label_curDir)
-
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1024, 21))
+        self.menubar.setGeometry(QRect(0, 0, 1024, 22))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuEdit = QMenu(self.menubar)
@@ -432,7 +426,6 @@ class Ui_MainWindow(object):
         self.pushButton_save.setWhatsThis(QCoreApplication.translate("MainWindow", u"Save the current JSON file.", None))
 #endif // QT_CONFIG(whatsthis)
         self.pushButton_save.setText(QCoreApplication.translate("MainWindow", u"save", None))
-        self.label_curDir.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
         self.menuEdit.setTitle(QCoreApplication.translate("MainWindow", u"Edit", None))
         self.menuHelp.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))

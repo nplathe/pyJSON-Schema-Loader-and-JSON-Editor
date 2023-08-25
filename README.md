@@ -84,10 +84,12 @@ Repository Directory
 ├── Schemas                  The storage for the schemas.
 |   └── default.json         The default schema, which doubles as a small test case.
 ├── Tests                    Directory containing PyTest classes for automated testing.
+├── UserInterfaces           Original and converted UI files. 
+    ...
 ...
 ├── pyJSON.py                The main python file of pyJSON.
 ├── pyJSON_conf.json         The config file of pyJSON.
-└── pyJSON_interface.py      Converted python file of the UI of pyJSON.
+...
 ```
 
 ## Grant information
