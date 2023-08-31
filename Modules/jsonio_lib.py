@@ -256,7 +256,8 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree, show_errors = Tru
             if type(input_dict[element]) is not dict and type(input_dict[element]) is not list:
                 return_tree.add_node(parent = return_tree.root_node,
                                      data = [element, titleStr,
-                                             input_dict[element], str(type(input_dict[element])),
+                                             input_dict[element],
+                                             type_translation(str(type(input_dict[element]))),
                                              descrStr])
             else:
                 if type(input_dict[element]) is dict:
@@ -275,9 +276,18 @@ def py_to_tree(input_dict: dict, meta_dict: dict, return_tree, show_errors = Tru
                         return_tree.root_node.last_child().append_child(
                             TreeItem(
                                 parent = return_tree.root_node.last_child(),
-                                data = ['', '', l_element, str(type(l_element)), 'Array Item']
+                                data = ['', '', l_element, type_translation(str(type(l_element))), 'Array Item']
                             )
                         )
+                        if type(l_element) is dict:
+                            print("ping")
+                            part_tree = py_to_tree(l_element, {},
+                                                   return_tree = TreeClass(data = ["K", "Ti", "V", "Ty", "D"]),
+                                                   show_errors = show_errors)
+                            for node in part_tree.root_node.childItems:
+                                node.parentItem = return_tree.root_node.last_child().last_child()
+                                return_tree.root_node.last_child().last_child().append_child(node)
+                            print("pong")
             incrementor += 1
     return return_tree
 
@@ -324,3 +334,27 @@ def tree_to_py(array_of_tree_nodes):
                         tempList.append(child.get_data(2))
                 return_dict[element.get_data(0)] = tempList
     return return_dict
+
+def type_translation(typecasted_str):
+    """
+    a small helper function for simplifying type guessing for a JSON that does not have a proper schema.
+
+    Args:
+        typecasted_str (str): the typecasted output of type(object)
+
+    Returns:
+        string: a proper string for identification. Returns typecasted_str, if nothing fits.
+    """
+    match typecasted_str:
+        case "<class 'dict'>":
+            return "object"
+        case "<class 'str'>":
+            return "string"
+        case "<class 'int'>":
+            return "integer"
+        case "<class 'float'>":
+            return "number"
+        case "<class 'bool'>":
+            return "boolean"
+        case _:
+            return typecasted_str

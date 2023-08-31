@@ -134,13 +134,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             model (TreeClass): the model of the TreeView
             index (QModelIndex): the index of the item to be edited
         """
-        if isinstance(editor, QtWidgets.QComboBox):
+        if isinstance(editor, QtWidgets.QComboBox): # handle combobox data
             value = editor.currentText()
             if value == "(none)":
                 model.setData(index, "", Qt.EditRole)
             else:
                 model.setData(index, value, Qt.EditRole)
-        else:
+        else: # handle arrays and everything else
+
+            # array value insertion
             if model.getItem(index).get_data(3) == 'array':
                 if editor.text() != '':
                     model.beginInsertRows(index, index.row(), index.row() + 1)
@@ -151,13 +153,24 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                     ui.TreeView.expandAll()
                 else:
                     lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Will not add a node since text is empty.")
-            elif editor.text() == '' and model.getItem(index).get_parent().get_data(3) == 'array':
+
+            # array value removal
+            elif (editor.text() == '' and
+                    model.getItem(index).get_parent().get_data(3) == 'array' and
+                    model.getItem(index).get_data(3) != 'object'):
                 lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Detected an empty entry of an array."
                         + " Removing node from TreeView...")
                 model.beginRemoveRows(index, index.row(), index.row() + 1)
                 model.removeRows(index.row(), 1, index.parent())
                 model.endRemoveRows()
-            else:
+
+            # editng objects mess with the structure...
+            elif model.getItem(index).get_data(3) == 'object':
+                lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Tried to edit an object."
+                        + " Ommiting input.")
+                pass # so we just don't touch it.
+
+            else: # pass everything else to the standard delegate function
                 QStyledItemDelegate.setModelData(QStyledItemDelegate(), editor, model, index)
 
     def updateEditorGeometry(self, editor, option, index):
