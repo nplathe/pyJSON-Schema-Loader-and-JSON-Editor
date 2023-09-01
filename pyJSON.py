@@ -72,40 +72,27 @@ class EnumDropDownDelegate(QStyledItemDelegate):
         Returns:
             QWidget: the editor QWidget - a drop down menu for enumerators, a line edit (the standard) otherwise
         """
-        path_list = []
+
         cur_item = index.model().getItem(index)
         value_type = cur_item.get_data(3)
         cur_meta = cur_item.all_metadata()
         value_type2 = cur_item.get_metadata("type")
-        path_list.append(cur_item.get_data(0))
-        while cur_item.get_parent().get_data(0) != "Schema Key":
-            cur_item = cur_item.get_parent()
-            path_list.append(cur_item.get_data(0))
-        curr_schem = json.load(open(os.path.join(script_dir, "Schemas", config["last_schema"]), encoding = "utf8"), cls=json.JSONDecoder)
-        try:
-            while len(path_list) > 0:
-                curr_key = path_list.pop()
-                if curr_key == '':
-                    lg.debug("Could not dertermine information about current node...")
-                    break
-                curr_schem = curr_schem["properties"][curr_key]
-            lg.debug("Last Type fetched: " + curr_schem["type"])
+
+        if value_type2 is not None:
+            lg.debug("Last Type fetched: " + value_type2)
             lg.debug("Type of item in model: " + value_type)
-            if "enum" in curr_schem.keys():
+            if "enum" in cur_meta.keys():
                 lg.debug("custom delegate editor selected...")
                 dropDownEnum = QtWidgets.QComboBox(parent)
                 dropDownEnum.setFrame(False)
                 dropDownEnum.addItem("(none)")
-                for i in curr_schem["enum"]:
+                for i in cur_meta["enum"]:
                     dropDownEnum.addItem(i)
                 return dropDownEnum
-            else:
-                widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
-                return widget
-        except KeyError as err:
-            lg.debug(err)
+        else:
             widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
             return widget
+
 
     def setEditorData(self, editor, index):
         """
@@ -905,7 +892,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 
     def call_prefdiag(self):
         if self.prefdiag is None:
-            self.prefdiag = ui_preferences()
+            self.prefdiag = ui_preferences(script_dir)
         else:
             self.prefdiag.config = self.config.copy()
         self.prefdiag.exec()
