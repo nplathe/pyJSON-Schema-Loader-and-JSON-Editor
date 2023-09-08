@@ -20,5 +20,6 @@
 /pyJSON.spec
 /pyJSON_conf.json
 
-# ignore pytest caches
+# ignore pytest caches and coverage files
 /.pytest_cache/
+/.coverage

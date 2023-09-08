@@ -444,7 +444,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", self.config["last_schema"]))
             schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
                                              self.config["show_error_representation"])
             self.TreeView.reset()
             self.TreeView.setModel(new_tree)
@@ -519,7 +519,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             if not self.config["last_JSON"] is None:
                 read_frame = jsonio_lib.decode_function(self.config["last_JSON"])
                 new_tree = jsonio_lib.py_to_tree(read_frame, schema_meta,
-                                                 TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                                 TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
                                                  self.config["show_error_representation"])
                 self.TreeView.reset()
                 self.TreeView.setModel(new_tree)
@@ -651,7 +651,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             pre_json = jsonio_lib.schema_to_py_gen(curr_schem)
             pre_meta = jsonio_lib.schema_to_py_gen(curr_schem, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(pre_json, pre_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
                                              self.config["show_error_representation"])
 
             self.TreeView.reset()
@@ -710,7 +710,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
             schema_read = jsonio_lib.decode_function(os.path.join(script_dir, "Schemas", self.config["last_schema"]))
             schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
             new_tree = jsonio_lib.py_to_tree(default_values, schema_meta,
-                                             TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                                             TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
                                              self.config["show_error_representation"])
 
             self.TreeView.reset()
@@ -754,7 +754,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
                     schema_meta = jsonio_lib.schema_to_py_gen(schema_read, mode = "meta")
 
                     new_tree = jsonio_lib.py_to_tree(values, schema_meta,
-                        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+                        TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
                         self.config["show_error_representation"])
 
                     self.TreeView.reset()
@@ -1079,7 +1079,7 @@ if __name__ == "__main__":
     st_pre_meta = jsonio_lib.schema_to_py_gen(frame, mode = "meta")
     lg.info("\n----------\nConstructing Tree, please wait.\n---------")
     model = jsonio_lib.py_to_tree(st_pre_json, st_pre_meta,
-        TreeClass(data=["Schema Key", "Key Title", "Value", "Type", "Description"]),
+        TreeClass(data=["JSON Structure", "Title", "Value", "Type", "Description"]),
         config["show_error_representation"])
 
     # set config
