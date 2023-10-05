@@ -969,25 +969,37 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
 if __name__ == "__main__":
     import sys
     import argparse
+    import inspect
 
     # parser arguments
     parser = argparse.ArgumentParser(
         description = "pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
-                      "JSON Schema.\n"
+                      "JSON Schema.\n Use the command-line interface to automate interaction with pyJSON. " +
+                      "You can provide a schema (based on file name), a JSON file and a directory to use. " +
+                      "Note that erroneous CLI input gets omitted."
     )
     parser.add_argument('-d', '--directory',
                         dest = "path",
-                        help = "This parameter overwrites the last used directory.")
-    parser.add_argument('-o', '--open-file',
-                        dest = "open-file",
-                        help = "Try to open the provided JSON file.")
+                        help = "This parameter overwrites the last used directory, if present.")
+    parser.add_argument('-f', '--file',
+                        dest = "file",
+                        help = "Try to open the provided JSON file, if present.")
     parser.add_argument('-s', '--schema',
                         dest = "schema",
-                        help = "Try to load the selected schema. Overwrites last used schema, if schema is present.")
+                        help = "Try to load the selected schema (filename without json suffix). " +
+                               "Overwrites last used schema, if schema is present in the tool storage.")
+    parser.add_argument('-ewd', '--enforce-working-directory',
+                        dest = "working_dir",
+                        help = "Enforces the location of the working directory to be set to the provided value.")
     args = parser.parse_args()
 
     # set Script Directory
-    script_dir = os.getcwd()
+    invoked_from = os.getcwd()
+    if args.working_dir and os.path.isdir(os.path.realpath(args.working_dir)):
+        script_dir = os.path.abspath(args.working_dir)
+    else:
+        os.chdir(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+        script_dir = os.getcwd()
 
     # initialize logging
     now = datetime.now()
@@ -1047,13 +1059,18 @@ if __name__ == "__main__":
     lg.info("==============================")
     lg.info("Start time: " + str(now))
     lg.info("Operating System: " + platform.platform())
+    lg.info("==============================")
     lg.info("Python Version: " + platform.python_version())
     lg.info("Python Implementation: " + platform.python_implementation())
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         lg.info("Frozen Environment (e.g. PyInstaller) : Yes")
     else:
         lg.info("Frozen Environment (e.g. PyInstaller) : No")
+    lg.info("==============================")
+    lg.info("Invoked from: " + invoked_from)
     lg.info("Current working directory: " + script_dir)
+    lg.info("Script directory: " + os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))))
+    lg.info("==============================")
 
     # Do some checkups on the directory structure.
     if not os.path.isdir(os.path.join(script_dir, "Schemas")):
@@ -1068,6 +1085,7 @@ if __name__ == "__main__":
                 "[pyJSON.main/FATAL]",
                 str_message
             )
+            sys.exit(1)
     if not os.path.isfile(os.path.join(script_dir, "Schemas/default.json")):
         lg.info("[pyJSON.main/INFO]: Default File is missing! Deploying...")
         deploy_schema(os.path.join(script_dir, "Schemas"))
@@ -1084,6 +1102,7 @@ if __name__ == "__main__":
                 "[pyJSON.main/FATAL]",
                 str_message
             )
+            sys.exit(1)
 
 # Load or create and save the main index file
     index_dict = {
@@ -1107,7 +1126,25 @@ if __name__ == "__main__":
             lg.error(err)
             lg.error("[pyJSON.main/ERROR]: Cannot read or access Index file. Defaulting to blank Index.")
 
-    # Checks the config and the JSON to be loaded for errors.
+    # overwrites config with command line parameters
+    if args.path:
+        if os.path.isdir(args.path):
+            config["last_dir"] = args.path
+        else:
+            lg.error("[pyJSON.main/ERROR]: Provided path is erroneous. Omitted parameter -d.")
+    if args.schema:
+        if os.path.isfile(os.path.join(script_dir, "Schemas", args.schema + ".json")):
+            config["last_schema"] = args.schema + ".json"
+        else:
+            lg.error("[pyJSON.main/ERROR]: Provided schema seems to not exist. Omitted parameter -s.")
+    if args.file:
+        if os.path.isfile(args.file):
+            config["last_JSON"] = args.file
+        else:
+            lg.error("[pyJSON.main/ERROR]: Provided JSON document seems to not exist. Omitted parameter -f.")
+    save_config(script_dir, config)
+
+    # Checks whetever JSON and Schema retrieved from the config exist.
     if not os.path.isfile(os.path.join(script_dir, "Schemas", config["last_schema"])):
         lg.warning("[pyJSON.main/WARN]: Schema in config is missing. Falling back to default.")
         config["last_schema"] = "default.json"
@@ -1128,7 +1165,7 @@ if __name__ == "__main__":
     # initialize the QtWidget
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = UiRunnerInstance(config = config, index_dict = index_dict)
+    ui = UiRunnerInstance(config = config, index_dict = index_dict, script_dir = script_dir)
 
     jsonsearch_lib.watchdog(script_dir, index_dict)
 
