@@ -89,10 +89,12 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                 for i in cur_meta["enum"]:
                     dropDownEnum.addItem(i)
                 return dropDownEnum
+            else:
+                widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
+                return widget
         else:
             widget = QStyledItemDelegate.createEditor(QStyledItemDelegate(), parent, option, index)
             return widget
-
 
     def setEditorData(self, editor, index):
         """
@@ -137,7 +139,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                             + " Inserting the entry as a child node...")
                     model.add_node(parent = model.getItem(index), data = ["", "", editor.text(), "string", "Array Item"])
                     model.endInsertRows()
-                    ui.TreeView.expandAll()
+                    ui.TreeView.expandAll()  #todo: move this out and split delegate into own file
                 else:
                     lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Will not add a node since text is empty.")
 
@@ -151,7 +153,7 @@ class EnumDropDownDelegate(QStyledItemDelegate):
                 model.removeRows(index.row(), 1, index.parent())
                 model.endRemoveRows()
 
-            # editng objects mess with the structure...
+            # editing objects mess with the structure...
             elif model.getItem(index).get_data(3) == 'object':
                 lg.info("[pyJSON.EnumDropDownDelegate.setModelData/INFO]: Tried to edit an object."
                         + " Ommiting input.")
@@ -251,7 +253,7 @@ class SearchWindow(QWidget):
 
     def open_file(self):
         """
-        A function to initialise opening the selected path in the ListView with the associated tool. Conviniently enough
+        A function to initialise opening the selected path in the ListView with the associated tool. Conveniently enough
         with Windows, explorer.exe passes the attempt of opening a file to the app for us.
         """
         index = self.searchListView.selectedIndexes()[0]
@@ -421,7 +423,7 @@ class UiRunnerInstance(QMainWindow, Ui_MainWindow):
         # call the show function
         self.show()
 
-    def on_custom_context_menu(self, index):
+    def on_custom_context_menu(self, index):  #todo: either fill this with life or throw it out!
         """
         Custom context menu for the tree view widget.
 
@@ -986,7 +988,7 @@ if __name__ == "__main__":
                         help = "Try to open the provided JSON file, if present.")
     parser.add_argument('-s', '--schema',
                         dest = "schema",
-                        help = "Try to load the selected schema (filename without json suffix). " +
+                        help = "Try to load the selected schema (filename without \".json\" suffix). " +
                                "Overwrites last used schema, if schema is present in the tool storage.")
     parser.add_argument('-ewd', '--enforce-working-directory',
                         dest = "working_dir",
@@ -994,7 +996,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # set Script Directory
-    invoked_from = os.getcwd()
+    invoked_from = os.getcwd()  # relevant if python is called from a direcotry that is not the repo dir
     if args.working_dir and os.path.isdir(os.path.realpath(args.working_dir)):
         script_dir = os.path.abspath(args.working_dir)
     else:

@@ -111,3 +111,34 @@ must be present in the schema and list all keys that must be present. See
 [this guide by the JSON schema team](https://json-schema.org/blog/posts/applicability-json-schema-fundamentals-part-1)
 for details on how validation works.
 ```
+
+### Using the command-line interface
+While pyJSON works perfectly fine as a standalone tool, advanced users might prefer to include it into their automation
+pipelines utilising tools like AutoHotKey or LUA scripts. For these cases, pyJSON sports a command-line interface in
+order to control several aspects of the tool, such as which schema is to be used to open a JSON with, using a different
+working directory for separated configurations, to name a few.
+
+pyJSON supports the following command-line arguments:
+
+| argument                              | parameter                        | explanation                                                                                  |
+|---------------------------------------|----------------------------------|----------------------------------------------------------------------------------------------|
+| `--directory`; `-d`                   | a directory path                 | pyJSON will set the last used directory to the provided path and index it.                   |
+| `--file`; `-f`                        | a full path to a JSON file       | Instead of using the last JSON opened, pyJSON will attempt to open the provided file.        |
+| `--schema`; `-s`                      | the file name of a stored schema | Bypassing the config, pyJSON will attempt to load with this schema selected.                 |
+| `--enforce-working-directory`; `-ewd` | a directory to be used           | pyJSON will use the provided directory for its config and data instead of the repo directory |
+
+### Understanding logs and their function
+pyJSON outputs a plethora of messages to the console (if being run within one), mostly for debugging and testing purposes. Relevant messages are
+also shown in message boxes, however, when reporting bugs or including new features, in order to provide additional
+information for replication, a log file can be very helpful.
+
+
+```{hint}
+When started for the first time, you will be asked, whetever pyJSON should write logs to the drive it is located on. You can
+also change this setting via "Edit" -> "Preferences...".
+```
+
+The log files are stored in the `Logs` directory located in the working directory of pyJSON. They are labeled with the date and time
+of execution of pyJSON and are written in plain text. Generally, you will find distinct notes in the log file - differenciating between
+informational entries, warnings, errors and critical errors. Also, a header will be present in every log, containing information about the
+operating system, the Python version and other crucial information for replication purposes.
