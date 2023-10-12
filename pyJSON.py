@@ -1132,18 +1132,29 @@ if __name__ == "__main__":
     if args.path:
         if os.path.isdir(args.path):
             config["last_dir"] = args.path
+            if config["last_dir"] not in index_dict and os.path.isdir(config["last_dir"]):
+                lg.info("[pyJSON.main/INFO]: Last directory currently not indexed - indexing now.")
+                jsonsearch_lib.start_index(script_dir, config["last_dir"], index_dict, show_boxes = False)
+                index_dict = json.load(open(
+                    os.path.join(script_dir, "Indexes/pyJSON_S_index.json"),
+                    encoding = "utf8"),
+                    cls = json.JSONDecoder
+                )
         else:
             lg.error("[pyJSON.main/ERROR]: Provided path is erroneous. Omitted parameter -d.")
+
     if args.schema:
         if os.path.isfile(os.path.join(script_dir, "Schemas", args.schema + ".json")):
             config["last_schema"] = args.schema + ".json"
         else:
             lg.error("[pyJSON.main/ERROR]: Provided schema seems to not exist. Omitted parameter -s.")
+
     if args.file:
         if os.path.isfile(args.file):
             config["last_JSON"] = args.file
         else:
             lg.error("[pyJSON.main/ERROR]: Provided JSON document seems to not exist. Omitted parameter -f.")
+
     save_config(script_dir, config)
 
     # Checks whetever JSON and Schema retrieved from the config exist.
