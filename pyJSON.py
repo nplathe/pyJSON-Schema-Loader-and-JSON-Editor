@@ -973,6 +973,9 @@ if __name__ == "__main__":
     import argparse
     import inspect
 
+    # initialize the QtWidget
+    app = QtWidgets.QApplication(sys.argv)
+
     # parser arguments
     parser = argparse.ArgumentParser(
         description = "pyJSON Schema Loader and JSON Editor - a tool for editing and generating JSON files utilizing " +
@@ -1175,8 +1178,7 @@ if __name__ == "__main__":
             config["last_JSON"] = None
             save_config(script_dir, config)
 
-    # initialize the QtWidget
-    app = QtWidgets.QApplication(sys.argv)
+    # set MainWindow and UI
     MainWindow = QtWidgets.QMainWindow()
     ui = UiRunnerInstance(config = config, index_dict = index_dict, script_dir = script_dir)
 
