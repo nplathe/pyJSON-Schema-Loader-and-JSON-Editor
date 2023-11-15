@@ -9,6 +9,12 @@ Due to match cases being used in several parts, pyJSON is explicitly not compati
 prior to python 3.10! See [PEP 636](https://peps.python.org/pep-0636/) for details.
 ```
 
+Currently, in order to use pyJSON, it is necessary to download the source code. Either use
+```bash
+git clone https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor
+```
+or use the "Code" -> "Download ZIP" button on the repository page to download the source code.
+
 For running pyJSON, the following packages are needed:
 
 | package      | version    | purpose                              |

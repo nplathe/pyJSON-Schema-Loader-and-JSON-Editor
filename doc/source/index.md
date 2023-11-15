@@ -6,6 +6,8 @@ edit, validate and save JSON documents. Furthermore, a simple search function he
 
 For a JSON schema creating software that is capable of being integrated in network workflow structures, please have a look at [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)). 
 
+pyJSON is licensed under the terms and conditions of [the MIT license](https://opensource.org/license/mit/). The source code is stored in [this Github repository](https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor).
+
 ## Grant information
 The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A and by "Deutsche Forschungsgemeinschaft (DFG)" - Projektnummer 454848899. 
 The responsibility for the content of this repository lies with the authors.
