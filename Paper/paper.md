@@ -8,6 +8,7 @@ authors:
   - name: Nick Plathe
     orcid: 0000-0003-0436-8040
 	equal-contrib: true
+    corresponding: true
 	affiliation: 1
   - name: Markus M. Becker
     orcid: 0000-0001-9324-3236
