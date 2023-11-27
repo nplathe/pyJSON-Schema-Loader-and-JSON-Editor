@@ -23,7 +23,7 @@ affiliations:
    index: 1
  - name: Friedrich-Loeffler-Institut, Bundesforschungsinstitut für Tiergesundheit (FLI), Südufer 10, 17493 Greifswald - Insel Riems, Germany 
    index: 2
-date: 2023-11-27
+date: 27 November 2023
 bibliography: BibTex.bib
 ---
 
