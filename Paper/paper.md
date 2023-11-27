@@ -7,23 +7,23 @@ tags:
 authors:
   - name: Nick Plathe
     orcid: 0000-0003-0436-8040
-	equal-contrib: true
+    equal-contrib: true
     corresponding: true
-	affiliation: 1
+    affiliation: 1
   - name: Markus M. Becker
     orcid: 0000-0001-9324-3236
-	equal-contrib: true
-	affiliation: 1
+    equal-contrib: true
+    affiliation: 1
   - name: Steffen Franke
     orcid: 0000-0002-2806-5055
-	equal-contrib: true
-	affiliation: 2
+    equal-contrib: true
+    affiliation: 2
 affiliations:
  - name: Leibniz Institute for Plasma Science and Technology e.V. (INP), Felix-Hausdorff-Str. 2, 17489 Greifswald, Germany
    index: 1
  - name: Friedrich-Loeffler-Institut, Bundesforschungsinstitut für Tiergesundheit (FLI), Südufer 10, 17493 Greifswald - Insel Riems, Germany 
    index: 2
-date:
+date: 2023-11-27
 bibliography: BibTex.bib
 ---
 
