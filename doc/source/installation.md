@@ -88,7 +88,7 @@ python pyJSON.py
 ```
 
 ## Building a distributable package
-First, install [PyInstaller](https://pyinstaller.org/en/stable/) into your environement. Make sure to activate your environment, then navigate to the source directory and run
+First, install [PyInstaller](https://pyinstaller.org/en/stable/) into your environment. Make sure to activate your environment, then navigate to the source directory and run
 
 ```bash
 pyinstaller --clean --icon=icon.ico ./pyJSON.py
