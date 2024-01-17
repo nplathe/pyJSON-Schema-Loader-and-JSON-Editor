@@ -1,7 +1,7 @@
 # The pyJSON Schema Loader and Editor Documentation
 
 ## About
-This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based JSON editor capable of creating valid JSON from JSON schema. With pyJSON, one can create, 
+This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based editor capable of creating a well structured, metadata containing document based on a data schema. With pyJSON, one can create, 
 edit, validate and save JSON documents. Furthermore, a simple search function helps keeping track of filesystem-based repositories filled with metadata.
 
 For a JSON schema creating software that is capable of being integrated in network workflow structures, please have a look at [the ADAMANT web tool](https://github.com/INP-PM/adamant) ([Publication in F1000Research](https://doi.org/10.12688/f1000research.110875.1)). 

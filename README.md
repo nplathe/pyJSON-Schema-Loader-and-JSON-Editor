@@ -6,8 +6,8 @@ This is the repository for the pyJSON Schema Loader and JSON Editor - a JSON sch
 Additional information can be found in the [documentation](https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/)
 
 ## About
-This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based JSON editor capable of creating valid JSON from 
-JSON schema. With pyJSON, one can create, edit, validate and save JSON documents. Furthermore, a simple search function 
+This is the pyJSON Schema Loader and JSON Editor - a JSON Schema based editor capable of creating a well structured, metadata containing document based on a data schema.
+With pyJSON, one can create, edit, validate and save JSON documents. Furthermore, a simple search function 
 helps keeping track of filesystem-based repositories filled with metadata.
 
  For a JSON schema creating software that is capable of being integrated in network workflow structures, please have a 
