@@ -52,7 +52,7 @@ class ModifiedTreeClass(TreeClass):
 
         Args:
             index (QModelIndex): the index of the data to edit.
-            value (str): the new data to be set.
+            value (object): the new data to be set. Should almost always be a string, except for boolean values.
             role (int): the role of that node.
 
         Returns:

@@ -319,7 +319,10 @@ def tree_to_py(array_of_tree_nodes):
                     case "number":
                         return_dict[element.get_data(0)] = float(value)
                     case "boolean":
-                        return_dict[element.get_data(0)] = bool(value)
+                        if value:
+                            return_dict[element.get_data(0)] = True
+                        else:
+                            return_dict[element.get_data(0)] = False
                     case "array":
                         return_dict[element.get_data(0)] = []
                     case _:

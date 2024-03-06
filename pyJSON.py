@@ -104,13 +104,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             editor (QWidget): the QWidget for which the data needs to be set
             index (QModelIndex): the index of the item to be edited
         """
+        item = index.model().getItem(index)
+        value = item.get_data_array()[2]
+        value_type = item.get_data(3)
         if isinstance(editor, QtWidgets.QComboBox):
-            item = index.model().getItem(index)
-            value = item.get_data_array()[2]
-            if value == '':
-                editor.setCurrentText("(none)")
-            else:
-                editor.setCurrentText(value)
+            if value_type != "boolean":
+                if value == '':
+                    editor.setCurrentText("(none)")
+                else:
+                    editor.setCurrentText(value)
         else:
             QStyledItemDelegate.setEditorData(QStyledItemDelegate(), editor, index)
 
@@ -128,7 +130,15 @@ class EnumDropDownDelegate(QStyledItemDelegate):
             if value == "(none)":
                 model.setData(index, "", Qt.EditRole)
             else:
-                model.setData(index, value, Qt.EditRole)
+                # boolean values cause the editor to be confused and create a QComboBox - we need to retranslate
+                # the values back properly.
+                if model.getItem(index).get_data(3) == 'boolean':
+                    if value == "True":
+                        model.setData(index, True, Qt.EditRole)
+                    else:
+                        model.setData(index, False, Qt.EditRole)
+                else:
+                    model.setData(index, value, Qt.EditRole)
         else: # handle arrays and everything else
 
             # array value insertion

@@ -101,7 +101,7 @@ class TreeItem(object):
         """
         self.itemData = data
 
-    def set_data(self, data: str, column: int):
+    def set_data(self, data: object, column: int):
         """
         Sets a specific value at the given column value
 
