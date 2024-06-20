@@ -1,0 +1,34 @@
+﻿Modules.jsonsearch\_lib
+=======================
+
+.. automodule:: Modules.jsonsearch_lib
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_index
+      dict_flatten_dict
+      f_search
+      schema_matching_search
+      start_index
+      watchdog
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
