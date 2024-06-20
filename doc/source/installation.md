@@ -17,20 +17,17 @@ or use the "Code" -> "Download ZIP" button on the repository page to download th
 
 For running pyJSON, the following packages are needed:
 
-| package      | version    | purpose                              |
-|--------------|------------|--------------------------------------|
-| jsonvalidate | ~=4.17.3   | JSON validation via JSON schema      |
-| PySide6      | ~=6.5.0    | python bindings for the QT framework |
-| regex        | ~=2022.7.9 | regular expressions                  |
-| future       | ~=0.18.3   | compatibility layer                  |
+| package      | version     | purpose                              |
+|--------------|-------------|--------------------------------------|
+| jsonvalidate | ~=4.19.2    | JSON validation via JSON schema      |
+| PySide6      | ~=6.5.1.1   | python bindings for the QT framework |
+| regex        | ~=2023.10.3 | regular expressions                  |
 
 ## Prerequisites
 
-```{hint}
 It is highly recommended to create a virtual environment for installation and building an executable. Virtual environments 
 keep your main installation free from unneeded packages and introduce a separation of the several packages used, which heavily
 benefits development and avoids unnecessary issues, e.g. package conflicts.
-```
 
 ### A: installing packages via pip
 
@@ -63,22 +60,18 @@ to specify the channel with the `-c` argument, e.g. `-c conda-forge` for the com
 which contains all of the needed packages.
 
 ```bash
-conda install -n <yourenvname> jsonvalidate regex future
-```
-
-```bash
-pip install PySide6
+conda install -c conda-forge jsonvalidate regex pyside6
 ```
 
 ## Building the documentation
 
 If you are interested in building the documentation yourself, you need the following packages:
 
-| package     | version   | purpose                            |
-|-------------|-----------|------------------------------------|
-| sphinx      | ~=5.0.2   | documentation generation framework |
-| myst-parser | ~=0.18.1  | Markdown parser for sphinx         |
-| furo        | ~=2022.12 | alternative HTML theme for sphinx  |
+| package     | version    | purpose                            |
+|-------------|------------|------------------------------------|
+| sphinx      | ~=7.7.7    | documentation generation framework |
+| myst-parser | ~=3.0.1    | Markdown parser for sphinx         |
+| furo        | ~=2024.5.6 | alternative HTML theme for sphinx  |
 
 ## Running pyJSON
 In your python environment in the command line, after installing the prerequisites, navigate to the directory pyJSON is located in and execute 

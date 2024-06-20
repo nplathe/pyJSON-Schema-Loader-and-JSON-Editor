@@ -71,7 +71,7 @@ class ModifiedTreeClass(TreeClass):
                         int(value)
                     case "number":
                         float(value)
-                    case "boolean":
+                    case "boolean":# TODO: BOOLS ARE STORED DIRECTLY IN THE MODEL - A TYPE CAST WILL NOT FIND AN ERROR!
                         bool(value)
                     case "array":
                         pass
