@@ -8,6 +8,7 @@
 /dist
 /build
 /__pycache__
+/*/__pycache__
 
 # ignore build and generated files from sphinx
 /doc/build
