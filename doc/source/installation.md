@@ -17,11 +17,11 @@ or use the "Code" -> "Download ZIP" button on the repository page to download th
 
 For running pyJSON, the following packages are needed:
 
-| package      | version     | purpose                              |
-|--------------|-------------|--------------------------------------|
-| jsonvalidate | ~=4.19.2    | JSON validation via JSON schema      |
-| PySide6      | ~=6.5.1.1   | python bindings for the QT framework |
-| regex        | ~=2023.10.3 | regular expressions                  |
+| package    | version     | purpose                              |
+|------------|-------------|--------------------------------------|
+| jsonschema | ~=4.19.2    | JSON validation via JSON schema      |
+| PySide6    | ~=6.5.1.1   | python bindings for the QT framework |
+| regex      | ~=2023.10.3 | regular expressions                  |
 
 ## Prerequisites
 
@@ -60,7 +60,7 @@ to specify the channel with the `-c` argument, e.g. `-c conda-forge` for the com
 which contains all of the needed packages.
 
 ```bash
-conda install -c conda-forge jsonvalidate regex pyside6
+conda install -c conda-forge jsonschema regex pyside6
 ```
 
 ## Building the documentation
