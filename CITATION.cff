@@ -1,0 +1,28 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: pyJSON Schema Loader and JSON Editor
+message: >-
+  a JSON schema based JSON editor for creation, editing,
+  validation and saving of JSON files with additional
+  features for organisation on a file system based level
+type: software
+authors:
+  - given-names: Nick
+    family-names: Plathe
+    email: nick.plathe@inp-greifswald.de
+    affiliation: >-
+      Leibniz-Institut für Plasmaforschung und Technologie
+      e.V.
+    orcid: 'https://orcid.org/0000-0003-0436-8040'
+  - name: >-
+      Leibniz-Institut für Plasmaforschung und Technologie
+      e.V.
+    address: Felix-Hausdorff-Straße 2
+    city: Greifswald
+    post-code: '17489'
+    country: DE
+    alias: INP Greifswald
+    website: 'https://www.inp-greifswald.de/'
+license: MIT
