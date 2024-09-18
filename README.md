@@ -15,7 +15,7 @@ helps keeping track of filesystem-based repositories filled with metadata.
 
 
 ## Quick start
-* Make sure python 3.10 is installed and operational.
+* Make sure python with version 3.10 or newer is installed and operational.
 * Clone this repository.
 * In a terminal, navigate to the cloned repository.
 * (Recommended) Create a new virtual environment. Check your python distribution for details.
