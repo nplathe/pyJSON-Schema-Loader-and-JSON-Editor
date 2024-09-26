@@ -9,7 +9,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
     env: 
-      isRelease: ${{ contains(fromJSON('["release"]'), github.event_name) }}
+      IS_RELEASE: ${{ contains(fromJSON('["release"]'), github.event_name) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -36,14 +36,14 @@ jobs:
           path: ./dist/*
           
       - name: pack data for release
-        if: ${{ isRelease }}
+        if: $isRelease
         run: |
           tag=$(git describe --tags --abbrev=0)
           release_name="pyJSON-$tag-${{ matrix.os }}"
           7z a -tzip "${release_name}.zip" "./dist/*"
           
       - name: add to release
-        if: ${{ isRelease }}
+        if: $isRelease
         uses: softprops/action-gh-release@v2
         with:
           files: pyJSON-*.zip
