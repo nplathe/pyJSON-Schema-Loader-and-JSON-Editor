@@ -1,5 +1,6 @@
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -9,24 +10,31 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-          
+
       - name: install dependencies and Pyinstaller
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
-          
+
       - name: build the executable file
         run: |
           pyinstaller --noconsole --onefile ./pyJSON.py
-          
-      - name: create artifacts
-        uses: actions/upload-artifact@v4
+
+      - name: pack data for release
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          release_name="pyJSON-$tag-${{ matrix.os }}"
+          7z a -tzip "${release_name}.zip" "./dist/*"
+
+      - name: add to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: pyJSON-${{ matrix.os }}
-          path: ./dist/*
+          files: pyJSON-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
