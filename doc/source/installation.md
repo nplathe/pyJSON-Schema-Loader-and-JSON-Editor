@@ -1,6 +1,13 @@
 # Installation
 
-## Requirements
+## Pyinstaller builds
+
+In order to simplify distribution, you can find packaged one-file builds created with [Pyinstaller](https://pyinstaller.org/en/stable/) via GitHub Actions
+on [the releases page](https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor/releases).
+If you just want to use pyJSON without looking into the code or dealing with Python, the prebuilt files are the better choice.
+Note that Pyinstaller builds are not extensively tested. If you encounter unusual behaviour, please open [an issue](https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor/issues).
+
+## Working with the code
 
 In order to use pyJSON, at least Python 3.10 is required, alongside a few third-party modules.
 

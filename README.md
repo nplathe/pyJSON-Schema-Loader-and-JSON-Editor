@@ -15,6 +15,15 @@ helps keeping track of filesystem-based repositories filled with metadata.
 
 
 ## Quick start
+
+### Pyinstaller builds
+Release builds created with [Pyinstaller](https://pyinstaller.org/en/stable/) can be found on [the releases page](https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor/releases).
+In order to use these builds, extract the contents from the packed archive and run the executable file inside it. 
+
+### Working with the source code
+
+You can also run pyJSON from its code base:
+
 * Make sure python with version 3.10 or newer is installed and operational.
 * Clone this repository.
 * In a terminal, navigate to the cloned repository.
