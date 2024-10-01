@@ -1,0 +1,12 @@
+﻿Modules.TreeItem
+================
+
+.. automodule:: Modules.TreeItem
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TreeItem
+   

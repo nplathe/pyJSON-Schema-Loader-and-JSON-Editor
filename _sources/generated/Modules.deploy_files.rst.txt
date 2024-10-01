@@ -1,0 +1,16 @@
+﻿Modules.deploy\_files
+=====================
+
+.. automodule:: Modules.deploy_files
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      deploy_config
+      deploy_schema
+      save_config
+      save_index
+      save_main_index
+   

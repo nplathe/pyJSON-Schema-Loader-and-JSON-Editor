@@ -1,0 +1,12 @@
+﻿Modules.ModifiedTreeModel
+=========================
+
+.. automodule:: Modules.ModifiedTreeModel
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ModifiedTreeClass
+   
