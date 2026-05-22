@@ -101,6 +101,24 @@ Repository Directory
 ...
 ```
 
+## Citation
+
+Please cite this paper if you use this code/tool in your publication. 
+```
+@article{10.1016/j.softx.2024.101945,
+author = {Plathe, Nick and Becker, Markus M. and Franke, Steffen},
+title = {pyJSON Schema Loader and JSON Editor: A tool for file-based metadata management},
+journal = {SoftwareX},
+volume = {28},
+pages = {101945},
+year = {2024},
+doi = {10.1016/j.softx.2024.101945},
+url = {https://doi.org/10.1016/j.softx.2024.101945}
+}
+```
+
+[![DOI:10.1016/j.softx.2024.101945](http://img.shields.io/badge/DOI-10.1016/j.softx.2024.101945.svg)](https://10.1016/j.softx.2024.101945)
+
 ## Grant information
 The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A and by "Deutsche Forschungsgemeinschaft (DFG)" - Projektnummer 454848899. 
 The responsibility for the content of this repository lies with the authors.
