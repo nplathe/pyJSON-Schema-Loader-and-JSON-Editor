@@ -117,8 +117,6 @@ url = {https://doi.org/10.1016/j.softx.2024.101945}
 }
 ```
 
-[![DOI:10.1016/j.softx.2024.101945](http://img.shields.io/badge/DOI-10.1016/j.softx.2024.101945.svg)](https://10.1016/j.softx.2024.101945)
-
 ## Grant information
 The work was funded by the Federal Ministry of Education and Research (BMBF) under the grant mark 16QK03A and by "Deutsche Forschungsgemeinschaft (DFG)" - Projektnummer 454848899. 
 The responsibility for the content of this repository lies with the authors.
