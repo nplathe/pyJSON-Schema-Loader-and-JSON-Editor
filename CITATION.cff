@@ -26,3 +26,23 @@ authors:
     alias: INP Greifswald
     website: 'https://www.inp-greifswald.de/'
 license: MIT
+repository-code: 'https://github.com/nplathe/pyJSON-Schema-Loader-and-JSON-Editor/'
+url: 'https://nplathe.github.io/pyJSON-Schema-Loader-and-JSON-Editor/'
+abstract: >-
+  A JSON schema based JSON editor for creation, editing, validation and saving of 
+  JSON files with additional features for organisation on a file system based level
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Plathe
+      given-names: Nick
+    - family-names: Becker
+      given-names: Markus M.
+    - family-names: Franke
+      given-names: Steffen
+  title: "pyJSON Schema Loader and JSON Editor: A tool for file-based metadata management"
+  journal: SoftwareX
+  doi: 10.1016/j.softx.2024.101945
+  year: 2024
+  volume: 28
+  start: 101945
